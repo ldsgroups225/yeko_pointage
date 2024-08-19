@@ -35,7 +35,7 @@ export default function LoginScreen() {
       // If login is successful, the root layout will handle the redirect
     } catch (err) {
       await logout();
-      console.error("[ERROR]", err);
+      console.error("[E_LOGIN]:", err);
       setError("Login failed. Please check your credentials and try again.");
     } finally {
       setIsLoading(false);

@@ -41,7 +41,7 @@ export const useClass = (): UseClassReturn => {
       return await classService.fetchClassDetails(classId);
     } catch (err) {
       setError("Failed to fetch class details.");
-      console.error(err);
+      console.error("[E_CLASS_DETAILS]:", err);
       return null;
     } finally {
       setLoading(false);

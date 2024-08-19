@@ -1,12 +1,9 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { CsText } from "@/components/commons";
-import { useThemedStyles, useAuth } from "@/hooks";
-import { spacing } from "@/styles";
+import { useAuth } from "@/hooks";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function Home() {
-  const styles = useThemedStyles(createStyles);
   const router = useRouter();
   const { user, loading } = useAuth();
 
@@ -21,23 +18,8 @@ export default function Home() {
   }, [user, loading, router]);
 
   if (loading) {
-    return (
-      <View style={styles.container}>
-        <CsText variant="h2">Loading...</CsText>
-      </View>
-    );
+    return <LoadingSpinner />;
   }
 
   return null;
 }
-
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: spacing.lg,
-      backgroundColor: theme.background,
-    },
-  });

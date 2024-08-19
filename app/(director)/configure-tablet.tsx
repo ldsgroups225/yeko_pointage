@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useSetAtom } from "jotai";
 
@@ -30,6 +30,7 @@ import {
 
 // Styles
 import { spacing } from "@/styles";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const ConfigureTablet = () => {
   const styles = useThemedStyles(createStyles);
@@ -82,7 +83,7 @@ const ConfigureTablet = () => {
       }
     } catch (err) {
       setError("Failed to load school data. Please try again later.");
-      console.error(err);
+      console.error("[E_CONFIG_SCHOOL_DATA]:", err);
     } finally {
       setLoading(false);
     }
@@ -126,7 +127,7 @@ const ConfigureTablet = () => {
       setShowConfirmation(true);
     } catch (err) {
       setError("Failed to save configuration. Please try again later.");
-      console.error(err);
+      console.error("[E_CONFIG_SAVE_CONF]:", err);
     } finally {
       setLoading(false);
     }
@@ -158,12 +159,7 @@ const ConfigureTablet = () => {
   );
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
-        <CsText style={styles.loadingText}>Loading data...</CsText>
-      </View>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

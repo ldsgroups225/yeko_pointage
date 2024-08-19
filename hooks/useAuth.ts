@@ -81,8 +81,8 @@ export const useAuth = (): useAuthReturn => {
       };
 
       setUser(user);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error("[E_AUTH_CHECK]:", err);
       setUser(null);
     } finally {
       setLoading(false);

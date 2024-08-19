@@ -43,7 +43,7 @@ export const useSchool = (): UseSchoolReturn => {
       return await school.getSchoolById(schoolId);
     } catch (err) {
       setError("Failed to fetch school details.");
-      console.error(err);
+      console.error("[E_SCHOOL_DETAILS]:", err);
       return null;
     } finally {
       setLoading(false);
@@ -66,7 +66,7 @@ export const useSchool = (): UseSchoolReturn => {
       return await school.fetchSchoolClasses(schoolId);
     } catch (err) {
       setError("Failed to fetch school classes.");
-      console.error(err);
+      console.error("[E_SCHOOL_CLASS]:", err);
       return [];
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export const useSchool = (): UseSchoolReturn => {
       return await school.fetchCycles();
     } catch (err) {
       setError("Failed to fetch cycles.");
-      console.error(err);
+      console.error("[E_SCHOOL_CYCLES]:", err);
       return [];
     } finally {
       setLoading(false);
@@ -111,7 +111,7 @@ export const useSchool = (): UseSchoolReturn => {
       return await school.fetchGrades(cycleId);
     } catch (err) {
       setError("Failed to fetch grades.");
-      console.error(err);
+      console.error("[E_SCHOOL_GRADE]:", err);
       return [];
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ export const useSchool = (): UseSchoolReturn => {
       return await school.verifyDirectorAccess(userId, schoolId);
     } catch (err) {
       setError("Failed to verify director access.");
-      console.error(err);
+      console.error("[E_VERIFY_DIRECTOR_ACCESS]:", err);
       return false;
     } finally {
       setLoading(false);
