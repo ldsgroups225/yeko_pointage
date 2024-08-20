@@ -1,9 +1,13 @@
-export type AttendanceStatus = "present" | "absent" | "late";
+export type AttendanceStatus =
+  | "present"
+  | "absent"
+  | "late"
+  | "early_departure";
 
 export interface AttendanceRecord {
-  id: string;
+  id?: string;
+  classId?: string;
   studentId: string;
-  classId: string;
   date: string;
   status: AttendanceStatus;
   lateMinutes?: number;
@@ -11,7 +15,7 @@ export interface AttendanceRecord {
 }
 
 export interface AttendanceSession {
-  id: string;
+  id?: string;
   classId: string;
   teacherId: string;
   date: string;

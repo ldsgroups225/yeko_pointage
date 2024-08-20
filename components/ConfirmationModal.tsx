@@ -7,14 +7,22 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 interface ConfirmationModalProps {
   isVisible: boolean;
-  onClose: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
   message: string;
+  title?: string;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isVisible,
-  onClose,
+  onConfirm,
+  onCancel,
   message,
+  title = "Confirmation",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
 }) => {
   const styles = useThemedStyles(createStyles);
 
@@ -29,12 +37,24 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           style={styles.modalContent}
         >
           <CsText variant="h3" style={styles.modalTitle}>
-            Confirmation
+            {title}
           </CsText>
           <CsText variant="body" style={styles.modalMessage}>
             {message}
           </CsText>
-          <CsButton title="OK" onPress={onClose} style={styles.button} />
+          <View style={styles.buttonContainer}>
+            <CsButton
+              title={cancelText}
+              onPress={onCancel}
+              style={styles.button}
+              variant="outline"
+            />
+            <CsButton
+              title={confirmText}
+              onPress={onConfirm}
+              style={styles.button}
+            />
+          </View>
         </Animated.View>
       </View>
     </Modal>
@@ -64,7 +84,12 @@ const createStyles = (theme: Theme) =>
       marginBottom: spacing.lg,
       textAlign: "center",
     },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
     button: {
-      alignSelf: "center",
+      flex: 1,
+      marginHorizontal: spacing.xs,
     },
   });

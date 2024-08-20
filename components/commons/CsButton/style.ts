@@ -25,6 +25,12 @@ export const styles = (theme: ITheme) =>
     buttontext: {
       backgroundColor: "transparent",
     },
+    // Added outline variant styles
+    buttonoutline: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: theme.primary,
+    },
     buttonsmall: {
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
@@ -52,6 +58,10 @@ export const styles = (theme: ITheme) =>
       color: theme.primary,
     },
     texttext: {
+      color: theme.primary,
+    },
+    // Added outline variant text color
+    textoutline: {
       color: theme.primary,
     },
     textsmall: {

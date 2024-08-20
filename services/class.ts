@@ -82,6 +82,8 @@ export const classService = {
         id: doc.$id,
         parentId: doc.parentId,
         idNumber: doc.idNumber,
+        firstName: doc.firstName,
+        lastName: doc.lastName,
         fullName: formatFullName(doc.firstName, doc.lastName),
       }));
     } catch (error) {

@@ -1,3 +1,5 @@
+import { AttendanceStatus } from "@/types/attendance";
+
 export interface School {
   id: string;
   cycleId: string;
@@ -17,6 +19,9 @@ export interface Student {
   parentId: string; // UUID
   idNumber: string;
   fullName: string;
+  firstName: string;
+  lastName: string;
+  status?: AttendanceStatus;
 }
 
 export interface Teacher {

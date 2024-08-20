@@ -1,7 +1,7 @@
 import { TextStyle, ViewStyle } from "react-native";
 import React from "react";
 
-export type ButtonVariant = "primary" | "secondary" | "text";
+export type ButtonVariant = "primary" | "secondary" | "text" | "outline"; // Added outline
 export type ButtonSize = "small" | "medium" | "large";
 
 export interface CsButtonProps {
