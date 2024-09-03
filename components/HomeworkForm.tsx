@@ -30,8 +30,6 @@ export default function HomeworkForm({ classId, onSubmit }: HomeworkFormProps) {
     const newHomework: Omit<Homework, "id"> = {
       teacherId: "",
       classId,
-      subject,
-      description,
       dueDate: formatDate(new Date(dueDate)),
       isGraded,
     };

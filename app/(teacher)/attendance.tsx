@@ -14,8 +14,12 @@ import {
   AttendanceRecord,
   AttendanceSession,
 } from "@/types";
-import { studentsListAtom, currentAttendanceSessionAtom } from "@/store/atoms";
-import { getCurrentTimeString, formatDate } from "@/utils/dateTime";
+import {
+  studentsListAtom,
+  currentAttendanceSessionAtom,
+  currentScheduleAtom,
+} from "@/store/atoms";
+import { getCurrentTimeString, formatDate, formatTime } from "@/utils/dateTime";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const AttendanceScreen: React.FC = () => {
@@ -28,14 +32,19 @@ const AttendanceScreen: React.FC = () => {
   }>();
 
   const students = useAtomValue(studentsListAtom);
+  const currentSchedule = useAtomValue(currentScheduleAtom);
   const setCurrentAttendanceSession = useSetAtom(currentAttendanceSessionAtom);
 
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
   const [sessionStartTime, setSessionStartTime] = useState("");
+  const [isFirstAttendanceFinished, setIsFirstAttendanceFinished] =
+    useState(false);
   const [currentTime, setCurrentTime] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+  const currentSession = useAtomValue(currentAttendanceSessionAtom);
 
   useEffect(() => {
     StatusBar.setHidden(true);
@@ -43,12 +52,21 @@ const AttendanceScreen: React.FC = () => {
     setSessionStartTime(startTime);
     setCurrentTime(startTime);
 
-    const initialRecords = students.map((student) => ({
-      studentId: student.id,
-      status: "present" as AttendanceStatus,
-      date: startTime,
-    }));
-    setAttendanceRecords(initialRecords);
+    if (currentSession) {
+      setAttendanceRecords(currentSession.records);
+    } else {
+      const initialRecords = students.map(
+        (student) =>
+          ({
+            studentId: student.id,
+            status: "present" as AttendanceStatus,
+            startTime: formatTime(startTime),
+            endTime: formatTime(currentSchedule!.endTime),
+            classId: classId,
+          }) satisfies AttendanceRecord,
+      );
+      setAttendanceRecords(initialRecords);
+    }
 
     const timer = setInterval(() => {
       setCurrentTime(getCurrentTimeString());
@@ -58,7 +76,7 @@ const AttendanceScreen: React.FC = () => {
       clearInterval(timer);
       StatusBar.setHidden(false);
     };
-  }, [students]);
+  }, [students, currentSession]);
 
   const updateAttendanceStatus = (
     studentId: string,
@@ -71,27 +89,33 @@ const AttendanceScreen: React.FC = () => {
           : record,
       ),
     );
+
+    if (isFirstAttendanceFinished) {
+      updateAttendanceSession();
+    }
   };
 
   const renderStudentItem = ({ item: student }: { item: Student }) => {
-    const record = attendanceRecords.find(
-      (r) => r.studentId === student.id,
-    ) || {
-      studentId: student.id,
-      status: "present",
-      date: sessionStartTime,
-    };
+    const record =
+      attendanceRecords.find((r) => r.studentId === student.id) ||
+      ({
+        studentId: student.id,
+        status: "present" as AttendanceStatus,
+        startTime: sessionStartTime,
+        endTime: formatTime(currentSchedule!.endTime),
+        classId: classId,
+      } satisfies AttendanceRecord);
 
     return (
       <StudentCard
         student={student}
         attendanceRecord={record}
         onUpdateStatus={updateAttendanceStatus}
+        isFirstAttendanceCheck={!isFirstAttendanceFinished}
       />
     );
   };
 
-  // Calculate statistics
   const totalStudents = students.length;
   const presentCount = attendanceRecords.filter(
     (r) => r.status === "present",
@@ -108,8 +132,16 @@ const AttendanceScreen: React.FC = () => {
     setShowConfirmationModal(true);
   };
 
-  const confirmProceedToParticipation = () => {
-    setShowConfirmationModal(false);
+  const handleFinalizeAttendance = () => {
+    if (isFirstAttendanceFinished) {
+      handleProceedToParticipation();
+    } else {
+      setIsFirstAttendanceFinished(true);
+      updateAttendanceSession();
+    }
+  };
+
+  const updateAttendanceSession = () => {
     const endTime = getCurrentTimeString();
     const now = new Date();
 
@@ -119,12 +151,14 @@ const AttendanceScreen: React.FC = () => {
       date: now.toISOString(),
       startTime: sessionStartTime,
       endTime,
-      records: attendanceRecords,
+      records: attendanceRecords.filter((a) => a.status !== "present"),
     };
 
     setCurrentAttendanceSession(newAttendanceSession);
+  };
 
-    // Navigate to the Participation screen
+  const confirmProceedToParticipation = () => {
+    setShowConfirmationModal(false);
     router.push({
       pathname: "/participation",
       params: { teacherId, classId, scheduleId },
@@ -136,22 +170,24 @@ const AttendanceScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <CsText variant="h2" style={styles.title}>
-            Attendance
+            Appel
           </CsText>
-          <CsText variant="body">{formatDate(new Date())}</CsText>
+          <CsText variant="body" style={{ textTransform: "capitalize" }}>
+            {formatDate(new Date())}
+          </CsText>
         </View>
         <View style={styles.headerRight}>
           <CsText variant="h3" style={styles.currentTime}>
             {currentTime}
           </CsText>
-          <CsText variant="body">Started: {sessionStartTime}</CsText>
+          <CsText variant="body">Débuté : {sessionStartTime}</CsText>
         </View>
       </View>
 
       <View style={styles.body}>
         <View style={styles.leftColumn}>
           <CsText variant="h3" style={styles.sectionTitle}>
-            Statistics
+            Statistiques
           </CsText>
           <View style={styles.statsContainer}>
             <StatCard
@@ -162,51 +198,61 @@ const AttendanceScreen: React.FC = () => {
             />
             <StatCard
               icon="user-check"
-              title="Present"
+              title="Présents"
               value={presentCount}
               color="#7ED321"
             />
             <StatCard
               icon="user-times"
-              title="Absent"
+              title="Absents"
               value={absentCount}
               color="#D0021B"
             />
             <StatCard
               icon="user-clock"
-              title="Late"
+              title="En retard"
               value={lateCount}
               color="#F5A623"
             />
             <StatCard
               icon="sign-out-alt"
-              title="Early Departure"
+              title="Départ anticipé"
               value={earlyDepartureCount}
               color="#9013FE"
             />
           </View>
 
           <CsButton
-            title="Proceed to Participation"
-            onPress={handleProceedToParticipation}
+            title={
+              isFirstAttendanceFinished
+                ? "Attribuer participations"
+                : "Terminer l'appel"
+            }
+            onPress={handleFinalizeAttendance}
             style={styles.finalizeButton}
-            icon={<FontAwesome5 name="arrow-right" size={16} color="white" />}
+            icon={
+              isFirstAttendanceFinished ? (
+                <FontAwesome5 name="arrow-right" size={16} color="white" />
+              ) : (
+                <FontAwesome5 name="check" size={16} color="white" />
+              )
+            }
           />
 
           <ConfirmationModal
             isVisible={showConfirmationModal}
             onConfirm={confirmProceedToParticipation}
             onCancel={() => setShowConfirmationModal(false)}
-            message="Are you sure you want to finalize attendance and proceed to participation tracking?"
-            title="Finalize Attendance"
-            confirmText="Proceed"
-            cancelText="Cancel"
+            message="Êtes-vous sûr de vouloir finaliser l'appel et passer à l'attribution des participations ?"
+            title="Finaliser l'appel"
+            confirmText="Continuer"
+            cancelText="Annuler"
           />
         </View>
 
         <View style={styles.rightColumn}>
           <CsText variant="h3" style={styles.sectionTitle}>
-            Student List
+            Liste des élèves
           </CsText>
           <FlatList
             data={students}

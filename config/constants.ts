@@ -23,7 +23,7 @@ export const ANIMATION_DURATION = 300; // 300 milliseconds
 export const MAX_PARTICIPATION_COUNT = 5;
 
 // Date formats
-export const DATE_FORMAT = "yyyy-MM-dd";
+export const DATE_FORMAT = "PPPP";
 export const TIME_FORMAT = "HH:mm";
 
 // QR Code

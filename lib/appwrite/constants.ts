@@ -2,7 +2,7 @@
  * The endpoint URL for the Appwrite server.
  * This is the base URL used for all Appwrite API requests.
  */
-export const APPWRITE_ENDPOINT = "http://192.168.83.98:8085/v1";
+export const APPWRITE_ENDPOINT = "http://192.168.193.98:8085/v1";
 
 /**
  * The unique ID of the Appwrite project.
@@ -57,3 +57,18 @@ export const TEACHER_COLLECTION_ID = "teachers";
  * The ID of the collection storing Schedule documents in the Appwrite database.
  */
 export const SCHEDULE_COLLECTION_ID = "schedules";
+
+/**
+ * The ID of the collection storing Attendance documents in the Appwrite database.
+ */
+export const ATTENDANCE_COLLECTION_ID = "attendances";
+
+/**
+ * The ID of the collection storing Participation documents in the Appwrite database.
+ */
+export const PARTICIPATION_COLLECTION_ID = "participations";
+
+/**
+ * The ID of the collection storing Homework documents in the Appwrite database.
+ */
+export const HOMEWORK_COLLECTION_ID = "homeworks";

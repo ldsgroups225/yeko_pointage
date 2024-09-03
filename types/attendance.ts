@@ -8,10 +8,12 @@ export interface AttendanceRecord {
   id?: string;
   classId?: string;
   studentId: string;
-  date: string;
   status: AttendanceStatus;
   lateMinutes?: number;
   earlyDepartureMinutes?: number;
+  subject?: string; // TODO: implement it
+  startTime: string;
+  endTime: string;
 }
 
 export interface AttendanceSession {

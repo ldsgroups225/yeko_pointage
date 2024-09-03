@@ -1,74 +1,87 @@
-import { useAtom } from "jotai";
-import {
-  currentAttendanceSessionAtom,
-  attendanceHistoryAtom,
-} from "@/store/atoms";
-import * as attendanceService from "@/services/attendance";
-import { AttendanceSession, AttendanceRecord } from "@/types";
+import { useState } from "react";
+import { attendance } from "@/services/attendance";
+import { AttendanceRecord } from "@/types";
 
-export function useAttendance() {
-  const [currentSession, setCurrentSession] = useAtom(
-    currentAttendanceSessionAtom,
-  );
-  const [attendanceHistory, setAttendanceHistory] = useAtom(
-    attendanceHistoryAtom,
-  );
+/**
+ * Return type for the `useAttendance` hook.
+ */
+interface UseAttendanceReturn {
+  createAttendance: (
+    attendanceData: AttendanceRecord,
+  ) => Promise<AttendanceRecord | null>;
+  createAttendances: (
+    attendanceDataArray: AttendanceRecord[],
+  ) => Promise<AttendanceRecord[] | null>;
+  loading: boolean;
+  error: string | null;
+}
 
-  const startSession = async (classId: string, date: Date) => {
-    const session = await attendanceService.startAttendanceSession(
-      classId,
-      date,
-    );
-    setCurrentSession(session);
-    return session;
+/**
+ * Custom React hook for managing attendance-related data and actions.
+ *
+ * Provides functions for creating attendance records, while managing loading
+ * and error states.
+ *
+ * @returns {UseAttendanceReturn} An object containing functions and state for managing attendance data.
+ */
+export const useAttendance = (): UseAttendanceReturn => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Asynchronously creates a new attendance record.
+   *
+   * Updates the loading and error states accordingly.
+   *
+   * @param {AttendanceRecord} attendanceData - The attendance data to create.
+   * @returns {Promise<AttendanceRecord | null>} A promise that resolves to the created attendance object if successful,
+   *                                             or null if an error occurs.
+   */
+  const createAttendance = async (
+    attendanceData: AttendanceRecord,
+  ): Promise<AttendanceRecord | null> => {
+    setLoading(true);
+    setError(null);
+    try {
+      return await attendance.createAttendance(attendanceData);
+    } catch (err) {
+      setError("Failed to create attendance record.");
+      console.error("[E_CREATE_ATTENDANCE]:", err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const endSession = async () => {
-    if (!currentSession) throw new Error("No active attendance session");
-    const endedSession = await attendanceService.endAttendanceSession(
-      currentSession.id,
-    );
-    setCurrentSession(null);
-    setAttendanceHistory((prev) => [...prev, endedSession]);
-    return endedSession;
-  };
-
-  const recordAttendance = async (record: AttendanceRecord) => {
-    if (!currentSession) throw new Error("No active attendance session");
-    const updatedRecord = await attendanceService.recordAttendance(
-      currentSession.id,
-      record,
-    );
-    setCurrentSession((prev) => ({
-      ...prev!,
-      records: [
-        ...prev!.records.filter((r) => r.studentId !== record.studentId),
-        updatedRecord,
-      ],
-    }));
-    return updatedRecord;
-  };
-
-  const fetchAttendanceHistory = async (
-    classId: string,
-    startDate: Date,
-    endDate: Date,
-  ) => {
-    const history = await attendanceService.getAttendanceHistory(
-      classId,
-      startDate,
-      endDate,
-    );
-    setAttendanceHistory(history);
-    return history;
+  /**
+   * Asynchronously creates multiple attendance records.
+   *
+   * Updates the loading and error states accordingly.
+   *
+   * @param {AttendanceRecord[]} attendanceDataArray - An array of attendance data to create.
+   * @returns {Promise<AttendanceRecord[] | null>} A promise that resolves to an array of created attendance objects if successful,
+   *                                               or null if an error occurs.
+   */
+  const createAttendances = async (
+    attendanceDataArray: AttendanceRecord[],
+  ): Promise<AttendanceRecord[] | null> => {
+    setLoading(true);
+    setError(null);
+    try {
+      return await attendance.createAttendances(attendanceDataArray);
+    } catch (err) {
+      setError("Failed to create attendance records.");
+      console.error("[E_CREATE_ATTENDANCES]:", err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
-    currentSession,
-    attendanceHistory,
-    startSession,
-    endSession,
-    recordAttendance,
-    fetchAttendanceHistory,
+    createAttendance,
+    createAttendances,
+    loading,
+    error,
   };
-}
+};

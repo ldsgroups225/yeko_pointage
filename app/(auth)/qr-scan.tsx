@@ -1,18 +1,27 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Modal } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Modal, Image, Animated, Easing } from "react-native";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { CsText, CsButton, CsCard } from "@/components/commons";
 import { QRScanner } from "@/components/QRScanner";
 import { useThemedStyles } from "@/hooks";
 import { spacing } from "@/styles";
 import { UserRole, Teacher, ClassSchedule } from "@/types";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   classScheduleAtom,
   currentClassAtom,
+  currentTeacherAtom,
   teachersListAtom,
+  currentScheduleAtom,
 } from "@/store/atoms";
 import { checkScheduledClass, extractHourAndMinute } from "@/utils/dateTime";
+import ToastColor from "../../styles/toast";
+
+// Helper function for handling errors (Efficiency and Resource Management)
+const handleError = (setError: Function, message: string) => {
+  setError(message);
+};
 
 interface WelcomeModalProps {
   isVisible: boolean;
@@ -58,60 +67,142 @@ export default function QRScanScreen() {
   const [showScanner, setShowScanner] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [currentTeacher, setCurrentTeacher] = useState<Teacher | null>(null);
-  const [currentSchedule, setCurrentSchedule] = useState<ClassSchedule | null>(
-    null,
-  );
 
   const teachers = useAtomValue(teachersListAtom);
   const schedules = useAtomValue(classScheduleAtom);
   const currentClass = useAtomValue(currentClassAtom);
+  const currentTeacher = useAtomValue(currentTeacherAtom);
+  const currentSchedule = useAtomValue(currentScheduleAtom);
+
+  const setCurrentTeacher = useSetAtom(currentTeacherAtom);
+  const setCurrentSchedule = useSetAtom(currentScheduleAtom);
+
+  // New animations
+  const [scanAnimation] = useState(new Animated.Value(0));
+  const [fadeAnimation] = useState(new Animated.Value(1));
+
+  useEffect(() => {
+    // Animate scan area like a breathing effect
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanAnimation, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanAnimation, {
+          toValue: 0,
+          duration: 1500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, []);
+
+  const validateQRCodeData = (
+    data: string,
+  ): [string, string, string | undefined] | null => {
+    const parts = data.split("|---|");
+    if (parts.length < 2 || !parts[0] || !parts[1]) {
+      return null;
+    }
+    return parts as [string, string, string | undefined];
+  };
+
+  const fetchTeacherData = (
+    userId: string,
+    teachers: Teacher[],
+  ): Teacher | null => {
+    return teachers.find((t) => t.id === userId) || null;
+  };
+
+  const checkSchedule = (
+    userId: string,
+    schedules: ClassSchedule[],
+  ): ClassSchedule | null => {
+    return checkScheduledClass(
+      userId,
+      schedules,
+      "No scheduled class for this teacher at the current time",
+    );
+  };
+
+  const handleTeacherRole = (
+    setCurrentTeacher: Function,
+    setCurrentSchedule: Function,
+    setShowWelcomeModal: Function,
+    teacher: Teacher,
+    schedule: ClassSchedule,
+  ) => {
+    setCurrentTeacher(teacher);
+    setCurrentSchedule(schedule);
+    setShowWelcomeModal(true);
+  };
+
+  const handleDirectorScan = async (schoolId: string) => {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    router.navigate({
+      pathname: "/(auth)/login",
+      params: { role: UserRole.DIRECTOR, schoolId },
+    });
+  };
+
+  const handleTeacherScan = async (userId: string) => {
+    const teacher = fetchTeacherData(userId, teachers);
+    if (!teacher) {
+      handleError(setError, "Teacher not found for this class");
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
+    const schedule = checkSchedule(userId, schedules);
+    if (!schedule) {
+      handleError(
+        setError,
+        "No scheduled class for this teacher at the current time",
+      );
+
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+    setCurrentSchedule(schedule);
+
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    handleTeacherRole(
+      setCurrentTeacher,
+      setCurrentSchedule,
+      setShowWelcomeModal,
+      teacher,
+      schedule,
+    );
+  };
 
   const handleQRScan = async (data: string) => {
     setError(null);
 
-    // QRScan look like "teacher/director|---|SCHOOL_ID|---|USER_ID" where "|---|USER_ID" is optional
-    const [role, schoolId, userId] = data.split("|---|");
-
-    if (!role || !schoolId) {
-      setError("Invalid QR code format");
+    const parts = validateQRCodeData(data);
+    if (!parts) {
+      handleError(setError, "Invalid QR code format");
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
 
+    const [role, schoolId, userId] = parts;
+
     if (role === UserRole.DIRECTOR) {
-      router.navigate({
-        pathname: "/(auth)/login",
-        params: { role: UserRole.DIRECTOR, schoolId },
-      });
+      await handleDirectorScan(schoolId);
     } else if (role === UserRole.TEACHER) {
       if (!userId) {
-        setError("Invalid teacher QR code");
+        handleError(setError, "Invalid teacher QR code");
         return;
       }
-
-      const teacher = teachers.find((t) => t.id === userId);
-
-      if (!teacher) {
-        setError("Teacher not found for this class");
-        return;
-      }
-
-      const schedule = checkScheduledClass(
-        userId,
-        schedules,
-        "No scheduled class for this teacher at the current time",
-      );
-
-      if (!schedule) {
-        setError("No scheduled class for this teacher at the current time");
-        return;
-      }
-
-      setCurrentTeacher(teacher);
-      setCurrentSchedule(schedule);
-      setShowWelcomeModal(true);
+      await handleTeacherScan(userId);
     } else {
-      setError("Invalid user role");
+      setCurrentSchedule(null);
+      handleError(setError, "Invalid user role");
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -129,38 +220,81 @@ export default function QRScanScreen() {
     }
   };
 
+  const toggleScanner = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then((r) => r);
+
+    Animated.timing(fadeAnimation, {
+      toValue: showScanner ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setShowScanner(!showScanner));
+  };
+
   return (
     <View style={styles.container}>
-      <CsText variant="h2" style={styles.title}>
-        Identify you by QR Code
-      </CsText>
-      {error && (
-        <CsText variant="body" color="error" style={styles.error}>
-          {error}
+      <Animated.View style={[styles.content, { opacity: fadeAnimation }]}>
+        <View style={styles.header}>
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={styles.logo}
+          />
+        </View>
+        <CsText variant="h2" style={styles.title}>
+          Scannez votre QR Code
         </CsText>
-      )}
-      <CsButton
-        title={showScanner ? "Cancel Scan" : "Start Scan"}
-        onPress={() => setShowScanner(!showScanner)}
-        style={styles.button}
-      />
+        <CsText variant="body" style={styles.subtitle}>
+          pour vous identifier
+        </CsText>
+        {error && (
+          <CsCard style={styles.errorCard}>
+            <CsText variant="body" color="error" style={styles.error}>
+              {error}
+            </CsText>
+          </CsCard>
+        )}
+        <CsButton
+          title={showScanner ? "Annuler le scan" : "Commencer le scan"}
+          onPress={toggleScanner}
+          style={styles.button}
+        />
 
-      {/* TODO: Remove later */}
-      <CsButton
-        title="Simulate Scan result"
-        onPress={() =>
-          handleQRScan(
-            "teacher|---|66c0ceef0014ccb3fcc8|---|66c2b025001639733b61",
-          )
-        }
-        variant="text"
-        style={styles.button}
-      />
-      <QRScanner
-        isVisible={showScanner}
-        onScan={handleQRScan}
-        onClose={() => setShowScanner(false)}
-      />
+        {/* TODO: Remove later */}
+        <CsButton
+          title="Simuler le résultat du scan"
+          onPress={() =>
+            handleQRScan(
+              "teacher|---|66c0ceef0014ccb3fcc8|---|66c2b025001639733b61",
+            )
+          }
+          variant="text"
+          style={styles.simulateButton}
+        />
+      </Animated.View>
+
+      {showScanner && (
+        <Animated.View
+          style={[
+            styles.scannerContainer,
+            {
+              transform: [
+                {
+                  scale: scanAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.95, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <QRScanner
+            isVisible={showScanner}
+            onScan={handleQRScan}
+            onClose={toggleScanner}
+          />
+        </Animated.View>
+      )}
+
       {currentTeacher && currentSchedule && (
         <WelcomeModal
           isVisible={showWelcomeModal}
@@ -182,36 +316,57 @@ const createStyles = (theme: Theme) =>
       padding: spacing.lg,
       backgroundColor: theme.background,
     },
+    content: {
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    },
+    header: {
+      alignItems: "center",
+      marginBottom: spacing.xl,
+    },
+    logo: {
+      width: 100,
+      height: 100,
+      resizeMode: "contain",
+    },
     title: {
-      marginBottom: spacing.md,
+      fontSize: 28,
+      fontWeight: "bold",
+      marginBottom: spacing.sm,
+      textAlign: "center",
+    },
+    subtitle: {
+      fontSize: 18,
+      color: theme.textLight,
+      marginBottom: spacing.xl,
+      textAlign: "center",
+    },
+    errorCard: {
+      backgroundColor: ToastColor.error,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+      borderRadius: 8,
+      width: "100%",
     },
     error: {
-      marginBottom: spacing.md,
       textAlign: "center",
     },
     button: {
-      minWidth: 200,
+      minWidth: 250,
+      marginBottom: spacing.md,
     },
-    modalOverlay: {
-      flex: 1,
+    simulateButton: {
+      marginTop: spacing.md,
+    },
+    scannerContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-    },
-    modalContent: {
-      padding: spacing.lg,
-      width: "80%",
-      maxWidth: 400,
-    },
-    modalTitle: {
-      marginBottom: spacing.md,
-      textAlign: "center",
-    },
-    modalText: {
-      marginBottom: spacing.lg,
-      textAlign: "center",
-    },
-    modalButton: {
-      alignSelf: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
     },
   });

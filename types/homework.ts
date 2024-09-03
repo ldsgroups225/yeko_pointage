@@ -1,10 +1,7 @@
 export interface Homework {
-  id: string;
-  classId: string;
-  teacherId: string;
-  subject: string;
-  description: string;
+  id?: string; // autofill in server side, not necessary in form
+  classId: string; // autofill in server side, not necessary in form
+  teacherId: string; // autofill in server side, not necessary in form
   dueDate: string;
   isGraded: boolean;
-  attachmentUrl?: string;
 }

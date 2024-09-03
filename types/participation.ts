@@ -7,7 +7,7 @@ export interface Participation {
 }
 
 export interface ParticipationSession {
-  id: string;
+  id?: string;
   classId: string;
   teacherId: string;
   date: string;

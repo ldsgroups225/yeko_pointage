@@ -93,9 +93,25 @@ export const currentClassAtom = atomWithMMKV<Class | null>(
 );
 
 /**
+ * Atom representing the current teacher.
+ */
+export const currentTeacherAtom = atomWithMMKV<Teacher | null>(
+  "currentTeacher",
+  null,
+);
+
+/**
  * Atom storing a list of students belonging to the current class.
  */
 export const studentsListAtom = atomWithMMKV<Student[]>("studentsList", []);
+
+/**
+ * Atom storing the class schedule for the current class.
+ */
+export const currentScheduleAtom = atomWithMMKV<ClassSchedule | null>(
+  "currentSchedule",
+  null,
+);
 
 /**
  * Atom storing the class schedule for the current class.
@@ -123,6 +139,15 @@ export const currentAttendanceSessionAtom =
 export const attendanceHistoryAtom = atomWithMMKV<AttendanceSession[]>(
   "attendanceHistory",
   [],
+);
+
+// Homework Atoms
+/**
+ * Atom representing the currently set Homework.
+ */
+export const currentHomeworkAtom = atomWithMMKV<Homework | null>(
+  "currentHomework",
+  null,
 );
 
 // Participation Atoms

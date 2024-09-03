@@ -206,7 +206,8 @@ const ConfigureTablet = () => {
 
       <ConfirmationModal
         isVisible={showConfirmation}
-        onClose={handleConfirmation}
+        onConfirm={handleConfirmation}
+        onCancel={() => setShowConfirmation(false)}
         message="Tablet configuration saved successfully! You will be logged out now."
       />
     </ScrollView>

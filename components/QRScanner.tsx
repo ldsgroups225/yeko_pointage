@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Modal, StyleSheet, View } from "react-native";
+import { Modal, StyleSheet, View, SafeAreaView } from "react-native";
 import {
   BarcodeScanningResult,
   CameraType,
   CameraView,
   useCameraPermissions,
 } from "expo-camera";
+import { Ionicons } from "@expo/vector-icons";
 import { QR_CODE_PREFIX } from "@/config/constants";
 import { useThemedStyles } from "@/hooks";
 import { spacing } from "@/styles";
@@ -75,32 +76,48 @@ export const QRScanner: React.FC<QRScannerProps> = ({
 
   return (
     <Modal visible={isVisible} animationType="slide">
-      <View style={themedStyles.container}>
-        <CameraView
-          style={StyleSheet.absoluteFillObject}
-          facing={facing}
-          barcodeScannerSettings={{
-            barcodeTypes: ["qr"],
-          }}
-          responsiveOrientationWhenOrientationLocked={true}
-          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-        >
-          <View style={themedStyles.overlay}>
-            <CsText variant="h3" style={themedStyles.scanText}>
-              Scan QR Code
-            </CsText>
-            <CsButton
-              title="Cancel"
-              onPress={onClose}
-              style={themedStyles.cancelButton}
-            />
-          </View>
-        </CameraView>
+      <SafeAreaView style={themedStyles.container}>
+        <View style={themedStyles.header}>
+          <CsText variant="h2" style={themedStyles.title}>
+            Scan QR Code
+          </CsText>
+          <CsButton
+            onPress={onClose}
+            title="TODO"
+            style={themedStyles.closeButton}
+            icon={
+              <Ionicons
+                name="close"
+                size={24}
+                color={themedStyles.closeButton.color}
+              />
+            }
+          />
+        </View>
+        <View style={themedStyles.cameraContainer}>
+          <CameraView
+            style={themedStyles.camera}
+            facing={facing}
+            barcodeScannerSettings={{
+              barcodeTypes: ["qr"],
+            }}
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          >
+            <View style={themedStyles.scanOverlay}>
+              <View style={themedStyles.scanFrame} />
+            </View>
+          </CameraView>
+        </View>
+        <View style={themedStyles.footer}>
+          <CsText variant="body" style={themedStyles.footerText}>
+            Position the QR code within the frame to scan
+          </CsText>
+        </View>
         <Modal visible={showInfoModal} transparent animationType="fade">
           <View style={themedStyles.modalOverlay}>
             <CsCard style={themedStyles.modalContent}>
               <CsText variant="h3" style={themedStyles.modalTitle}>
-                QR Code Scanned
+                QR Code Scanned Successfully
               </CsText>
               <CsText variant="body" style={themedStyles.modalText}>
                 {(scanResult ?? "").startsWith(UserRole.DIRECTOR)
@@ -117,12 +134,13 @@ export const QRScanner: React.FC<QRScannerProps> = ({
                   title="Rescan"
                   onPress={handleRescan}
                   style={themedStyles.button}
+                  variant="outline"
                 />
               </View>
             </CsCard>
           </View>
         </Modal>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -131,36 +149,69 @@ const styles = (theme: ITheme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      flexDirection: "column",
-      justifyContent: "flex-end",
+      backgroundColor: theme.background,
     },
-    overlay: {
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: spacing.md,
+    },
+    title: {
+      color: theme.text,
+    },
+    closeButton: {
+      backgroundColor: "transparent",
+      color: theme.text,
+    },
+    cameraContainer: {
+      flex: 1,
+      overflow: "hidden",
+      borderRadius: 16,
+      margin: spacing.md,
+    },
+    camera: {
+      flex: 1,
+    },
+    scanOverlay: {
+      flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",
-      padding: spacing.lg,
+      justifyContent: "center",
       alignItems: "center",
     },
-    scanText: {
-      color: theme.textLight,
-      marginBottom: spacing.lg,
+    scanFrame: {
+      width: 250,
+      height: 250,
+      borderWidth: 2,
+      borderColor: theme.primary,
+      backgroundColor: "transparent",
     },
-    cancelButton: {
-      width: "100%",
+    footer: {
+      padding: spacing.md,
+      alignItems: "center",
+    },
+    footerText: {
+      color: theme.text,
+      textAlign: "center",
     },
     modalOverlay: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0,0,0,0.5)",
+      backgroundColor: "rgba(0,0,0,0.7)",
     },
     modalContent: {
       padding: spacing.lg,
-      width: "80%",
+      width: "90%",
+      maxWidth: 400,
     },
     modalTitle: {
       marginBottom: spacing.md,
+      textAlign: "center",
     },
     modalText: {
       marginBottom: spacing.lg,
+      textAlign: "center",
     },
     buttonContainer: {
       flexDirection: "row",

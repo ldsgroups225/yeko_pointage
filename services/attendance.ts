@@ -1,47 +1,126 @@
-import { AttendanceRecord, AttendanceSession } from "@/types";
-// import { formatDate } from "@/utils/dateTime";
+import {
+  APPWRITE_DATABASE_ID,
+  ATTENDANCE_COLLECTION_ID,
+  databases,
+} from "@/lib/appwrite";
+import { AttendanceRecord } from "@/types";
+import { ID } from "appwrite";
 
-export async function startAttendanceSession(
-  classId: string,
-  date: Date,
-): Promise<AttendanceSession> {
-  // const response = await api.post("/attendance/start", {
-  //   classId,
-  //   date: formatDate(date),
-  // });
-  // return response.data;
-  return {} as AttendanceSession;
-}
+/**
+ * Module for managing attendance records.
+ * @module attendance
+ */
+export const attendance = {
+  /**
+   * Creates a new attendance record.
+   * @async
+   * @param {AttendanceRecord} attendanceData - The attendance data to create.
+   * @returns {Promise<AttendanceRecord>} The created attendance record.
+   * @throws {Error} If there's an error creating the attendance record.
+   * @example
+   * const attendanceData = {
+   *   studentId: 'student123',
+   *   classId: 'class456',
+   *   date: '2024-03-08',
+   *   status: 'present',
+   * };
+   * try {
+   *   const createdAttendance = await attendance.createAttendance(attendanceData);
+   *   console.log(createdAttendance);
+   * } catch (error) {
+   *   console.error('Failed to create attendance:', error);
+   * }
+   */
+  async createAttendance(
+    attendanceData: AttendanceRecord,
+  ): Promise<AttendanceRecord> {
+    try {
+      const response = await databases.createDocument(
+        APPWRITE_DATABASE_ID,
+        ATTENDANCE_COLLECTION_ID,
+        ID.unique(),
+        {
+          studentId: attendanceData.studentId,
+          classId: attendanceData.classId,
+          start_time: attendanceData.startTime,
+          end_time: attendanceData.endTime,
+          status: attendanceData.status,
+          isExcused: false,
+        },
+      );
 
-export async function endAttendanceSession(
-  sessionId: string,
-): Promise<AttendanceSession> {
-  // const response = await api.post(`/attendance/${sessionId}/end`);
-  // return response.data;
-  return {} as AttendanceSession;
-}
+      return {
+        id: response.$id,
+        studentId: response.studentId,
+        classId: response.classId,
+        startTime: response.start_time,
+        endTime: response.end_time,
+        status: response.status,
+      };
+    } catch (error) {
+      console.error("Error creating attendance record:", error);
+      throw error;
+    }
+  },
 
-export async function recordAttendance(
-  sessionId: string,
-  record: AttendanceRecord,
-): Promise<AttendanceRecord> {
-  // const response = await api.post(`/attendance/${sessionId}/record`, record);
-  // return response.data;
-  return record;
-}
+  /**
+   * Creates multiple attendance records.
+   * @async
+   * @param {AttendanceRecord[]} attendanceDataArray - An array of attendance data to create.
+   * @returns {Promise<AttendanceRecord[]>} An array of created attendance records.
+   * @throws {Error} If there's an error creating any of the attendance records.
+   * @example
+   * const attendanceDataArray = [
+   *   { studentId: 'student123', classId: 'class456', date: '2024-03-08', status: 'present' },
+   *   { studentId: 'student456', classId: 'class789', date: '2024-03-08', status: 'absent' },
+   * ];
+   * try {
+   *   const createdAttendances = await attendance.createAttendances(attendanceDataArray);
+   *   console.log(createdAttendances);
+   * } catch (error) {
+   *   console.error('Failed to create attendances:', error);
+   * }
+   */
+  async createAttendances(
+    attendanceDataArray: AttendanceRecord[],
+  ): Promise<AttendanceRecord[]> {
+    const createdAttendances: AttendanceRecord[] = [];
 
-export async function getAttendanceHistory(
-  classId: string,
-  startDate: Date,
-  endDate: Date,
-): Promise<AttendanceSession[]> {
-  // const response = await api.get("/attendance/history", {
-  //   params: {
-  //     classId,
-  //     startDate: formatDate(startDate),
-  //     endDate: formatDate(endDate),
-  //   },
-  // });
-  // return response.data;
-  return [];
-}
+    for (const attendanceData of attendanceDataArray) {
+      try {
+        const response = await databases.createDocument(
+          APPWRITE_DATABASE_ID,
+          ATTENDANCE_COLLECTION_ID,
+          ID.unique(),
+          {
+            studentId: attendanceData.studentId,
+            classId: attendanceData.classId,
+            start_time: attendanceData.startTime,
+            end_time: attendanceData.endTime,
+            status: attendanceData.status,
+            isExcused: false,
+          },
+        );
+
+        createdAttendances.push({
+          id: response.$id,
+          studentId: response.studentId,
+          classId: response.classId,
+          startTime: response.start_time,
+          endTime: response.end_time,
+          status: response.status,
+        });
+      } catch (error) {
+        console.error("Error creating attendance record:", error);
+        throw error;
+      }
+    }
+
+    return createdAttendances;
+  },
+
+  // TODO: Add more functions as needed, such as:
+  // - fetchAttendanceRecords
+  // - updateAttendance
+  // - deleteAttendance
+};

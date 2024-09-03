@@ -9,27 +9,60 @@ import {
   isBefore,
   isEqual,
 } from "date-fns";
+import { fr } from "date-fns/locale";
 
+/**
+ * Formats a Date object or a date string to a localized date string.
+ *
+ * @param {Date | string} date - The Date object or date string to format.
+ * @returns {string} The formatted date string.
+ */
 export function formatDate(date: Date | string): string {
   const parsedDate = typeof date === "string" ? new Date(date) : date;
-  return format(parsedDate, DATE_FORMAT);
+  return format(parsedDate, DATE_FORMAT, { locale: fr });
 }
 
+/**
+ * Formats a Date object or a date string to a time string.
+ *
+ * @param {Date | string} date - The Date object or date string to format.
+ * @returns {string} The formatted time string.
+ */
 export function formatTime(date: Date | string): string {
+  console.log("[DATE TM]:", date);
   const parsedDate = typeof date === "string" ? new Date(date) : date;
   return format(parsedDate, TIME_FORMAT);
 }
 
+/**
+ * Parses a date string to a Date object.
+ *
+ * @param {string} dateString - The date string to parse.
+ * @returns {Date | null} The parsed Date object, or null if the parsing fails.
+ */
 export function parseDate(dateString: string): Date | null {
   const parsedDate = parse(dateString, DATE_FORMAT, new Date());
   return isValid(parsedDate) ? parsedDate : null;
 }
 
+/**
+ * Parses a time string to a Date object.
+ *
+ * @param {string} timeString - The time string to parse.
+ * @returns {Date | null} The parsed Date object, or null if the parsing fails.
+ */
 export function parseTime(timeString: string): Date | null {
   const parsedTime = parse(timeString, TIME_FORMAT, new Date());
   return isValid(parsedTime) ? parsedTime : null;
 }
 
+/**
+ * Calculates the duration in minutes between a start time and an arrival time.
+ *
+ * @param {Date} startTime - The start time.
+ * @param {Date} arrivalTime - The arrival time.
+ * @returns {number} The duration in minutes, or 0 if the arrival time is before the start time.
+ */
 export function calculateLateDuration(
   startTime: Date,
   arrivalTime: Date,
@@ -38,29 +71,39 @@ export function calculateLateDuration(
 }
 
 /**
- * Get the current day of the week as a number (0-6, where 0 is Sunday)
+ * Gets the current day of the week as a number (0-6, where 0 is Sunday).
+ *
+ * @returns {number} The current day of the week.
  */
 export function getCurrentDayOfWeek(): number {
   return new Date().getDay();
 }
 
 /**
- * Get the current time as a string in HH:mm format
+ * Gets the current time as a string in HH:mm format.
+ *
+ * @returns {string} The current time in HH:mm format.
  */
 export function getCurrentTimeString(): string {
   const now = new Date();
-  return now.toTimeString().slice(0, 5); // Returns time in HH:mm format
+  return now.toTimeString().slice(0, 5);
 }
 
 /**
- * Format a Date object to a time string in HH:mm format
+ * Formats a Date object to a time string in HH:mm format.
+ *
+ * @param {Date} date - The Date object to format.
+ * @returns {string} The formatted time string in HH:mm format.
  */
 export function formatTimeString(date: Date): string {
   return date.toTimeString().slice(0, 5);
 }
 
 /**
- * Parse a time string in HH:mm format to a Date object
+ * Parses a time string in HH:mm format to a Date object.
+ *
+ * @param {string} timeString - The time string in HH:mm format.
+ * @returns {Date} The parsed Date object.
  */
 export function parseTimeString(timeString: string): Date {
   const [hours, minutes] = timeString.split(":").map(Number);
@@ -70,8 +113,11 @@ export function parseTimeString(timeString: string): Date {
 }
 
 /**
- * Compare two time strings in HH:mm format
- * @returns negative if time1 < time2, 0 if equal, positive if time1 > time2
+ * Compares two time strings in HH:mm format.
+ *
+ * @param {string} time1 - The first time string.
+ * @param {string} time2 - The second time string.
+ * @returns {number} A negative number if time1 is before time2, 0 if they are equal, and a positive number if time1 is after time2.
  */
 export function compareTimeStrings(time1: string, time2: string): number {
   const date1 = parseTimeString(time1);
@@ -82,19 +128,16 @@ export function compareTimeStrings(time1: string, time2: string): number {
 /**
  * Extracts the hour and minute (HH:mm) from an ISO 8601 date string.
  *
- * @param {string} dateString - The ISO 8601 date string to extract the time from. Example: "2024-08-19T07:00:00.000+00:00".
- * @returns {string} The extracted hour and minute in the format "HH:mm". Example: "07:00".
+ * @param {string} dateString - The ISO 8601 date string to extract the time from.
+ * @returns {string} The extracted hour and minute in the format "HH:mm".
  */
-export function extractHourAndMinute(dateString: string) {
-  // Parse the ISO date string
+export function extractHourAndMinute(dateString: string): string {
   const date = parseISO(dateString);
-
-  // Format the date to extract only the hour and minute
   return format(date, "HH:mm");
 }
 
 /**
- * Checks if the current time falls within a teacher's scheduled class and returns a customizable message.
+ * Checks if the current time falls within a teacher's scheduled class.
  *
  * @template T - The type of the schedule object.
  * @param {string} userId - The ID of the teacher.
@@ -121,15 +164,6 @@ export function checkScheduledClass<
     const endTime = parse(extractHourAndMinute(s.endTime), "HH:mm", new Date());
     const currentTimeParsed = parse(currentTime, "HH:mm", new Date());
 
-    // Debug information
-    console.info("==> [IS SAME TEACHER]:", s.teacherId === userId);
-    console.info("==> [DAY OF WEEK]:", s.dayOfWeek);
-    console.info("==> [CURRENT DAY OF WEEK]:", currentDayOfWeek);
-    console.info("==> [CURRENT TIME]:", currentTime);
-    console.info("==> [CURRENT TIME PARSED]:", currentTimeParsed);
-    console.info("==> [START TIME]:", extractHourAndMinute(s.startTime));
-    console.info("==> [END TIME]:", extractHourAndMinute(s.endTime));
-
     return (
       s.teacherId === userId &&
       s.dayOfWeek === currentDayOfWeek &&
@@ -149,4 +183,24 @@ export function checkScheduledClass<
   }
 
   return schedule;
+}
+
+/**
+ * Converts a time string in the format "HH:MM" to an ISO 8601 timestamp.
+ *
+ * The date portion of the timestamp will be the current date.
+ *
+ * @param {string} timeString - The time string to convert, in the format "HH:MM".
+ * @returns {string} The ISO 8601 timestamp representing the current date and the given time.
+ */
+export function convertToIsoTime(timeString: string): string {
+  const [hours, minutes] = timeString.split(":").map(Number);
+
+  const now = new Date();
+  now.setHours(hours);
+  now.setMinutes(minutes);
+  now.setSeconds(0);
+  now.setMilliseconds(0);
+
+  return now.toISOString();
 }
