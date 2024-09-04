@@ -45,9 +45,8 @@ export const useAttendance = (): UseAttendanceReturn => {
     try {
       return await attendance.createAttendance(attendanceData);
     } catch (err) {
-      setError("Failed to create attendance record.");
       console.error("[E_CREATE_ATTENDANCE]:", err);
-      return null;
+      throw new Error("Failed to create attendance record.");
     } finally {
       setLoading(false);
     }
@@ -70,9 +69,8 @@ export const useAttendance = (): UseAttendanceReturn => {
     try {
       return await attendance.createAttendances(attendanceDataArray);
     } catch (err) {
-      setError("Failed to create attendance records.");
       console.error("[E_CREATE_ATTENDANCES]:", err);
-      return null;
+      throw new Error("Failed to create attendance records.");
     } finally {
       setLoading(false);
     }

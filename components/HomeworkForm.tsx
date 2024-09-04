@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { Homework } from "@/types";
 import { formatDate } from "@/utils/dateTime";
+import { useAtomValue } from "jotai/index";
+import { currentScheduleAtom } from "@/store/atoms";
 
 type HomeworkFormProps = {
   classId: string;
@@ -21,6 +23,8 @@ export default function HomeworkForm({ classId, onSubmit }: HomeworkFormProps) {
   const [dueDate, setDueDate] = useState("");
   const [isGraded, setIsGraded] = useState(false);
 
+  const currentSchedule = useAtomValue(currentScheduleAtom);
+
   const handleSubmit = async () => {
     if (!subject || !description || !dueDate) {
       alert("Please fill in all fields");
@@ -32,6 +36,7 @@ export default function HomeworkForm({ classId, onSubmit }: HomeworkFormProps) {
       classId,
       dueDate: formatDate(new Date(dueDate)),
       isGraded,
+      subjectName: currentSchedule?.subjectName ?? "",
     };
 
     try {

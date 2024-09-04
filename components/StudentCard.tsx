@@ -33,24 +33,17 @@ const StudentCard: React.FC<StudentCardProps> = ({
   const styles = useThemedStyles(createStyles);
 
   const handleStatusChange = () => {
-    let availableStatuses: AttendanceStatus[];
+    let nextStatus: AttendanceStatus;
 
     if (isFirstAttendanceCheck) {
-      availableStatuses = ["present", "absent"];
+      // Toggle between 'present' and 'absent' for the first check
+      nextStatus = attendanceRecord.status === "present" ? "absent" : "present";
     } else {
-      availableStatuses = ["absent", "late"];
-
       if (attendanceRecord.status === "present") return;
-
-      if (attendanceRecord.status === "absent") {
-        onUpdateStatus(student.id, "late");
-        return;
-      }
+      // Toggle between 'absent' and 'late' for subsequent checks
+      nextStatus = attendanceRecord.status === "absent" ? "late" : "absent";
     }
 
-    const currentIndex = availableStatuses.indexOf(attendanceRecord.status);
-    const nextStatus =
-      availableStatuses[(currentIndex + 1) % availableStatuses.length];
     onUpdateStatus(student.id, nextStatus);
   };
 

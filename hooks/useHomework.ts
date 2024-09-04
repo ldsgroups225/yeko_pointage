@@ -72,9 +72,8 @@ export const useHomework = (): UseHomeworkReturn => {
     try {
       return await homework.createHomework(homeworkData);
     } catch (err) {
-      setError("Failed to create homework record.");
       console.error("[E_CREATE_HOMEWORK]:", err);
-      return null;
+      throw new Error("Failed to create homework record.");
     } finally {
       setLoading(false);
     }
@@ -97,9 +96,8 @@ export const useHomework = (): UseHomeworkReturn => {
     try {
       return await homework.createHomeworks(homeworkDataArray);
     } catch (err) {
-      setError("Failed to create homework records.");
       console.error("[E_CREATE_HOMEWORKS]:", err);
-      return null;
+      throw new Error("Failed to create homework records.");
     } finally {
       setLoading(false);
     }

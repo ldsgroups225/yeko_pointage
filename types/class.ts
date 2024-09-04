@@ -13,6 +13,7 @@ export interface ClassSchedule {
   id: string; // UUID
   classId: string; // UUID
   subjectId: string; // UUID
+  subjectName: string; // UUID
   teacherId: string; // UUID
   dayOfWeek: number; // Integer
   startTime: string; // Time without time zone

@@ -20,7 +20,11 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "io.ldsgroup.yeko_pointage"
+      "package": "io.ldsgroup.yeko_pointage",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -33,6 +37,14 @@
     "plugins": [
       "expo-router",
       "expo-camera"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ab681a19-85d8-4808-905a-849369ea71ef"
+      }
+    }
   }
 }

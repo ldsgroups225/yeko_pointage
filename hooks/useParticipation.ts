@@ -90,9 +90,8 @@ export const useParticipation = (): UseParticipationReturn => {
         participationData,
       );
     } catch (err) {
-      setError("Failed to create participation record.");
       console.error("[E_CREATE_PARTICIPATION]:", err);
-      return null;
+      throw new Error("Failed to create participation record.");
     } finally {
       setLoading(false);
     }
@@ -123,9 +122,8 @@ export const useParticipation = (): UseParticipationReturn => {
         participationDataArray,
       );
     } catch (err) {
-      setError("Failed to create participation records.");
       console.error("[E_CREATE_PARTICIPATIONS]:", err);
-      return null;
+      throw new Error("Failed to create participation records.");
     } finally {
       setLoading(false);
     }

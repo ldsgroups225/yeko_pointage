@@ -11,6 +11,7 @@ import { useAtomValue, useSetAtom } from "jotai/index";
 import {
   currentClassAtom,
   currentHomeworkAtom,
+  currentScheduleAtom,
   currentTeacherAtom,
 } from "@/store/atoms";
 
@@ -32,6 +33,7 @@ const HomeworkScreen: React.FC<HomeworkScreenProps> = ({
 
   const currentClass = useAtomValue(currentClassAtom);
   const currentTeacher = useAtomValue(currentTeacherAtom);
+  const currentSchedule = useAtomValue(currentScheduleAtom);
 
   const setCurrentHomework = useSetAtom(currentHomeworkAtom);
 
@@ -51,6 +53,7 @@ const HomeworkScreen: React.FC<HomeworkScreenProps> = ({
       isGraded,
       teacherId: currentTeacher!.id,
       classId: currentClass!.id,
+      subjectName: currentSchedule?.subjectName ?? "",
     };
     setCurrentHomework(homework);
     onSubmit();

@@ -29,7 +29,8 @@ export function formatDate(date: Date | string): string {
  * @returns {string} The formatted time string.
  */
 export function formatTime(date: Date | string): string {
-  console.log("[DATE TM]:", date);
+  if (typeof date === "string" && date.length === 5) return date;
+
   const parsedDate = typeof date === "string" ? new Date(date) : date;
   return format(parsedDate, TIME_FORMAT);
 }

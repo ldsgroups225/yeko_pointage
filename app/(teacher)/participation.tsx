@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -9,28 +9,17 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useAtomValue, useSetAtom } from "jotai";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { CsText, CsButton, CsCard } from "@/components/commons";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
-import {
-  useThemedStyles,
-  useAttendance,
-  useParticipation,
-  useHomework,
-} from "@/hooks";
-import { spacing, borderRadius, shadows } from "@/styles";
-import { Student, Participation, ParticipationSession } from "@/types";
-import {
-  studentsListAtom,
-  currentHomeworkAtom,
-  currentParticipationSessionAtom,
-  currentAttendanceSessionAtom,
-} from "@/store/atoms";
+import { useThemedStyles } from "@/hooks";
+import { spacing, borderRadius } from "@/styles";
+import { Student } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import HomeworkScreen from "./homework";
-import { getCurrentTimeString, formatDate } from "@/utils/dateTime";
 import { BottomSheet } from "@/components/BottomSheet";
+import { StatCard } from "@/components/StatCard";
+import { useParticipationManagement } from "@/hooks/useParticipationManagement";
 
 const ParticipationScreen: React.FC = () => {
   const styles = useThemedStyles(createStyles);
@@ -41,192 +30,73 @@ const ParticipationScreen: React.FC = () => {
     scheduleId: string;
   }>();
 
-  const fullStudents = useAtomValue(studentsListAtom);
-  const currentAttendanceSession = useAtomValue(currentAttendanceSessionAtom);
-  const currentHomework = useAtomValue(currentHomeworkAtom);
-  const setCurrentParticipationSession = useSetAtom(
-    currentParticipationSessionAtom,
-  );
-  const setCurrentAttendanceSession = useSetAtom(currentAttendanceSessionAtom);
-  const setCurrentHomework = useSetAtom(currentHomeworkAtom);
+  const {
+    students,
+    participations,
+    isSubmitting,
+    comment,
+    participationStats,
+    toggleParticipation,
+    openCommentModal,
+    saveComment,
+    setComment,
+    handleCloseSession,
+    isParticipationRangeValid,
+  } = useParticipationManagement(teacherId, classId);
 
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [participations, setParticipations] = useState<Participation[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showHomeworkBottomSheet, setShowHomeworkBottomSheet] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
-    null,
-  );
-  const [comment, setComment] = useState("");
-  const [currentTime, setCurrentTime] = useState(getCurrentTimeString());
-  const [sessionStartTime] = useState(getCurrentTimeString());
 
-  const { createAttendances } = useAttendance();
-  const { createParticipations } = useParticipation();
-  const { createHomework } = useHomework();
-
-  useEffect(() => {
-    const notPresentStudentIds =
-      currentAttendanceSession?.records.map((a) => a.studentId) ?? [];
-
-    setStudents(
-      fullStudents.filter((s) => !notPresentStudentIds.includes(s.id)),
-    );
-  }, [currentAttendanceSession]);
-
-  useEffect(() => {
-    setParticipations([]);
-    const timer = setInterval(() => {
-      setCurrentTime(getCurrentTimeString());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, [students]);
-
-  const toggleParticipation = (studentId: string) => {
-    setParticipations((prevParticipations) => {
-      const existingIndex = prevParticipations.findIndex(
-        (p) => p.studentId === studentId,
+  const renderStudentItem = useCallback(
+    ({ item: student }: { item: Student }) => {
+      const hasParticipated = participations.some(
+        (p) => p.studentId === student.id,
       );
-      if (existingIndex !== -1) {
-        return prevParticipations.filter((_, index) => index !== existingIndex);
-      } else {
-        const newParticipation: Participation = {
-          studentId,
-          sessionId: "",
-          timestamp: new Date().toISOString(),
-        };
-        return [...prevParticipations, newParticipation];
-      }
-    });
-  };
-
-  const openCommentModal = (studentId: string) => {
-    setSelectedStudentId(studentId);
-    const existingParticipation = participations.find(
-      (p) => p.studentId === studentId,
-    );
-    setComment(existingParticipation?.comment || "");
-    setShowCommentModal(true);
-  };
-
-  const saveComment = () => {
-    setParticipations((prevParticipations) =>
-      prevParticipations.map((p) =>
-        p.studentId === selectedStudentId ? { ...p, comment } : p,
-      ),
-    );
-    setShowCommentModal(false);
-  };
-
-  const isParticipationRangeValid = () => {
-    return participations.length >= 1 && participations.length <= 5;
-  };
-
-  const handleCloseSession = async () => {
-    if (!isParticipationRangeValid()) {
-      Alert.alert(
-        "Nombre de participations invalide",
-        "Veuillez sélectionner au moins 1 et au plus 5 élèves pour la participation.",
+      const participation = participations.find(
+        (p) => p.studentId === student.id,
       );
-      return;
-    }
 
-    setIsSubmitting(true);
-    const participationSession: ParticipationSession = {
-      classId,
-      teacherId,
-      date: new Date().toISOString(),
-      participations,
-    };
-    setCurrentParticipationSession(participationSession);
-
-    try {
-      await Promise.all([
-        currentAttendanceSession &&
-          createAttendances(currentAttendanceSession.records),
-
-        participations.length &&
-          createParticipations(classId, teacherId, participations),
-
-        currentHomework && createHomework(currentHomework),
-      ]);
-
-      // Clear atoms and redirect
-      setCurrentAttendanceSession(null);
-      setCurrentParticipationSession(null);
-      setCurrentHomework(null);
-      router.push("/(auth)/qr-scan");
-    } catch (e) {
-      console.error("Error submitting session data:", e);
-      // Handle error, e.g., display an error message to the user
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const renderStudentItem = ({ item: student }: { item: Student }) => {
-    const hasParticipated = participations.some(
-      (p) => p.studentId === student.id,
-    );
-    const participation = participations.find(
-      (p) => p.studentId === student.id,
-    );
-
-    return (
-      <CsCard style={styles.studentCard}>
-        <TouchableOpacity onPress={() => toggleParticipation(student.id)}>
-          <View style={styles.studentInfo}>
-            <CsText variant="body">{student.fullName}</CsText>
-            {hasParticipated && (
-              <FontAwesome5 name="star" size={18} color="#F5A623" solid />
-            )}
-          </View>
-        </TouchableOpacity>
-        {hasParticipated && (
-          <TouchableOpacity
-            onPress={() => openCommentModal(student.id)}
-            style={styles.commentButton}
-          >
-            <FontAwesome5 name="comment" size={16} color="#4A90E2" />
-            <CsText variant="caption" style={styles.commentButtonText}>
-              {participation?.comment
-                ? "Modifier le commentaire"
-                : "Ajouter un commentaire"}{" "}
-            </CsText>
+      return (
+        <CsCard style={styles.studentCard}>
+          <TouchableOpacity onPress={() => toggleParticipation(student.id)}>
+            <View style={styles.studentInfo}>
+              <CsText variant="body">{student.fullName}</CsText>
+              {hasParticipated && (
+                <FontAwesome5 name="star" size={18} color="#F5A623" solid />
+              )}
+            </View>
           </TouchableOpacity>
-        )}
-        {participation?.comment && (
-          <CsText variant="caption" style={styles.comment}>
-            {participation.comment}
-          </CsText>
-        )}
-      </CsCard>
-    );
-  };
+          {hasParticipated && (
+            <TouchableOpacity
+              onPress={() => {
+                openCommentModal(student.id);
+                setShowCommentModal(true);
+              }}
+              style={styles.commentButton}
+            >
+              <FontAwesome5 name="comment" size={16} color="#4A90E2" />
+              <CsText variant="caption" style={styles.commentButtonText}>
+                {participation?.comment
+                  ? "Modifier le commentaire"
+                  : "Ajouter un commentaire"}{" "}
+              </CsText>
+            </TouchableOpacity>
+          )}
+          {participation?.comment && (
+            <CsText variant="caption" style={styles.comment}>
+              {participation.comment}
+            </CsText>
+          )}
+        </CsCard>
+      );
+    },
+    [participations, toggleParticipation, openCommentModal, styles],
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <CsText variant="h2" style={styles.title}>
-            Participation
-          </CsText>
-          <CsText variant="body">{formatDate(new Date())}</CsText>
-        </View>
-        <View style={styles.headerRight}>
-          <CsText variant="h3" style={styles.currentTime}>
-            {currentTime}
-          </CsText>
-          <CsText variant="body">Débuté : {sessionStartTime}</CsText>
-        </View>
-      </View>
-
-      {/* Body */}
       <View style={styles.body}>
-        {/* Left Column (Statistics) */}
         <View style={styles.leftColumn}>
           <CsText variant="h3" style={styles.sectionTitle}>
             Statistiques
@@ -235,29 +105,24 @@ const ParticipationScreen: React.FC = () => {
             <StatCard
               icon="users"
               title="Total des élèves"
-              value={students.length}
+              value={participationStats.totalStudents}
               color="#4A90E2"
             />
             <StatCard
               icon="star"
               title="Ont participé"
-              value={participations.length}
+              value={participationStats.participatedCount}
               color="#F5A623"
             />
             <StatCard
               icon="percentage"
               title="Taux de participation"
-              value={
-                students.length === 0
-                  ? 0
-                  : ((participations.length / students.length) * 100).toFixed(1)
-              }
+              value={participationStats.participationRate}
               color="#7ED321"
               unit="%"
             />
           </View>
 
-          {/* Close Session Button */}
           <CsButton
             title="Terminer votre session"
             loading={isSubmitting}
@@ -276,7 +141,6 @@ const ParticipationScreen: React.FC = () => {
           />
         </View>
 
-        {/* Right Column (Student List) */}
         <View style={styles.rightColumn}>
           <CsText variant="h3" style={styles.sectionTitle}>
             Liste des élèves
@@ -295,11 +159,15 @@ const ParticipationScreen: React.FC = () => {
         isVisible={showConfirmationModal}
         onConfirm={() => {
           setShowConfirmationModal(false);
-
-          Alert.alert("Devoirs", "Avez-vous assigné un exerice de maison?", [
+          Alert.alert("Devoirs", "Avez-vous assigné un exercice de maison?", [
             {
               text: "Non",
-              onPress: () => handleCloseSession(),
+              onPress: async () => {
+                const success = await handleCloseSession();
+                if (success === true) {
+                  router.replace("/(auth)/qr-scan");
+                }
+              },
             },
             {
               text: "Oui",
@@ -308,7 +176,7 @@ const ParticipationScreen: React.FC = () => {
           ]);
         }}
         onCancel={() => setShowConfirmationModal(false)}
-        message="Êtes-vous sûr de vouloir terminer la session ?"
+        message="Êtes-vous sûr de vouloir terminer la session ?"
         title="Terminer la session"
         confirmText="Continuer"
         cancelText="Annuler"
@@ -321,9 +189,12 @@ const ParticipationScreen: React.FC = () => {
         <HomeworkScreen
           teacherId={teacherId}
           classId={classId}
-          onSubmit={() => {
+          onSubmit={async () => {
             setShowHomeworkBottomSheet(false);
-            handleCloseSession().then((r) => r);
+            const success = await handleCloseSession();
+            if (success) {
+              router.push("/(auth)/qr-scan");
+            }
           }}
           onCancel={() => setShowHomeworkBottomSheet(false)}
         />
@@ -350,7 +221,10 @@ const ParticipationScreen: React.FC = () => {
               />
               <CsButton
                 title="Enregistrer"
-                onPress={saveComment}
+                onPress={() => {
+                  saveComment();
+                  setShowCommentModal(false);
+                }}
                 loading={isSubmitting}
               />
             </View>
@@ -361,70 +235,11 @@ const ParticipationScreen: React.FC = () => {
   );
 };
 
-interface StatCardProps {
-  icon: string;
-  title: string;
-  value: number | string;
-  color: string;
-  unit?: string;
-}
-
-const StatCard: React.FC<StatCardProps> = ({
-  icon,
-  title,
-  value,
-  color,
-  unit,
-}) => {
-  const styles = useThemedStyles(createStyles);
-  return (
-    <CsCard style={styles.statCard}>
-      <FontAwesome5
-        name={icon}
-        size={18}
-        color={color}
-        style={styles.statIcon}
-      />
-      <View style={styles.statContent}>
-        <CsText variant="h3" style={{ ...styles.statValue, color }}>
-          {value}
-          {unit}
-        </CsText>
-        <CsText variant="caption" style={styles.statTitle}>
-          {title}
-        </CsText>
-      </View>
-    </CsCard>
-  );
-};
-
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background,
-    },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
-      backgroundColor: theme.card,
-    },
-    headerLeft: {
-      flex: 1,
-    },
-    headerRight: {
-      alignItems: "flex-end",
-    },
-    title: {
-      marginBottom: spacing.xs,
-    },
-    currentTime: {
-      fontSize: 28,
-      fontWeight: "bold",
     },
     body: {
       flex: 1,
@@ -443,28 +258,6 @@ const createStyles = (theme: Theme) =>
     sectionTitle: {
       marginBottom: spacing.md,
       fontWeight: "bold",
-    },
-    statsContainer: {
-      marginBottom: spacing.md,
-    },
-    statCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: spacing.sm,
-      marginBottom: spacing.sm,
-      ...shadows.small,
-    },
-    statIcon: {
-      marginRight: spacing.sm,
-    },
-    statContent: {
-      flex: 1,
-    },
-    statValue: {
-      fontWeight: "bold",
-    },
-    statTitle: {
-      color: theme.textLight,
     },
     list: {
       flex: 1,

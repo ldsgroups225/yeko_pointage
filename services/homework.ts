@@ -40,6 +40,7 @@ export const homework = {
         {
           class_id: homeworkData.classId,
           teacher_id: homeworkData.teacherId,
+          subject_name: homeworkData.subjectName,
           due_date: homeworkData.dueDate,
           is_graded: homeworkData.isGraded,
         },
@@ -51,6 +52,7 @@ export const homework = {
         classId: response.class_id,
         dueDate: response.due_date,
         isGraded: response.is_graded,
+        subjectName: response.subject_name,
       };
     } catch (error) {
       console.error("Error creating homework record:", error);
@@ -90,6 +92,7 @@ export const homework = {
             teacher_id: homeworkData.teacherId,
             due_date: homeworkData.dueDate,
             is_graded: homeworkData.isGraded,
+            subject_name: homeworkData.subjectName,
           },
         );
 
@@ -99,6 +102,7 @@ export const homework = {
           classId: response.class_id,
           dueDate: response.due_date,
           isGraded: response.is_graded,
+          subjectName: response.subject_name,
         });
       } catch (error) {
         console.error("Error creating homework record:", error);
