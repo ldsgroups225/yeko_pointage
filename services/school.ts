@@ -1,14 +1,11 @@
-import {
-  APPWRITE_DATABASE_ID,
-  CLASS_COLLECTION_ID,
-  CYCLE_COLLECTION_ID,
-  databases,
-  GRADE_COLLECTION_ID,
-  SCHOOL_COLLECTION_ID,
-  USERS_COLLECTION_ID,
-} from "@/lib/appwrite";
 import { Class, Cycle, Grade, School } from "@/types";
-import { Query } from "appwrite";
+import {
+  CLASS_TABLE_ID,
+  CYCLE_TABLE_ID,
+  GRADE_TABLE_ID,
+  SCHOOL_TABLE_ID,
+  supabase,
+} from "@/lib/supabase";
 
 /**
  * @module school
@@ -30,17 +27,22 @@ export const school = {
    */
   async getSchoolById(schoolId: string): Promise<School> {
     try {
-      const response = await databases.getDocument(
-        APPWRITE_DATABASE_ID,
-        SCHOOL_COLLECTION_ID,
-        schoolId,
-      );
+      const { data, error } = await supabase
+        .from(SCHOOL_TABLE_ID)
+        .select("*")
+        .eq("id", schoolId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching school details:", error);
+        throw error;
+      }
 
       return {
-        id: response.$id,
-        name: response.name,
-        cycleId: response.cycleId,
-        code: response.code,
+        id: data.id,
+        name: data.name,
+        cycleId: data.cycle_id,
+        code: data.code,
       };
     } catch (error) {
       console.error("Error fetching school details:", error);
@@ -63,19 +65,23 @@ export const school = {
    */
   async fetchSchoolClasses(schoolId: string): Promise<Class[]> {
     try {
-      const response = await databases.listDocuments(
-        APPWRITE_DATABASE_ID,
-        CLASS_COLLECTION_ID,
-        [Query.equal("schoolId", schoolId)],
-      );
+      const { data, error } = await supabase
+        .from(CLASS_TABLE_ID)
+        .select("*")
+        .eq("school_id", schoolId);
 
-      return response.documents.map((doc) => ({
-        id: doc.$id,
-        name: doc.name,
-        schoolId: schoolId,
-        schedule: doc.schedule || [],
-        mainTeacherId: doc.mainTeacherId || "",
-        gradeId: doc.gradeId || "",
+      if (error) {
+        console.error("Error fetching school classes:", error);
+        throw error;
+      }
+
+      return data.map((c) => ({
+        id: c.id,
+        name: c.name,
+        schoolId: c.school_id,
+        schedule: c.schedule || [],
+        mainTeacherId: c.main_teacher_id || "",
+        gradeId: c.grade_id || "",
       }));
     } catch (error) {
       console.error("Error fetching school classes:", error);
@@ -91,15 +97,17 @@ export const school = {
    */
   async fetchCycles(): Promise<Cycle[]> {
     try {
-      const response = await databases.listDocuments(
-        APPWRITE_DATABASE_ID,
-        CYCLE_COLLECTION_ID,
-      );
+      const { data, error } = await supabase.from(CYCLE_TABLE_ID).select("*");
 
-      return response.documents.map((doc) => ({
-        id: doc.$id,
-        name: doc.name,
-        description: doc.description,
+      if (error) {
+        console.error("Error fetching cycles:", error);
+        throw error;
+      }
+
+      return data.map((cycle) => ({
+        id: cycle.id,
+        name: cycle.name,
+        description: cycle.description,
       }));
     } catch (error) {
       console.error("Error fetching cycles:", error);
@@ -116,16 +124,20 @@ export const school = {
    */
   async fetchGrades(cycleId: string): Promise<Grade[]> {
     try {
-      const response = await databases.listDocuments(
-        APPWRITE_DATABASE_ID,
-        GRADE_COLLECTION_ID,
-        [Query.equal("cycleId", cycleId)],
-      );
+      const { data, error } = await supabase
+        .from(GRADE_TABLE_ID)
+        .select("*")
+        .eq("cycle_id", cycleId);
 
-      return response.documents.map((doc) => ({
-        id: doc.$id,
-        name: doc.name,
-        cycleId: cycleId,
+      if (error) {
+        console.error("Error fetching grades:", error);
+        throw error;
+      }
+
+      return data.map((grade) => ({
+        id: grade.id,
+        name: grade.name,
+        cycleId: grade.cycle_id,
       }));
     } catch (error) {
       console.error("Error fetching grades:", error);
@@ -156,20 +168,31 @@ export const school = {
   ): Promise<boolean> {
     try {
       // Check if the user is a director of the school and the school is active in a single query.
-      const [userDocs, schoolDocs] = await Promise.all([
-        databases.listDocuments(APPWRITE_DATABASE_ID, USERS_COLLECTION_ID, [
-          Query.equal("$id", userId),
-          Query.equal("role", "director"),
-          Query.equal("schoolId", schoolId),
-        ]),
-        databases.listDocuments(APPWRITE_DATABASE_ID, SCHOOL_COLLECTION_ID, [
-          Query.equal("$id", schoolId),
-          Query.equal("state", "active"),
-        ]),
-      ]);
+      const { data: user, error: userError } = await supabase
+        .from("users") // Assuming your user table is named "users"
+        .select("*")
+        .eq("id", userId)
+        .eq("role", "director")
+        .eq("school_id", schoolId)
+        .single();
+
+      const { data: school, error: schoolError } = await supabase
+        .from(SCHOOL_TABLE_ID)
+        .select("*")
+        .eq("id", schoolId)
+        .eq("state", "active")
+        .single();
+
+      if (userError || schoolError) {
+        console.error(
+          "Error verifying director access:",
+          userError || schoolError,
+        );
+        return false;
+      }
 
       // Check if both the user is a director and the school is active
-      return userDocs.total > 0 && schoolDocs.total > 0;
+      return !!user && !!school;
     } catch (error) {
       console.error("Error verifying director access:", error);
       return false;

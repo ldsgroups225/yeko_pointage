@@ -10,12 +10,12 @@ interface UseParticipationReturn {
     classId: string,
     teacherId: string,
     participationData: Participation,
-  ) => Promise<Participation | null>;
+  ) => Promise<void>;
   createParticipations: (
     classId: string,
     teacherId: string,
     participationDataArray: Participation[],
-  ) => Promise<Participation[] | null>;
+  ) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -41,9 +41,11 @@ interface UseParticipationReturn {
  *     comment: 'Active participation in group discussion',
  *     timestamp: new Date().toISOString(),
  *   };
- *   const result = await createParticipation(classId, teacherId, participationData);
- *   if (result) {
- *     console.log('Participation created:', result);
+ *   try {
+ *     await createParticipation(classId, teacherId, participationData);
+ *     console.log('Participation created successfully');
+ *   } catch (error) {
+ *     console.error('Failed to create participation:', error);
  *   }
  * };
  *
@@ -55,9 +57,11 @@ interface UseParticipationReturn {
  *     { studentId: 'student789', sessionId: 'session101112', comment: 'Active in discussion', timestamp: new Date().toISOString() },
  *     { studentId: 'student101112', sessionId: 'session101112', comment: 'Asked insightful questions', timestamp: new Date().toISOString() },
  *   ];
- *   const results = await createParticipations(classId, teacherId, participationDataArray);
- *   if (results) {
- *     console.log('Participations created:', results);
+ *   try {
+ *     await createParticipations(classId, teacherId, participationDataArray);
+ *     console.log('Participations created successfully');
+ *   } catch (error) {
+ *     console.error('Failed to create participations:', error);
  *   }
  * };
  */
@@ -73,25 +77,25 @@ export const useParticipation = (): UseParticipationReturn => {
    * @param {string} classId - The ID of the class.
    * @param {string} teacherId - The ID of the teacher.
    * @param {Participation} participationData - The participation data to create.
-   * @returns {Promise<Participation | null>} A promise that resolves to the created participation object if successful,
-   *                                          or null if an error occurs.
+   * @returns {Promise<void>} A promise that resolves when the participation record is created.
    */
   const createParticipation = async (
     classId: string,
     teacherId: string,
     participationData: Participation,
-  ): Promise<Participation | null> => {
+  ): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      return await participation.createParticipation(
+      await participation.createParticipation(
         classId,
         teacherId,
         participationData,
       );
     } catch (err) {
       console.error("[E_CREATE_PARTICIPATION]:", err);
-      throw new Error("Failed to create participation record.");
+      setError("Failed to create participation record.");
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -105,25 +109,25 @@ export const useParticipation = (): UseParticipationReturn => {
    * @param {string} classId - The ID of the class.
    * @param {string} teacherId - The ID of the teacher.
    * @param {Participation[]} participationDataArray - An array of participation data to create.
-   * @returns {Promise<Participation[] | null>} A promise that resolves to an array of created participation objects if successful,
-   *                                            or null if an error occurs.
+   * @returns {Promise<void>} A promise that resolves when all participation records are created.
    */
   const createParticipations = async (
     classId: string,
     teacherId: string,
     participationDataArray: Participation[],
-  ): Promise<Participation[] | null> => {
+  ): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      return await participation.createParticipations(
+      await participation.createParticipations(
         classId,
         teacherId,
         participationDataArray,
       );
     } catch (err) {
       console.error("[E_CREATE_PARTICIPATIONS]:", err);
-      throw new Error("Failed to create participation records.");
+      setError("Failed to create participation records.");
+      throw err;
     } finally {
       setLoading(false);
     }

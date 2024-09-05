@@ -6,12 +6,8 @@ import { AttendanceRecord } from "@/types";
  * Return type for the `useAttendance` hook.
  */
 interface UseAttendanceReturn {
-  createAttendance: (
-    attendanceData: AttendanceRecord,
-  ) => Promise<AttendanceRecord | null>;
-  createAttendances: (
-    attendanceDataArray: AttendanceRecord[],
-  ) => Promise<AttendanceRecord[] | null>;
+  createAttendance: (attendanceData: AttendanceRecord) => Promise<void>;
+  createAttendances: (attendanceDataArray: AttendanceRecord[]) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -34,19 +30,19 @@ export const useAttendance = (): UseAttendanceReturn => {
    * Updates the loading and error states accordingly.
    *
    * @param {AttendanceRecord} attendanceData - The attendance data to create.
-   * @returns {Promise<AttendanceRecord | null>} A promise that resolves to the created attendance object if successful,
-   *                                             or null if an error occurs.
+   * @returns {Promise<void>} A promise that resolves when the attendance record is created.
    */
   const createAttendance = async (
     attendanceData: AttendanceRecord,
-  ): Promise<AttendanceRecord | null> => {
+  ): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      return await attendance.createAttendance(attendanceData);
+      await attendance.createAttendance(attendanceData);
     } catch (err) {
       console.error("[E_CREATE_ATTENDANCE]:", err);
-      throw new Error("Failed to create attendance record.");
+      setError("Failed to create attendance record.");
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -58,19 +54,19 @@ export const useAttendance = (): UseAttendanceReturn => {
    * Updates the loading and error states accordingly.
    *
    * @param {AttendanceRecord[]} attendanceDataArray - An array of attendance data to create.
-   * @returns {Promise<AttendanceRecord[] | null>} A promise that resolves to an array of created attendance objects if successful,
-   *                                               or null if an error occurs.
+   * @returns {Promise<void>} A promise that resolves when all attendance records are created.
    */
   const createAttendances = async (
     attendanceDataArray: AttendanceRecord[],
-  ): Promise<AttendanceRecord[] | null> => {
+  ): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      return await attendance.createAttendances(attendanceDataArray);
+      await attendance.createAttendances(attendanceDataArray);
     } catch (err) {
       console.error("[E_CREATE_ATTENDANCES]:", err);
-      throw new Error("Failed to create attendance records.");
+      setError("Failed to create attendance records.");
+      throw err;
     } finally {
       setLoading(false);
     }

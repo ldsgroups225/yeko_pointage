@@ -1,13 +1,5 @@
-import {
-  APPWRITE_DATABASE_ID,
-  CLASS_COLLECTION_ID,
-  databases,
-  SCHEDULE_COLLECTION_ID,
-  STUDENT_COLLECTION_ID,
-  TEACHER_COLLECTION_ID,
-} from "@/lib/appwrite";
 import { ClassDetails, ClassSchedule, Student, Teacher } from "@/types";
-import { Query } from "appwrite";
+import { CLASS_TABLE_ID, SCHEDULE_TABLE_ID, supabase } from "@/lib/supabase";
 import { formatFullName } from "@/utils/formatting";
 
 /**
@@ -24,25 +16,29 @@ export const classService = {
    */
   async fetchClassDetails(classId: string): Promise<ClassDetails> {
     try {
-      const [classDoc, students, teachers, schedules] = await Promise.all([
-        databases.getDocument(
-          APPWRITE_DATABASE_ID,
-          CLASS_COLLECTION_ID,
-          classId,
-        ),
-        this.fetchStudentsForClass(classId),
-        this.fetchTeachersForClass(classId),
-        this.fetchSchedulesForClass(classId),
-      ]);
+      const { data: classData, error: classError } = await supabase
+        .from(CLASS_TABLE_ID)
+        .select("*")
+        .eq("id", classId)
+        .single();
+
+      if (classError) {
+        console.error("Error fetching class details:", classError);
+        throw classError;
+      }
+
+      const students = await this.fetchStudentsForClass(classId);
+      const teachers = await this.fetchTeachersForClass(classId);
+      const schedules = await this.fetchSchedulesForClass(classId);
 
       return {
         class: {
-          id: classDoc.$id,
-          name: classDoc.name,
-          schoolId: classDoc.schoolId,
-          schedule: classDoc.schedule || [],
-          mainTeacherId: classDoc.mainTeacherId || "",
-          gradeId: classDoc.gradeId || "",
+          id: classData.id,
+          name: classData.name,
+          schoolId: classData.school_id,
+          schedule: classData.schedule || [],
+          mainTeacherId: classData.main_teacher_id || "",
+          gradeId: classData.grade_id || "",
         },
         students,
         teachers,
@@ -63,28 +59,23 @@ export const classService = {
    */
   async fetchStudentsForClass(classId: string): Promise<Student[]> {
     try {
-      const response = await databases.listDocuments(
-        APPWRITE_DATABASE_ID,
-        STUDENT_COLLECTION_ID,
-        [
-          Query.equal("classId", classId),
-          Query.select([
-            "$id",
-            "parentId",
-            "idNumber",
-            "firstName",
-            "lastName",
-          ]),
-        ],
-      );
+      const { data: students, error } = await supabase
+        .from("students") // Assuming your student table is named "students"
+        .select("id, parent_id, id_number, first_name, last_name")
+        .eq("class_id", classId);
 
-      return response.documents.map((doc) => ({
-        id: doc.$id,
-        parentId: doc.parentId,
-        idNumber: doc.idNumber,
-        firstName: doc.firstName,
-        lastName: doc.lastName,
-        fullName: formatFullName(doc.firstName, doc.lastName),
+      if (error) {
+        console.error("Error fetching students for class:", error);
+        throw error;
+      }
+
+      return students.map((student) => ({
+        id: student.id,
+        parentId: student.parent_id,
+        idNumber: student.id_number,
+        firstName: student.first_name,
+        lastName: student.last_name,
+        fullName: formatFullName(student.first_name, student.last_name),
       }));
     } catch (error) {
       console.error("Error fetching students for class:", error);
@@ -101,19 +92,20 @@ export const classService = {
    */
   async fetchTeachersForClass(classId: string): Promise<Teacher[]> {
     try {
-      const response = await databases.listDocuments(
-        APPWRITE_DATABASE_ID,
-        TEACHER_COLLECTION_ID,
-        [
-          Query.contains("classIds", [classId]),
-          Query.select(["$id", "phone", "fullName"]),
-        ],
-      );
+      const { data: teachers, error } = await supabase
+        .from("teachers") // Assuming your teacher table is named "teachers"
+        .select("id, phone, full_name")
+        .contains("class_ids", [classId]); // Assuming class_ids is an array column
 
-      return response.documents.map((doc) => ({
-        id: doc.$id,
-        phone: doc.phone,
-        fullName: doc.fullName,
+      if (error) {
+        console.error("Error fetching teachers for class:", error);
+        throw error;
+      }
+
+      return teachers.map((teacher) => ({
+        id: teacher.id,
+        phone: teacher.phone,
+        fullName: teacher.full_name,
       }));
     } catch (error) {
       console.error("Error fetching teachers for class:", error);
@@ -130,35 +122,26 @@ export const classService = {
    */
   async fetchSchedulesForClass(classId: string): Promise<ClassSchedule[]> {
     try {
-      const response = await databases.listDocuments(
-        APPWRITE_DATABASE_ID,
-        SCHEDULE_COLLECTION_ID,
-        [
-          Query.equal("classId", classId),
-          Query.select([
-            "$id",
-            "classId",
-            "subjectId",
-            "subjectName",
-            "teacherId",
-            "dayOfWeek",
-            "startTime",
-            "endTime",
-            "room",
-          ]),
-        ],
-      );
+      const { data: schedules, error } = await supabase
+        .from(SCHEDULE_TABLE_ID)
+        .select("*")
+        .eq("class_id", classId);
 
-      return response.documents.map((doc) => ({
-        id: doc.$id,
-        classId: doc.classId,
-        subjectId: doc.subjectId,
-        subjectName: doc.subjectName,
-        teacherId: doc.teacherId,
-        dayOfWeek: doc.dayOfWeek,
-        startTime: doc.startTime,
-        endTime: doc.endTime,
-        room: doc.room,
+      if (error) {
+        console.error("Error fetching schedules for class:", error);
+        throw error;
+      }
+
+      return schedules.map((schedule) => ({
+        id: schedule.id,
+        classId: schedule.class_id,
+        subjectId: schedule.subject_id,
+        subjectName: schedule.subject_name,
+        teacherId: schedule.teacher_id,
+        dayOfWeek: schedule.day_of_week,
+        startTime: schedule.start_time,
+        endTime: schedule.end_time,
+        room: schedule.room,
       }));
     } catch (error) {
       console.error("Error fetching schedules for class:", error);

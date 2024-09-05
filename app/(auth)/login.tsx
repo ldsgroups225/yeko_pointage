@@ -8,7 +8,7 @@ import { LoginCredentials, UserRole } from "@/types";
 import { useSchool } from "@/hooks";
 
 export default function LoginScreen() {
-  const { login, logout } = useAuth();
+  const { login, logout, user } = useAuth();
   const { verifyDirectorAccess } = useSchool();
 
   const router = useRouter();
@@ -23,8 +23,10 @@ export default function LoginScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const user = await login(credentials.email, credentials.password);
-      const isDirector = await verifyDirectorAccess(user.userId, schoolId);
+      await login(credentials.email, credentials.password);
+
+      if (!user || !user.id.length) return await logout();
+      const isDirector = await verifyDirectorAccess(user.id, schoolId);
 
       if (isDirector) {
         return router.replace("/(director)/configure-tablet");

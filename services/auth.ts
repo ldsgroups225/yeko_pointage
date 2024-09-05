@@ -1,5 +1,17 @@
-import { ID, Models } from "appwrite";
-import { account } from "@/lib/appwrite";
+import { supabase } from "@/lib/supabase";
+import {
+  AuthResponse,
+  AuthTokenResponsePassword,
+  Session,
+  AuthError,
+} from "@supabase/auth-js";
+
+interface IGetSession {
+  data: {
+    session: Session | null;
+  };
+  error: AuthError | null;
+}
 
 /**
  * @module auth
@@ -16,7 +28,7 @@ export const auth = {
    * @param {string} email - The email address of the new user.
    * @param {string} password - The password for the new user.
    * @param {string} name - The name of the new user.
-   * @returns {Promise<any>} A promise that resolves to the response from the Appwrite API.
+   * @returns {Promise<AuthResponse>} A promise that resolves to the response from the Appwrite API.
    * @throws {Error} If there is an error creating the account.
    *
    * @example
@@ -33,9 +45,13 @@ export const auth = {
     email: string,
     password: string,
     name: string,
-  ): Promise<any> {
+  ): Promise<AuthResponse> {
     try {
-      return await account.create(ID.unique(), email, password, name);
+      return await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } },
+      });
     } catch (error) {
       console.error("Error creating account:", error);
       throw error;
@@ -50,7 +66,7 @@ export const auth = {
    *
    * @param {string} email - The email address of the user.
    * @param {string} password - The password of the user.
-   * @returns {Promise<any>} A promise that resolves to the response from the Appwrite API.
+   * @returns {Promise<AuthTokenResponsePassword>} A promise that resolves to the response from the Appwrite API.
    * @throws {Error} If there is an error creating the session.
    *
    * @example
@@ -66,9 +82,9 @@ export const auth = {
   async loginWithEmailAndPassword(
     email: string,
     password: string,
-  ): Promise<Models.Session> {
+  ): Promise<AuthTokenResponsePassword> {
     try {
-      return await account.createEmailPasswordSession(email, password);
+      return await supabase.auth.signInWithPassword({ email, password });
     } catch (error) {
       console.error("Error creating session:", error);
       throw error;
@@ -81,7 +97,7 @@ export const auth = {
    * This function retrieves the account information of the currently logged-in user.
    * It uses the `account.get` method from the Appwrite SDK.
    *
-   * @returns {Promise<any>} A promise that resolves to the user's account information.
+   * @returns {Promise<IGetSession>} A promise that resolves to the user's account information.
    * @throws {Error} If there is an error getting the account information.
    *
    * @example
@@ -94,9 +110,9 @@ export const auth = {
    * }
    * ```
    */
-  async getAccount(): Promise<Models.Session> {
+  async getAccount(): Promise<IGetSession> {
     try {
-      return await account.getSession("current");
+      return await supabase.auth.getSession();
     } catch (error) {
       console.error("Error getting account information:", error);
       throw error;
@@ -109,8 +125,7 @@ export const auth = {
    * This function deletes the specified user session, effectively logging out the user.
    * It uses the `account.deleteSession` method from the Appwrite SDK.
    *
-   * @param {string} sessionId - The ID of the session to delete.
-   * @returns {Promise<any>} A promise that resolves to the response from the Appwrite API.
+   * @returns {Promise<{ error: AuthError | null }>} A promise that resolves to the response from the Appwrite API.
    * @throws {Error} If there is an error deleting the session.
    *
    * @example
@@ -123,9 +138,9 @@ export const auth = {
    * }
    * ```
    */
-  async deleteSession(sessionId: string): Promise<any> {
+  async deleteSession(): Promise<{ error: AuthError | null }> {
     try {
-      return await account.deleteSession(sessionId);
+      return await supabase.auth.signOut();
     } catch (error) {
       console.error("Error deleting session:", error);
       throw error;

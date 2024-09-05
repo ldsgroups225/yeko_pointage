@@ -2,7 +2,7 @@
  * The endpoint URL for the Appwrite server.
  * This is the base URL used for all Appwrite API requests.
  */
-export const APPWRITE_ENDPOINT = "http://10.10.10.200:8085/v1"; // "http://192.168.193.98:8085/v1";
+export const APPWRITE_ENDPOINT = "http://192.168.193.98:8085/v1";
 
 /**
  * The unique ID of the Appwrite project.

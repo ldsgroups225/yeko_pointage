@@ -1,7 +1,6 @@
 import React, { createContext } from "react";
 import { User } from "@/types";
 import { useAuth } from "@/hooks";
-import { Models } from "appwrite";
 
 /**
  * Interface for the authentication context.
@@ -22,7 +21,7 @@ interface AuthContextType {
    * @param password The user's password.
    * @returns A promise that resolves to the session object.
    */
-  login: (email: string, password: string) => Promise<Models.Session>;
+  login: (email: string, password: string) => Promise<void>;
   /**
    * Logout function, returns a promise that resolves on successful logout.
    * @returns A promise that resolves on successful logout.

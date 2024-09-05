@@ -1,21 +1,15 @@
 import { useState, useEffect } from "react";
 import { auth } from "@/services/auth";
 import { User } from "@/types";
-import { Models } from "appwrite";
-import {
-  APPWRITE_DATABASE_ID,
-  databases,
-  USERS_COLLECTION_ID,
-} from "@/lib/appwrite";
+import { supabase, USERS_TABLE_ID } from "@/lib/supabase";
 
 /**
  * Return type for the `useAuth` hook.
  */
-
 interface useAuthReturn {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<Models.Session>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -63,24 +57,28 @@ export const useAuth = (): useAuthReturn => {
    */
   const checkAuth = async () => {
     try {
-      const account = await auth.getAccount();
-      const currentUser = await databases.getDocument(
-        APPWRITE_DATABASE_ID,
-        USERS_COLLECTION_ID,
-        account.userId,
-      );
-      const user: User = {
-        id: account.userId,
-        email: currentUser.email,
-        firstName: currentUser.firstName,
-        lastName: currentUser.lastName,
-        role: currentUser.role,
-        schoolId: currentUser.schoolId,
-        createAt: account.$createdAt,
-        updateAt: account.$updatedAt,
-      };
-
-      setUser(user);
+      const {
+        data: { session },
+      } = await auth.getAccount();
+      if (session) {
+        const {
+          data: { user },
+        } = await supabase
+          .from(USERS_TABLE_ID)
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+        setUser({
+          id: user?.id || "",
+          email: user?.email || "",
+          firstName: user?.first_name || "",
+          lastName: user?.last_name || "",
+          role: user?.role || "",
+          schoolId: user?.school_id || "",
+        });
+      } else {
+        setUser(null);
+      }
     } catch (err) {
       console.error("[E_AUTH_CHECK]:", err);
       setUser(null);
@@ -101,9 +99,8 @@ export const useAuth = (): useAuthReturn => {
    */
   const login = async (email: string, password: string) => {
     try {
-      const session = await auth.loginWithEmailAndPassword(email, password);
+      await auth.loginWithEmailAndPassword(email, password);
       await checkAuth();
-      return session;
     } catch (error) {
       throw error;
     }
@@ -119,7 +116,7 @@ export const useAuth = (): useAuthReturn => {
    */
   const logout = async () => {
     try {
-      await auth.deleteSession("current");
+      await auth.deleteSession();
       setUser(null);
     } catch (error) {
       throw error;

@@ -6,10 +6,8 @@ import { Homework } from "@/types";
  * Return type for the `useHomework` hook.
  */
 interface UseHomeworkReturn {
-  createHomework: (homeworkData: Homework) => Promise<Homework | null>;
-  createHomeworks: (
-    homeworkDataArray: Homework[],
-  ) => Promise<Homework[] | null>;
+  createHomework: (homeworkData: Homework) => Promise<void>;
+  createHomeworks: (homeworkDataArray: Homework[]) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -30,24 +28,29 @@ interface UseHomeworkReturn {
  *   const homeworkData = {
  *     classId: 'class123',
  *     teacherId: 'teacher456',
+ *     subjectName: 'Math',
  *     dueDate: '2024-04-15',
  *     isGraded: true,
  *   };
- *   const result = await createHomework(homeworkData);
- *   if (result) {
- *     console.log('Homework created:', result);
+ *   try {
+ *     await createHomework(homeworkData);
+ *     console.log('Homework created successfully');
+ *   } catch (error) {
+ *     console.error('Failed to create homework:', error);
  *   }
  * };
  *
  * // Creating multiple homeworks
  * const handleCreateMultipleHomeworks = async () => {
  *   const homeworkDataArray = [
- *     { classId: 'class123', teacherId: 'teacher456', dueDate: '2024-04-15', isGraded: true },
- *     { classId: 'class789', teacherId: 'teacher101', dueDate: '2024-04-20', isGraded: false },
+ *     { classId: 'class123', teacherId: 'teacher456', subjectName: 'Math', dueDate: '2024-04-15', isGraded: true },
+ *     { classId: 'class789', teacherId: 'teacher101', subjectName: 'Science', dueDate: '2024-04-20', isGraded: false },
  *   ];
- *   const results = await createHomeworks(homeworkDataArray);
- *   if (results) {
- *     console.log('Homeworks created:', results);
+ *   try {
+ *     await createHomeworks(homeworkDataArray);
+ *     console.log('Homeworks created successfully');
+ *   } catch (error) {
+ *     console.error('Failed to create homeworks:', error);
  *   }
  * };
  */
@@ -61,19 +64,17 @@ export const useHomework = (): UseHomeworkReturn => {
    * Updates the loading and error states accordingly.
    *
    * @param {Homework} homeworkData - The homework data to create.
-   * @returns {Promise<Homework | null>} A promise that resolves to the created homework object if successful,
-   *                                     or null if an error occurs.
+   * @returns {Promise<void>} A promise that resolves when the homework record is created.
    */
-  const createHomework = async (
-    homeworkData: Homework,
-  ): Promise<Homework | null> => {
+  const createHomework = async (homeworkData: Homework): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      return await homework.createHomework(homeworkData);
+      await homework.createHomework(homeworkData);
     } catch (err) {
       console.error("[E_CREATE_HOMEWORK]:", err);
-      throw new Error("Failed to create homework record.");
+      setError("Failed to create homework record.");
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -85,19 +86,19 @@ export const useHomework = (): UseHomeworkReturn => {
    * Updates the loading and error states accordingly.
    *
    * @param {Homework[]} homeworkDataArray - An array of homework data to create.
-   * @returns {Promise<Homework[] | null>} A promise that resolves to an array of created homework objects if successful,
-   *                                       or null if an error occurs.
+   * @returns {Promise<void>} A promise that resolves when all homework records are created.
    */
   const createHomeworks = async (
     homeworkDataArray: Homework[],
-  ): Promise<Homework[] | null> => {
+  ): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      return await homework.createHomeworks(homeworkDataArray);
+      await homework.createHomeworks(homeworkDataArray);
     } catch (err) {
       console.error("[E_CREATE_HOMEWORKS]:", err);
-      throw new Error("Failed to create homework records.");
+      setError("Failed to create homework records.");
+      throw err;
     } finally {
       setLoading(false);
     }

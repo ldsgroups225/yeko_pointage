@@ -5,8 +5,8 @@ export interface User {
   lastName: string;
   role: "director" | "teacher";
   schoolId?: string;
-  createAt: string;
-  updateAt: string;
+  createAt?: string;
+  updateAt?: string;
 }
 
 export interface AuthState {
