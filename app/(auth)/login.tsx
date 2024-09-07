@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 import LoginForm from "@/components/LoginForm";
@@ -8,7 +8,7 @@ import { LoginCredentials, UserRole } from "@/types";
 import { useSchool } from "@/hooks";
 
 export default function LoginScreen() {
-  const { login, logout, user } = useAuth();
+  const { login, logout } = useAuth();
   const { verifyDirectorAccess } = useSchool();
 
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      await login(credentials.email, credentials.password);
+      const user = await login(credentials.email, credentials.password);
 
       if (!user || !user.id.length) return await logout();
       const isDirector = await verifyDirectorAccess(user.id, schoolId);
@@ -33,12 +33,10 @@ export default function LoginScreen() {
       } else {
         await logout();
       }
-
-      // If login is successful, the root layout will handle the redirect
     } catch (err) {
       await logout();
       console.error("[E_LOGIN]:", err);
-      setError("Login failed. Please check your credentials and try again.");
+      setError("Email ou mot de passe incorrect.");
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +48,11 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login to Yeko Pointage</Text>
+      <Image source={require("@/assets/images/icon.png")} style={styles.logo} />
+      <Text style={styles.title}>Rebonjour !!</Text>
+      <Text style={styles.description}>
+        Connectez-vous pour attribuer la tablette à une classe
+      </Text>
       <LoginForm onSubmit={handleLogin} />
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
@@ -61,13 +63,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: 30,
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    alignSelf: "center",
+    marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: "center",
+  },
+  description: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 30,
   },
   error: {
     color: "red",

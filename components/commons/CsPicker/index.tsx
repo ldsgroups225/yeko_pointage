@@ -24,6 +24,7 @@ export const CsPicker: React.FC<CsPickerProps> = ({
       <Picker
         selectedValue={selectedValue}
         onValueChange={onValueChange}
+        placeholder={label}
         style={styles.picker}
       >
         {/* Add a placeholder item if selectedValue is null or undefined */}

@@ -1,24 +1,19 @@
 import { ClassDetails, ClassSchedule, Student, Teacher } from "@/types";
-import { CLASS_TABLE_ID, SCHEDULE_TABLE_ID, supabase } from "@/lib/supabase";
+import {
+  CLASS_TABLE_ID,
+  SCHEDULE_TABLE_ID,
+  supabase,
+  TEACHER_TABLE_ID,
+  STUDENT_TABLE_ID,
+} from "@/lib/supabase";
 import { formatFullName } from "@/utils/formatting";
 
-/**
- * @module class
- * This module provides functions for interacting with class data.
- */
 export const classService = {
-  /**
-   * Fetches the details for a specific class, including students, teachers, and schedules.
-   *
-   * @param {string} classId - The ID of the class.
-   * @returns {Promise<ClassDetails>} A promise that resolves to a `ClassDetails` object containing class details, students, teachers, and schedules.
-   * @throws {Error} If there is an error fetching the class details.
-   */
   async fetchClassDetails(classId: string): Promise<ClassDetails> {
     try {
       const { data: classData, error: classError } = await supabase
         .from(CLASS_TABLE_ID)
-        .select("*")
+        .select("id, name, school_id, schedule: schedules(*)")
         .eq("id", classId)
         .single();
 
@@ -37,8 +32,6 @@ export const classService = {
           name: classData.name,
           schoolId: classData.school_id,
           schedule: classData.schedule || [],
-          mainTeacherId: classData.main_teacher_id || "",
-          gradeId: classData.grade_id || "",
         },
         students,
         teachers,
@@ -50,17 +43,10 @@ export const classService = {
     }
   },
 
-  /**
-   * Fetches a list of students for a given class.
-   *
-   * @param {string} classId - The ID of the class.
-   * @returns {Promise<Student[]>} A promise that resolves to an array of `Student` objects.
-   * @throws {Error} If there is an error fetching the students.
-   */
   async fetchStudentsForClass(classId: string): Promise<Student[]> {
     try {
       const { data: students, error } = await supabase
-        .from("students") // Assuming your student table is named "students"
+        .from(STUDENT_TABLE_ID) // Assuming your student table is named "students"
         .select("id, parent_id, id_number, first_name, last_name")
         .eq("class_id", classId);
 
@@ -83,19 +69,12 @@ export const classService = {
     }
   },
 
-  /**
-   * Fetches a list of teachers for a given class.
-   *
-   * @param {string} classId - The ID of the class.
-   * @returns {Promise<Teacher[]>} A promise that resolves to an array of `Teacher` objects.
-   * @throws {Error} If there is an error fetching the teachers.
-   */
   async fetchTeachersForClass(classId: string): Promise<Teacher[]> {
     try {
       const { data: teachers, error } = await supabase
-        .from("teachers") // Assuming your teacher table is named "teachers"
-        .select("id, phone, full_name")
-        .contains("class_ids", [classId]); // Assuming class_ids is an array column
+        .from(TEACHER_TABLE_ID)
+        .select("id, phone, full_name, teacher_class_assignments (id)")
+        .eq("teacher_class_assignments.class_id", classId);
 
       if (error) {
         console.error("Error fetching teachers for class:", error);
@@ -113,13 +92,6 @@ export const classService = {
     }
   },
 
-  /**
-   * Fetches a list of schedules for a given class.
-   *
-   * @param {string} classId - The ID of the class.
-   * @returns {Promise<ClassSchedule[]>} A promise that resolves to an array of `ClassSchedule` objects.
-   * @throws {Error} If there is an error fetching the schedules.
-   */
   async fetchSchedulesForClass(classId: string): Promise<ClassSchedule[]> {
     try {
       const { data: schedules, error } = await supabase

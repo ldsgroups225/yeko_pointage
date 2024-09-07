@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Text, View } from "react-native";
-import { CsTextField, CsButton } from "@/components/commons";
+import { View, StyleSheet } from "react-native";
+import { CsTextField, CsButton, CsText } from "@/components/commons";
 import { LoginCredentials } from "@/types";
 import { isValidEmail, isValidPassword } from "@/utils/validators";
 
@@ -17,13 +17,13 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     setError(null);
 
     if (!isValidEmail(email)) {
-      setError("Please enter a valid email address.");
+      setError("Entrer un email valide.");
       return;
     }
 
     if (!isValidPassword(password)) {
       setError(
-        "Password must be at least 8 characters long and contain uppercase, lowercase letters, and numbers.",
+        "Le mot de passe doit contenir au moins 8 caractères, dont des majuscules, des minuscules et des chiffres.",
       );
       return;
     }
@@ -34,56 +34,89 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes("Network Error")) {
-          setError("Network error. Please check your connection.");
+          setError("Erreur réseau. Veuillez vérifier votre connexion.");
         } else if (err.message.includes("401")) {
-          setError("Invalid credentials. Please try again.");
+          setError("Identifiants invalides. Veuillez réessayer.");
         } else {
-          setError("An unexpected error occurred. Please try again later.");
+          setError(
+            "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+          );
         }
       } else {
-        setError("An unexpected error occurred. Please try again later.");
+        setError(
+          "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+        );
       }
     }
   };
 
   return (
-    <View style={{ padding: 20 }}>
+    <View style={styles.formContainer}>
       <CsTextField
         label="Email"
         value={email}
         onChangeText={setEmail}
-        placeholder="Enter your email"
+        placeholder="Entrer votre email"
         error={
           error && !isValidEmail(email)
-            ? "Please enter a valid email address."
+            ? "Entrer un email vailde s'il vous plaît."
             : ""
         }
         autoCapitalize="none"
         returnKeyType="next"
       />
       <CsTextField
-        label="Password"
+        label="Mot de passe"
         value={password}
         onChangeText={setPassword}
-        placeholder="Enter your password"
+        placeholder="Entrer votre mot de passe"
         secureTextEntry
         error={
           error && !isValidPassword(password)
-            ? "Password must be at least 8 characters long and contain uppercase, lowercase letters, and numbers."
+            ? "8 caractères minimum (majuscules, minuscules, chiffres)."
             : ""
         }
         returnKeyType="done"
       />
       <CsButton
         onPress={handleLogin}
-        title="Login"
+        title="Se connecter"
         disabled={false}
         loading={false}
         variant="primary"
         size="medium"
         style={{ marginTop: 10 }}
       />
-      {error && <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>}
+      {error && <CsText style={styles.error}>{error}</CsText>}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  formContainer: {
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    gap: 20,
+  },
+  forgotPassword: {
+    textAlign: "right",
+    marginTop: 10,
+    color: "#007bff",
+  },
+  error: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 10,
+  },
+});

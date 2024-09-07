@@ -2,9 +2,6 @@ import { useState } from "react";
 import { attendance } from "@/services/attendance";
 import { AttendanceRecord } from "@/types";
 
-/**
- * Return type for the `useAttendance` hook.
- */
 interface UseAttendanceReturn {
   createAttendance: (attendanceData: AttendanceRecord) => Promise<void>;
   createAttendances: (attendanceDataArray: AttendanceRecord[]) => Promise<void>;
@@ -12,26 +9,10 @@ interface UseAttendanceReturn {
   error: string | null;
 }
 
-/**
- * Custom React hook for managing attendance-related data and actions.
- *
- * Provides functions for creating attendance records, while managing loading
- * and error states.
- *
- * @returns {UseAttendanceReturn} An object containing functions and state for managing attendance data.
- */
 export const useAttendance = (): UseAttendanceReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Asynchronously creates a new attendance record.
-   *
-   * Updates the loading and error states accordingly.
-   *
-   * @param {AttendanceRecord} attendanceData - The attendance data to create.
-   * @returns {Promise<void>} A promise that resolves when the attendance record is created.
-   */
   const createAttendance = async (
     attendanceData: AttendanceRecord,
   ): Promise<void> => {
@@ -48,14 +29,6 @@ export const useAttendance = (): UseAttendanceReturn => {
     }
   };
 
-  /**
-   * Asynchronously creates multiple attendance records.
-   *
-   * Updates the loading and error states accordingly.
-   *
-   * @param {AttendanceRecord[]} attendanceDataArray - An array of attendance data to create.
-   * @returns {Promise<void>} A promise that resolves when all attendance records are created.
-   */
   const createAttendances = async (
     attendanceDataArray: AttendanceRecord[],
   ): Promise<void> => {

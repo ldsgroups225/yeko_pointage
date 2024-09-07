@@ -53,7 +53,7 @@ const HomeworkScreen: React.FC<HomeworkScreenProps> = ({
       isGraded,
       teacherId: currentTeacher!.id,
       classId: currentClass!.id,
-      subjectName: currentSchedule?.subjectName ?? "",
+      subjectId: currentSchedule!.subjectId,
     };
     setCurrentHomework(homework);
     onSubmit();

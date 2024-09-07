@@ -43,15 +43,15 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
       <View style={styles.modalOverlay}>
         <CsCard style={styles.modalContent}>
           <CsText variant="h3" style={styles.modalTitle}>
-            Welcome, {teacher.fullName}!
+            Rebonjour, {teacher.fullName}!
           </CsText>
           <CsText variant="body" style={styles.modalText}>
-            Your class is scheduled from{" "}
-            {extractHourAndMinute(schedule.startTime)} to{" "}
+            Votre cours ici commence de{" "}
+            {extractHourAndMinute(schedule.startTime)} à{" "}
             {extractHourAndMinute(schedule.endTime)}.
           </CsText>
           <CsButton
-            title="Continue"
+            title="Continuer"
             onPress={onContinue}
             style={styles.modalButton}
           />
@@ -252,22 +252,23 @@ export default function QRScanScreen() {
             </CsText>
           </CsCard>
         )}
-        <CsButton
-          title={showScanner ? "Annuler le scan" : "Commencer le scan"}
-          onPress={toggleScanner}
-          style={styles.button}
-        />
 
         {/* TODO: Remove later */}
         <CsButton
           title="Simuler le résultat du scan"
           onPress={() =>
             handleQRScan(
-              "teacher|---|66c0ceef0014ccb3fcc8|---|66c2b025001639733b61",
+              "teacher|---|ed85f4e4-5133-4270-b52d-795c6e65c0f0|---|69e60b99-2c30-484f-b9fb-c39799497690",
             )
           }
           variant="text"
           style={styles.simulateButton}
+        />
+
+        <CsButton
+          title={showScanner ? "Annuler le scan" : "Commencer le scan"}
+          onPress={toggleScanner}
+          style={styles.button}
         />
       </Animated.View>
 
@@ -326,8 +327,8 @@ const createStyles = (theme: Theme) =>
       marginBottom: spacing.xl,
     },
     logo: {
-      width: 100,
-      height: 100,
+      width: 260,
+      height: 260,
       resizeMode: "contain",
     },
     title: {

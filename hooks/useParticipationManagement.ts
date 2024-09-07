@@ -15,6 +15,7 @@ export const useParticipationManagement = (
   teacherId: string,
   classId: string,
 ) => {
+  const currentSchedule = useAtomValue(currentScheduleAtom);
   const fullStudents = useAtomValue(studentsListAtom);
   const currentAttendanceSession = useAtomValue(currentAttendanceSessionAtom);
   const currentHomework = useAtomValue(currentHomeworkAtom);
@@ -111,7 +112,7 @@ export const useParticipationManagement = (
     setIsSubmitting(true);
     const participationSession: ParticipationSession = {
       classId,
-      teacherId,
+      subjectId: currentSchedule!.subjectId,
       date: new Date().toISOString(),
       participations,
     };
@@ -122,7 +123,11 @@ export const useParticipationManagement = (
         currentAttendanceSession &&
           createAttendances(currentAttendanceSession.records),
         participations.length &&
-          createParticipations(classId, teacherId, participations),
+          createParticipations(
+            classId,
+            currentSchedule!.subjectId,
+            participations,
+          ),
         currentHomework && createHomework(currentHomework),
       ]);
 
@@ -131,27 +136,25 @@ export const useParticipationManagement = (
       setCurrentParticipationSession(null);
       setCurrentHomework(null);
       setCurrentSchedule(null);
-      return true; // Indicate successful submission
+      return true;
     } catch (e) {
       console.error("Error submitting session data:", e);
       Alert.alert("Error", "Failed to submit session data. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-    return false; // Indicate failed submission
+    return false;
   }, [
     isParticipationRangeValid,
     classId,
     teacherId,
     participations,
-    currentAttendanceSession,
-    currentHomework,
-    createAttendances,
-    createParticipations,
-    createHomework,
-    setCurrentAttendanceSession,
     setCurrentParticipationSession,
+    currentAttendanceSession,
+    createAttendances,
+    setCurrentAttendanceSession,
     setCurrentHomework,
+    setCurrentSchedule,
   ]);
 
   const participationStats = useMemo(() => {

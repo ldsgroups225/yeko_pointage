@@ -13,10 +13,10 @@ const DirectorLayout = () => {
     return (
       <View style={styles.unauthorizedContainer}>
         <CsText variant="h2" color="error">
-          Unauthorized Access
+          Accès non autorisé
         </CsText>
         <CsText variant="body">
-          You do not have permission to access this area.
+          Vous n'avez pas la permission d'accéder à cette zone.
         </CsText>
       </View>
     );
@@ -31,7 +31,7 @@ const DirectorLayout = () => {
       <Stack.Screen
         name="configure-tablet"
         options={{
-          title: "Configure Tablet",
+          title: "Configurer la tablette",
         }}
       />
     </Stack>

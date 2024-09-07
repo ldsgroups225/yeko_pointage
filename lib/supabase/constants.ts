@@ -55,6 +55,11 @@ export const STUDENT_TABLE_ID = "students";
 export const TEACHER_TABLE_ID = "teachers";
 
 /**
+ * The ID of the collection storing Teacher Class Assignment documents in the Supabase database.
+ */
+export const TEACHER_CLASS_ASSIGNMENTS_TABLE_ID = "teacher_class_assignments";
+
+/**
  * The ID of the collection storing Schedule documents in the Supabase database.
  */
 export const SCHEDULE_TABLE_ID = "schedules";

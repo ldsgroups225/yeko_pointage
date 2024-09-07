@@ -30,6 +30,8 @@ export function formatDate(date: Date | string): string {
  */
 export function formatTime(date: Date | string): string {
   if (typeof date === "string" && date.length === 5) return date;
+  if (typeof date === "string" && date.length === 8)
+    return date.substring(0, 5);
 
   const parsedDate = typeof date === "string" ? new Date(date) : date;
   return format(parsedDate, TIME_FORMAT);
@@ -133,6 +135,7 @@ export function compareTimeStrings(time1: string, time2: string): number {
  * @returns {string} The extracted hour and minute in the format "HH:mm".
  */
 export function extractHourAndMinute(dateString: string): string {
+  if (dateString.length === 8) return dateString.substring(0, 5);
   const date = parseISO(dateString);
   return format(date, "HH:mm");
 }

@@ -166,7 +166,7 @@ const ConfigureTablet = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <CsCard style={styles.card}>
         <CsText variant="h3" style={styles.title}>
-          Configure Tablet
+          Configurer la tablette
         </CsText>
 
         {error && (
@@ -176,12 +176,12 @@ const ConfigureTablet = () => {
         )}
 
         <CsText variant="body" style={styles.label}>
-          Select Grade
+          Sélectionner le niveau
         </CsText>
         {renderGradeChips()}
 
         <CsPicker
-          label="Select Class"
+          label="Sélectionner la classe"
           items={filteredClasses.map((c) => ({ label: c.name, value: c.id }))}
           selectedValue={selectedClass?.id}
           onValueChange={handleClassSelection}
@@ -190,13 +190,14 @@ const ConfigureTablet = () => {
 
         {filteredClasses.length === 0 && selectedGrade && (
           <CsText variant="body" style={styles.noClassesMessage}>
-            This school doesn't have classes available for the selected grade.
-            Please contact the administrator to create them if required.
+            Cette école n'a pas de classes disponibles pour le niveau
+            sélectionné. Veuillez contacter l'administrateur pour les créer si
+            nécessaire.
           </CsText>
         )}
 
         <CsButton
-          title="Save Configuration"
+          title="Enregistrer la configuration"
           onPress={handleSaveConfig}
           style={styles.button}
           disabled={!selectedClass || loading}
@@ -208,7 +209,7 @@ const ConfigureTablet = () => {
         isVisible={showConfirmation}
         onConfirm={handleConfirmation}
         onCancel={() => setShowConfirmation(false)}
-        message="Tablet configuration saved successfully! You will be logged out now."
+        message="La configuration de la tablette a été enregistrée avec succès ! Vous allez être déconnecté maintenant."
       />
     </ScrollView>
   );

@@ -3,7 +3,7 @@ import { Student, Teacher } from "@/types/school";
 export interface Class {
   id: string;
   name: string;
-  gradeId: string;
+  gradeId?: string;
   schoolId: string;
   mainTeacherId?: string;
   schedule?: ClassSchedule[];
