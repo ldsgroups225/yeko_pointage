@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 import LoginForm from "@/components/LoginForm";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { LoginCredentials, UserRole } from "@/types";
+import { LoginCredentials, UserRoleText } from "@/types";
 import { useSchool } from "@/hooks";
 
 export default function LoginScreen() {
@@ -15,7 +15,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { schoolId } = useLocalSearchParams<{
-    role: UserRole;
+    role: UserRoleText;
     schoolId: string;
   }>();
 
@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     alignSelf: "center",
-    marginBottom: 20,
   },
   title: {
     fontSize: 28,

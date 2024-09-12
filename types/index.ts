@@ -11,4 +11,4 @@ export type { Homework } from "./homework";
 export type { Incident } from "./incidents";
 export type { Cycle } from "./cycle";
 export type { Grade } from "./grade";
-export { UserRole } from "./enums";
+export { UserRoleText } from "./enums";

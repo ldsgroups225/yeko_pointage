@@ -12,7 +12,7 @@ import { useThemedStyles } from "@/hooks";
 import { spacing } from "@/styles";
 import { CsButton, CsCard, CsText } from "@/components/commons";
 import type { ITheme } from "@/styles/theme";
-import { UserRole } from "@/types";
+import { UserRoleText } from "@/types";
 
 interface QRScannerProps {
   isVisible: boolean;
@@ -120,7 +120,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({
                 QR Code Scanned Successfully
               </CsText>
               <CsText variant="body" style={themedStyles.modalText}>
-                {(scanResult ?? "").startsWith(UserRole.DIRECTOR)
+                {(scanResult ?? "").startsWith(UserRoleText.DIRECTOR)
                   ? "You will be redirected to the login screen."
                   : "You will be redirected to the home screen."}
               </CsText>

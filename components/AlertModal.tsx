@@ -12,26 +12,22 @@ import { borderRadius, spacing } from "@/styles";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { SvgProps } from "react-native-svg";
 
-interface ConfirmationModalProps {
+interface AlertModalProps {
   isVisible: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
+  onClose: () => void;
   message: string;
   title?: string;
-  confirmText?: string;
-  cancelText?: string;
+  buttonText?: string;
   image?: ImageSourcePropType;
   SvgComponent?: React.FC<SvgProps>;
 }
 
-export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+export const AlertModal: React.FC<AlertModalProps> = ({
   isVisible,
-  onConfirm,
-  onCancel,
+  onClose,
   message,
-  title = "Confirmation",
-  confirmText = "Oui",
-  cancelText = "Non",
+  title = "Alert",
+  buttonText = "OK",
   image,
   SvgComponent,
 }) => {
@@ -59,14 +55,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </CsText>
           <View style={styles.buttonContainer}>
             <CsButton
-              title={cancelText}
-              onPress={onCancel}
-              style={styles.button}
-              variant="outline"
-            />
-            <CsButton
-              title={confirmText}
-              onPress={onConfirm}
+              title={buttonText}
+              onPress={onClose}
               style={styles.button}
             />
           </View>
@@ -101,12 +91,10 @@ const createStyles = (theme: Theme) =>
       textAlign: "center",
     },
     buttonContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+      alignItems: "center",
     },
     button: {
-      flex: 1,
-      marginHorizontal: spacing.xs,
+      minWidth: 100,
     },
     image: {
       width: 100,

@@ -5,14 +5,16 @@ import {
   GRADE_TABLE_ID,
   SCHOOL_TABLE_ID,
   supabase,
+  USER_ROLES_TABLE_ID,
 } from "@/lib/supabase";
+import { ERole } from "@/types/enums";
 
 export const school = {
   async getSchoolById(schoolId: string): Promise<School> {
     try {
       const { data, error } = await supabase
         .from(SCHOOL_TABLE_ID)
-        .select("*")
+        .select("id, name, cycle_id, code, image_url")
         .eq("id", schoolId)
         .single();
 
@@ -26,6 +28,7 @@ export const school = {
         name: data.name,
         cycleId: data.cycle_id,
         code: data.code,
+        imageUrl: data.image_url,
       };
     } catch (error) {
       console.error("Error fetching school details:", error);
@@ -107,6 +110,21 @@ export const school = {
     schoolId: string,
   ): Promise<boolean> {
     try {
+      console.log("[USER_ID]", userId);
+      console.log("[SCHOOL_ID]", schoolId);
+      const { data: director, error: directorError } = await supabase
+        .from(USER_ROLES_TABLE_ID)
+        .select("role_id")
+        .eq("user_id", userId)
+        .eq("role_id", ERole.DIRECTOR)
+        .single();
+      console.log("[USER_ROLES]", director);
+
+      if (directorError || !director) {
+        console.error("Error verifying director access:", directorError);
+        return false;
+      }
+
       const { data: school, error: schoolError } = await supabase
         .from(SCHOOL_TABLE_ID)
         .select("*")

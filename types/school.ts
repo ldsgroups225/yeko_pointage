@@ -5,6 +5,7 @@ export interface School {
   cycleId: string;
   name: string;
   code: string;
+  imageUrl: string;
 }
 
 export interface Class {

@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { CsText, CsButton, CsCard } from "@/components/commons";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
+import { AlertModal } from "@/components/AlertModal";
 import { useThemedStyles } from "@/hooks";
 import { spacing, borderRadius } from "@/styles";
 import { Student } from "@/types";
@@ -45,8 +45,12 @@ const ParticipationScreen: React.FC = () => {
   } = useParticipationManagement(teacherId, classId);
 
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showHomeworkConfirmationModal, setShowHomeworkConfirmationModal] =
+    useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showHomeworkBottomSheet, setShowHomeworkBottomSheet] = useState(false);
+  const [showInvalidParticipationAlert, setShowInvalidParticipationAlert] =
+    useState(false);
 
   const renderStudentItem = useCallback(
     ({ item: student }: { item: Student }) => {
@@ -94,6 +98,14 @@ const ParticipationScreen: React.FC = () => {
     [participations, toggleParticipation, openCommentModal, styles],
   );
 
+  const handleEndSession = () => {
+    if (isParticipationRangeValid()) {
+      setShowConfirmationModal(true);
+    } else {
+      setShowInvalidParticipationAlert(true);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <View style={styles.body}>
@@ -126,16 +138,7 @@ const ParticipationScreen: React.FC = () => {
           <CsButton
             title="Terminer votre session"
             loading={isSubmitting}
-            onPress={() => {
-              if (isParticipationRangeValid()) {
-                setShowConfirmationModal(true);
-              } else {
-                Alert.alert(
-                  "Nombre de participations invalide",
-                  "Veuillez sélectionner au moins 1 et au plus 5 élèves pour la participation.",
-                );
-              }
-            }}
+            onPress={handleEndSession}
             style={styles.finalizeButton}
             icon={<FontAwesome5 name="plus" size={16} color="white" />}
           />
@@ -159,27 +162,32 @@ const ParticipationScreen: React.FC = () => {
         isVisible={showConfirmationModal}
         onConfirm={() => {
           setShowConfirmationModal(false);
-          Alert.alert("Devoirs", "Avez-vous assigné un exercice de maison?", [
-            {
-              text: "Non",
-              onPress: async () => {
-                const success = await handleCloseSession();
-                if (success === true) {
-                  router.replace("/(auth)/qr-scan");
-                }
-              },
-            },
-            {
-              text: "Oui",
-              onPress: () => setShowHomeworkBottomSheet(true),
-            },
-          ]);
+          setShowHomeworkConfirmationModal(true);
         }}
         onCancel={() => setShowConfirmationModal(false)}
         message="Êtes-vous sûr de vouloir terminer la session ?"
         title="Terminer la session"
         confirmText="Continuer"
         cancelText="Annuler"
+      />
+
+      <ConfirmationModal
+        isVisible={showHomeworkConfirmationModal}
+        onConfirm={() => {
+          setShowHomeworkConfirmationModal(false);
+          setShowHomeworkBottomSheet(true);
+        }}
+        onCancel={async () => {
+          setShowHomeworkConfirmationModal(false);
+          const success = await handleCloseSession();
+          if (success) {
+            router.replace("/(auth)/qr-scan");
+          }
+        }}
+        message="Avez-vous assigné un exercice de maison ?"
+        title="Devoirs"
+        confirmText="Oui"
+        cancelText="Non"
       />
 
       <BottomSheet
@@ -231,6 +239,13 @@ const ParticipationScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      <AlertModal
+        isVisible={showInvalidParticipationAlert}
+        onClose={() => setShowInvalidParticipationAlert(false)}
+        title="Nombre de participations invalide"
+        message="Veuillez sélectionner au moins 1 et au plus 5 élèves pour la participation."
+      />
     </SafeAreaView>
   );
 };
@@ -258,6 +273,9 @@ const createStyles = (theme: Theme) =>
     sectionTitle: {
       marginBottom: spacing.md,
       fontWeight: "bold",
+    },
+    statsContainer: {
+      marginBottom: spacing.md,
     },
     list: {
       flex: 1,
@@ -289,6 +307,7 @@ const createStyles = (theme: Theme) =>
     },
     finalizeButton: {
       marginTop: spacing.md,
+      color: "white",
     },
     modalOverlay: {
       flex: 1,

@@ -6,7 +6,7 @@ import { CsText, CsButton, CsCard } from "@/components/commons";
 import { QRScanner } from "@/components/QRScanner";
 import { useThemedStyles } from "@/hooks";
 import { spacing } from "@/styles";
-import { UserRole, Teacher, ClassSchedule } from "@/types";
+import { UserRoleText, Teacher, ClassSchedule } from "@/types";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   classScheduleAtom,
@@ -145,7 +145,7 @@ export default function QRScanScreen() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.navigate({
       pathname: "/(auth)/login",
-      params: { role: UserRole.DIRECTOR, schoolId },
+      params: { role: UserRoleText.DIRECTOR, schoolId },
     });
   };
 
@@ -191,9 +191,9 @@ export default function QRScanScreen() {
 
     const [role, schoolId, userId] = parts;
 
-    if (role === UserRole.DIRECTOR) {
+    if (role === UserRoleText.DIRECTOR) {
       await handleDirectorScan(schoolId);
-    } else if (role === UserRole.TEACHER) {
+    } else if (role === UserRoleText.TEACHER) {
       if (!userId) {
         handleError(setError, "Invalid teacher QR code");
         return;
@@ -247,7 +247,7 @@ export default function QRScanScreen() {
         </CsText>
         {error && (
           <CsCard style={styles.errorCard}>
-            <CsText variant="body" color="error" style={styles.error}>
+            <CsText variant="body" style={styles.error}>
               {error}
             </CsText>
           </CsCard>
@@ -258,7 +258,7 @@ export default function QRScanScreen() {
           title="Simuler le résultat du scan"
           onPress={() =>
             handleQRScan(
-              "teacher|---|ed85f4e4-5133-4270-b52d-795c6e65c0f0|---|69e60b99-2c30-484f-b9fb-c39799497690",
+              "teacher|---|ed85f4e4-5133-4270-b52d-795c6e65c0f0|---|46cf18f8-1608-4fac-859b-f6ffb9e2f4ce",
             )
           }
           variant="text"
@@ -352,6 +352,7 @@ const createStyles = (theme: Theme) =>
     },
     error: {
       textAlign: "center",
+      color: "white",
     },
     button: {
       minWidth: 250,

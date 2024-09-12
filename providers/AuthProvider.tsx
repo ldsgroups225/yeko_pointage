@@ -21,7 +21,7 @@ interface AuthContextType {
    * @param password The user's password.
    * @returns A promise that resolves to the session object.
    */
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
   /**
    * Logout function, returns a promise that resolves on successful logout.
    * @returns A promise that resolves on successful logout.

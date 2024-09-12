@@ -31,12 +31,11 @@ export default function HomeworkForm({ classId, onSubmit }: HomeworkFormProps) {
       return;
     }
 
-    const newHomework: Omit<Homework, "id"> = {
+    const newHomework: Homework = {
       teacherId: "",
       classId,
       dueDate: formatDate(new Date(dueDate)),
       isGraded,
-      subjectName: currentSchedule?.subjectName ?? "",
     };
 
     try {

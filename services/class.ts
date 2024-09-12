@@ -3,8 +3,8 @@ import {
   CLASS_TABLE_ID,
   SCHEDULE_TABLE_ID,
   supabase,
-  TEACHER_TABLE_ID,
   STUDENT_TABLE_ID,
+  USERS_TABLE_ID,
 } from "@/lib/supabase";
 import { formatFullName } from "@/utils/formatting";
 
@@ -72,8 +72,10 @@ export const classService = {
   async fetchTeachersForClass(classId: string): Promise<Teacher[]> {
     try {
       const { data: teachers, error } = await supabase
-        .from(TEACHER_TABLE_ID)
-        .select("id, phone, full_name, teacher_class_assignments (id)")
+        .from(USERS_TABLE_ID)
+        .select(
+          "id, phone, first_name, last_name, teacher_class_assignments (id)",
+        )
         .eq("teacher_class_assignments.class_id", classId);
 
       if (error) {
@@ -84,7 +86,7 @@ export const classService = {
       return teachers.map((teacher) => ({
         id: teacher.id,
         phone: teacher.phone,
-        fullName: teacher.full_name,
+        fullName: formatFullName(teacher.first_name, teacher.last_name),
       }));
     } catch (error) {
       console.error("Error fetching teachers for class:", error);
