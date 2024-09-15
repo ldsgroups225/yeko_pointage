@@ -37,7 +37,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-camera"
+      "expo-camera",
+      "expo-font"
     ],
     "extra": {
       "router": {
