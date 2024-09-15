@@ -181,8 +181,8 @@ export function checkScheduledClass<
   if (!schedule) {
     const message =
       customMessage ||
-      "No scheduled class for this teacher at the current time";
-    console.error(message);
+      "Vous n'avez pas de cours prévu avec cette classe pour le moment.";
+    console.log(message);
     return null;
   }
 

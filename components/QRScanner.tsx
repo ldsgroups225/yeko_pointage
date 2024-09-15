@@ -12,24 +12,27 @@ import { useThemedStyles } from "@/hooks";
 import { spacing } from "@/styles";
 import { CsButton, CsCard, CsText } from "@/components/commons";
 import type { ITheme } from "@/styles/theme";
-import { UserRoleText } from "@/types";
 
 interface QRScannerProps {
   isVisible: boolean;
   onScan: (data: string) => void;
   onClose: () => void;
+  showErrorModal: boolean;
+  errorMessage: string | null;
+  setShowErrorModal: (value: boolean) => void;
 }
 
 export const QRScanner: React.FC<QRScannerProps> = ({
   isVisible,
   onScan,
   onClose,
+  showErrorModal,
+  setShowErrorModal,
+  errorMessage,
 }) => {
   const themedStyles = useThemedStyles<typeof styles>(styles);
 
   const [scanned, setScanned] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [scanResult, setScanResult] = useState<string | null>(null);
   const facing: CameraType = "back";
   const [permission, requestPermission] = useCameraPermissions();
 
@@ -40,25 +43,16 @@ export const QRScanner: React.FC<QRScannerProps> = ({
   const handleBarCodeScanned = ({ data }: BarcodeScanningResult) => {
     setScanned(true);
     if (data.startsWith(QR_CODE_PREFIX)) {
-      setScanResult(data.slice(QR_CODE_PREFIX.length));
-      setShowInfoModal(true);
-    } else {
-      alert("Invalid QR Code");
-      setScanned(false);
-    }
-  };
-
-  const handleConfirm = () => {
-    setShowInfoModal(false);
-    if (scanResult) {
+      const scanResult = data.slice(QR_CODE_PREFIX.length);
       onScan(scanResult);
+    } else {
+      setShowErrorModal(true); // Show error modal if QR code is invalid
     }
   };
 
   const handleRescan = () => {
     setScanned(false);
-    setShowInfoModal(false);
-    setScanResult(null);
+    setShowErrorModal(false);
   };
 
   if (!permission) {
@@ -68,8 +62,10 @@ export const QRScanner: React.FC<QRScannerProps> = ({
   if (!permission.granted) {
     return (
       <View style={themedStyles.container}>
-        <CsText variant="h3">We need your permission to show the camera</CsText>
-        <CsButton onPress={requestPermission} title="Grant permission" />
+        <CsText variant="h3">
+          Nous avons besoin de votre autorisation pour accéder à la caméra.
+        </CsText>
+        <CsButton onPress={requestPermission} title="Accorder l'autorisation" />
       </View>
     );
   }
@@ -79,11 +75,11 @@ export const QRScanner: React.FC<QRScannerProps> = ({
       <SafeAreaView style={themedStyles.container}>
         <View style={themedStyles.header}>
           <CsText variant="h2" style={themedStyles.title}>
-            Scan QR Code
+            Scanner le code QR
           </CsText>
           <CsButton
             onPress={onClose}
-            title="TODO"
+            title=""
             style={themedStyles.closeButton}
             icon={
               <Ionicons
@@ -110,28 +106,21 @@ export const QRScanner: React.FC<QRScannerProps> = ({
         </View>
         <View style={themedStyles.footer}>
           <CsText variant="body" style={themedStyles.footerText}>
-            Position the QR code within the frame to scan
+            Positionnez le code QR dans le cadre pour le scanner
           </CsText>
         </View>
-        <Modal visible={showInfoModal} transparent animationType="fade">
+
+        {/* Error Modal */}
+        <Modal visible={showErrorModal} transparent animationType="fade">
           <View style={themedStyles.modalOverlay}>
             <CsCard style={themedStyles.modalContent}>
               <CsText variant="h3" style={themedStyles.modalTitle}>
-                QR Code Scanned Successfully
-              </CsText>
-              <CsText variant="body" style={themedStyles.modalText}>
-                {(scanResult ?? "").startsWith(UserRoleText.DIRECTOR)
-                  ? "You will be redirected to the login screen."
-                  : "You will be redirected to the home screen."}
+                {errorMessage || "Code QR invalide"}{" "}
+                {/* Display error message or default */}
               </CsText>
               <View style={themedStyles.buttonContainer}>
                 <CsButton
-                  title="Confirm"
-                  onPress={handleConfirm}
-                  style={themedStyles.button}
-                />
-                <CsButton
-                  title="Rescan"
+                  title="Scanner à nouveau"
                   onPress={handleRescan}
                   style={themedStyles.button}
                   variant="outline"

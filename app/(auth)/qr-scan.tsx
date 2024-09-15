@@ -18,11 +18,6 @@ import {
 import { checkScheduledClass, extractHourAndMinute } from "@/utils/dateTime";
 import ToastColor from "../../styles/toast";
 
-// Helper function for handling errors (Efficiency and Resource Management)
-const handleError = (setError: Function, message: string) => {
-  setError(message);
-};
-
 interface WelcomeModalProps {
   isVisible: boolean;
   teacher: Teacher;
@@ -30,6 +25,17 @@ interface WelcomeModalProps {
   onContinue: () => void;
 }
 
+// Helper function for handling errors
+const handleError = (
+  setError: Function,
+  message: string,
+  showErrorModal: Function,
+) => {
+  setError(message);
+  showErrorModal(true); // Show the error modal in QRScanner
+};
+
+// Welcome Modal Component
 const WelcomeModal: React.FC<WelcomeModalProps> = ({
   isVisible,
   teacher,
@@ -43,11 +49,11 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
       <View style={styles.modalOverlay}>
         <CsCard style={styles.modalContent}>
           <CsText variant="h3" style={styles.modalTitle}>
-            Rebonjour, {teacher.fullName}!
+            Bienvenue, {teacher.fullName}!
           </CsText>
           <CsText variant="body" style={styles.modalText}>
-            Votre cours ici commence de{" "}
-            {extractHourAndMinute(schedule.startTime)} à{" "}
+            Votre cours ici commence à{" "}
+            {extractHourAndMinute(schedule.startTime)} et se termine à{" "}
             {extractHourAndMinute(schedule.endTime)}.
           </CsText>
           <CsButton
@@ -66,6 +72,7 @@ export default function QRScanScreen() {
   const router = useRouter();
   const [showScanner, setShowScanner] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false); // State for the error modal in QRScanner
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const teachers = useAtomValue(teachersListAtom);
@@ -77,12 +84,12 @@ export default function QRScanScreen() {
   const setCurrentTeacher = useSetAtom(currentTeacherAtom);
   const setCurrentSchedule = useSetAtom(currentScheduleAtom);
 
-  // New animations
+  // Animations
   const [scanAnimation] = useState(new Animated.Value(0));
   const [fadeAnimation] = useState(new Animated.Value(1));
 
   useEffect(() => {
-    // Animate scan area like a breathing effect
+    // Breathing animation for the scan area
     Animated.loop(
       Animated.sequence([
         Animated.timing(scanAnimation, {
@@ -101,46 +108,36 @@ export default function QRScanScreen() {
     ).start();
   }, []);
 
+  // QR Code Validation
   const validateQRCodeData = (
     data: string,
-  ): [string, string, string | undefined] | null => {
+  ): [string, string, string?] | null => {
     const parts = data.split("|---|");
-    if (parts.length < 2 || !parts[0] || !parts[1]) {
-      return null;
-    }
-    return parts as [string, string, string | undefined];
+    return parts.length >= 2 ? (parts as [string, string, string?]) : null;
   };
 
-  const fetchTeacherData = (
-    userId: string,
-    teachers: Teacher[],
-  ): Teacher | null => {
+  // Teacher Data Retrieval
+  const fetchTeacherData = (userId: string): Teacher | null => {
     return teachers.find((t) => t.id === userId) || null;
   };
 
-  const checkSchedule = (
-    userId: string,
-    schedules: ClassSchedule[],
-  ): ClassSchedule | null => {
+  // Schedule Verification
+  const checkSchedule = (userId: string): ClassSchedule | null => {
     return checkScheduledClass(
       userId,
       schedules,
-      "No scheduled class for this teacher at the current time",
+      "Aucun cours n'est prévu pour cet enseignant à l'heure actuelle.",
     );
   };
 
-  const handleTeacherRole = (
-    setCurrentTeacher: Function,
-    setCurrentSchedule: Function,
-    setShowWelcomeModal: Function,
-    teacher: Teacher,
-    schedule: ClassSchedule,
-  ) => {
+  // Teacher Role Handling
+  const handleTeacherRole = (teacher: Teacher, schedule: ClassSchedule) => {
     setCurrentTeacher(teacher);
     setCurrentSchedule(schedule);
     setShowWelcomeModal(true);
   };
 
+  // Director Scan Handling
   const handleDirectorScan = async (schoolId: string) => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.navigate({
@@ -149,42 +146,43 @@ export default function QRScanScreen() {
     });
   };
 
+  // Teacher Scan Handling
   const handleTeacherScan = async (userId: string) => {
-    const teacher = fetchTeacherData(userId, teachers);
+    const teacher = fetchTeacherData(userId);
     if (!teacher) {
-      handleError(setError, "Teacher not found for this class");
+      handleError(
+        setError,
+        "Enseignant introuvable pour ce cours.",
+        setShowErrorModal,
+      );
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
 
-    const schedule = checkSchedule(userId, schedules);
+    const schedule = checkSchedule(userId);
     if (!schedule) {
       handleError(
         setError,
-        "No scheduled class for this teacher at the current time",
+        "Aucun cours n'est prévu pour cet enseignant à l'heure actuelle.",
+        setShowErrorModal,
       );
-
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
-    setCurrentSchedule(schedule);
 
+    setCurrentSchedule(schedule);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    handleTeacherRole(
-      setCurrentTeacher,
-      setCurrentSchedule,
-      setShowWelcomeModal,
-      teacher,
-      schedule,
-    );
+    handleTeacherRole(teacher, schedule);
   };
 
+  // QR Scan Handler
   const handleQRScan = async (data: string) => {
     setError(null);
+    setShowErrorModal(false); // Reset error modal on new scan
 
     const parts = validateQRCodeData(data);
     if (!parts) {
-      handleError(setError, "Invalid QR code format");
+      handleError(setError, "Format de code QR invalide.", setShowErrorModal);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -195,17 +193,22 @@ export default function QRScanScreen() {
       await handleDirectorScan(schoolId);
     } else if (role === UserRoleText.TEACHER) {
       if (!userId) {
-        handleError(setError, "Invalid teacher QR code");
+        handleError(
+          setError,
+          "Code QR enseignant invalide.",
+          setShowErrorModal,
+        );
         return;
       }
       await handleTeacherScan(userId);
     } else {
       setCurrentSchedule(null);
-      handleError(setError, "Invalid user role");
+      handleError(setError, "Rôle utilisateur invalide.", setShowErrorModal);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
+  // Continue Button Handler
   const handleContinue = () => {
     setShowWelcomeModal(false);
     if (currentTeacher && currentSchedule && currentClass) {
@@ -220,8 +223,9 @@ export default function QRScanScreen() {
     }
   };
 
+  // Scanner Toggle Handler
   const toggleScanner = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then((r) => r);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     Animated.timing(fadeAnimation, {
       toValue: showScanner ? 1 : 0,
@@ -292,6 +296,9 @@ export default function QRScanScreen() {
             isVisible={showScanner}
             onScan={handleQRScan}
             onClose={toggleScanner}
+            errorMessage={error}
+            showErrorModal={showErrorModal}
+            setShowErrorModal={setShowErrorModal}
           />
         </Animated.View>
       )}
@@ -370,5 +377,28 @@ const createStyles = (theme: Theme) =>
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: "rgba(0, 0, 0, 0.8)",
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    modalContent: {
+      backgroundColor: theme.background,
+      padding: spacing.lg,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    modalTitle: {
+      marginBottom: spacing.md,
+      textAlign: "center",
+    },
+    modalText: {
+      marginBottom: spacing.lg,
+      textAlign: "center",
+    },
+    modalButton: {
+      marginTop: spacing.md,
     },
   });
