@@ -42,10 +42,10 @@ const AttendanceScreen: React.FC = () => {
 
   const handleFinalizeAttendance = useCallback(() => {
     if (isFirstAttendanceFinished) {
+      finalizeAttendance();
       handleProceedToParticipation();
     } else {
       setIsFirstAttendanceFinished(true);
-      finalizeAttendance();
     }
   }, [
     isFirstAttendanceFinished,

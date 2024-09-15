@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -14,12 +14,15 @@ import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { AlertModal } from "@/components/AlertModal";
 import { useThemedStyles } from "@/hooks";
 import { spacing, borderRadius } from "@/styles";
-import { Student } from "@/types";
+import { Homework, Student } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
-import HomeworkScreen from "./homework";
-import { BottomSheet } from "@/components/BottomSheet";
+import HomeworkForm from "./homework";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { StatCard } from "@/components/StatCard";
 import { useParticipationManagement } from "@/hooks/useParticipationManagement";
+import { useAtomValue } from "jotai/index";
+import { currentScheduleAtom } from "@/store/atoms";
+import homework from "./homework";
 
 const ParticipationScreen: React.FC = () => {
   const styles = useThemedStyles(createStyles);
@@ -44,13 +47,15 @@ const ParticipationScreen: React.FC = () => {
     isParticipationRangeValid,
   } = useParticipationManagement(teacherId, classId);
 
+  const currentSchedule = useAtomValue(currentScheduleAtom);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showHomeworkConfirmationModal, setShowHomeworkConfirmationModal] =
     useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [showHomeworkBottomSheet, setShowHomeworkBottomSheet] = useState(false);
   const [showInvalidParticipationAlert, setShowInvalidParticipationAlert] =
     useState(false);
+
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
   const renderStudentItem = useCallback(
     ({ item: student }: { item: Student }) => {
@@ -175,11 +180,11 @@ const ParticipationScreen: React.FC = () => {
         isVisible={showHomeworkConfirmationModal}
         onConfirm={() => {
           setShowHomeworkConfirmationModal(false);
-          setShowHomeworkBottomSheet(true);
+          bottomSheetRef.current?.expand();
         }}
         onCancel={async () => {
           setShowHomeworkConfirmationModal(false);
-          const success = await handleCloseSession();
+          const success = await handleCloseSession({});
           if (success) {
             router.replace("/(auth)/qr-scan");
           }
@@ -191,21 +196,33 @@ const ParticipationScreen: React.FC = () => {
       />
 
       <BottomSheet
-        isVisible={showHomeworkBottomSheet}
-        onClose={() => setShowHomeworkBottomSheet(false)}
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={["70%"]}
+        enablePanDownToClose
+        backgroundStyle={styles.bottomSheetBackground}
       >
-        <HomeworkScreen
-          teacherId={teacherId}
-          classId={classId}
-          onSubmit={async () => {
-            setShowHomeworkBottomSheet(false);
-            const success = await handleCloseSession();
-            if (success) {
-              router.push("/(auth)/qr-scan");
-            }
-          }}
-          onCancel={() => setShowHomeworkBottomSheet(false)}
-        />
+        <BottomSheetView style={styles.bottomSheetContent}>
+          <HomeworkForm
+            onSubmit={async (dueDate: Date, isGraded: boolean) => {
+              const _homework: Homework = {
+                dueDate: dueDate.toISOString(),
+                isGraded,
+                teacherId: teacherId,
+                classId: classId,
+                subjectId: currentSchedule!.subjectId,
+              };
+
+              bottomSheetRef.current?.close();
+
+              const success = await handleCloseSession({ homework: _homework });
+              if (success) {
+                router.push("/(auth)/qr-scan");
+              }
+            }}
+            onCancel={() => bottomSheetRef.current?.close()}
+          />
+        </BottomSheetView>
       </BottomSheet>
 
       <Modal visible={showCommentModal} transparent animationType="fade">
@@ -338,6 +355,17 @@ const createStyles = (theme: Theme) =>
     modalButtons: {
       flexDirection: "row",
       justifyContent: "space-between",
+    },
+    bottomSheetBackground: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+    bottomSheetContent: {
+      flex: 1,
+      backgroundColor: theme.background,
+      padding: spacing.md,
+      borderTopLeftRadius: borderRadius.medium,
+      borderTopRightRadius: borderRadius.medium,
     },
   });
 

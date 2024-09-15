@@ -141,15 +141,6 @@ export const attendanceHistoryAtom = atomWithMMKV<AttendanceSession[]>(
   [],
 );
 
-// Homework Atoms
-/**
- * Atom representing the currently set Homework.
- */
-export const currentHomeworkAtom = atomWithMMKV<Homework | null>(
-  "currentHomework",
-  null,
-);
-
 // Participation Atoms
 /**
  * Atom representing the currently active participation session.

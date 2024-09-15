@@ -1,44 +1,38 @@
 import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Switch, Alert } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  Platform,
+} from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { CsText, CsButton, CsCard } from "@/components/commons";
+import { CsText, CsButton } from "@/components/commons";
 import { useThemedStyles } from "@/hooks";
-import { spacing, shadows } from "@/styles";
+import { spacing, colors, borderRadius } from "@/styles";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatDate } from "@/utils/dateTime";
-import { Homework } from "@/types";
-import { useAtomValue, useSetAtom } from "jotai/index";
-import {
-  currentClassAtom,
-  currentHomeworkAtom,
-  currentScheduleAtom,
-  currentTeacherAtom,
-} from "@/store/atoms";
 
-interface HomeworkScreenProps {
-  teacherId: string;
-  classId: string;
+interface HomeworkFormProps {
+  initialDueDate?: Date;
+  initialIsGraded?: boolean;
+  onSubmit: (dueDate: Date, isGraded: boolean) => void;
   onCancel: () => void;
-  onSubmit: () => void;
 }
 
-const HomeworkScreen: React.FC<HomeworkScreenProps> = ({
-  onCancel,
+const HomeworkForm: React.FC<HomeworkFormProps> = ({
+  initialDueDate = new Date(),
+  initialIsGraded = false,
   onSubmit,
+  onCancel,
 }) => {
   const styles = useThemedStyles(createStyles);
-  const [dueDate, setDueDate] = useState(new Date());
-  const [isGraded, setIsGraded] = useState(false);
+  const [dueDate, setDueDate] = useState(initialDueDate);
+  const [isGraded, setIsGraded] = useState(initialIsGraded);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const currentClass = useAtomValue(currentClassAtom);
-  const currentTeacher = useAtomValue(currentTeacherAtom);
-  const currentSchedule = useAtomValue(currentScheduleAtom);
-
-  const setCurrentHomework = useSetAtom(currentHomeworkAtom);
-
   const handleSubmit = () => {
-    // Check if due date is in the future
     if (dueDate < new Date()) {
       Alert.alert(
         "Date d'échéance invalide",
@@ -48,59 +42,64 @@ const HomeworkScreen: React.FC<HomeworkScreenProps> = ({
       return;
     }
 
-    const homework: Homework = {
-      dueDate: dueDate.toISOString(),
-      isGraded,
-      teacherId: currentTeacher!.id,
-      classId: currentClass!.id,
-      subjectId: currentSchedule!.subjectId,
-    };
-    setCurrentHomework(homework);
-    onSubmit();
+    onSubmit(dueDate, isGraded);
   };
 
   const handleDateChange = (event: any, selectedDate: Date | undefined) => {
-    setShowDatePicker(false);
+    setShowDatePicker(Platform.OS === "ios");
     if (selectedDate) {
       setDueDate(selectedDate);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <CsText variant="h2" style={styles.title}>
         Ajouter un devoir
       </CsText>
 
-      <CsCard style={styles.formCard}>
+      <View style={styles.formCard}>
         <View style={styles.formGroup}>
-          <CsText variant="body">Date d'échéance</CsText>
-          <CsButton
-            title={formatDate(dueDate)}
-            onPress={() => setShowDatePicker(true)}
-            icon={<FontAwesome5 name="calendar-alt" size={16} color="white" />}
-            style={styles.dateButton}
-          />
+          <CsText variant="body" style={styles.label}>
+            Date d'échéance :
+          </CsText>
+          <View style={styles.dateInputContainer}>
+            <CsText style={styles.dateInputText}>{formatDate(dueDate)}</CsText>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <FontAwesome5
+                name="calendar-alt"
+                size={20}
+                color={colors.primary}
+                style={styles.calendarIcon}
+              />
+            </TouchableOpacity>
+          </View>
           {showDatePicker && (
             <DateTimePicker
               value={dueDate}
               mode="date"
-              display="default"
+              display={Platform.OS === "ios" ? "inline" : "default"}
               onChange={handleDateChange}
             />
           )}
         </View>
 
         <View style={styles.formGroup}>
-          <CsText variant="body">Noté</CsText>
+          <CsText variant="body" style={styles.label}>
+            Noté :
+          </CsText>
           <Switch
             value={isGraded}
             onValueChange={setIsGraded}
-            trackColor={{ false: "#767577", true: "#81b0ff" }}
-            thumbColor={isGraded ? "#f5dd4b" : "#f4f3f4"}
+            trackColor={{
+              false: colors.textLight + "45",
+              true: colors.primary,
+            }}
+            thumbColor={isGraded ? colors.white : colors.textLight}
+            style={styles.switch}
           />
         </View>
-      </CsCard>
+      </View>
 
       <View style={styles.buttonContainer}>
         <CsButton
@@ -115,7 +114,7 @@ const HomeworkScreen: React.FC<HomeworkScreenProps> = ({
           style={styles.button}
         />
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -127,24 +126,44 @@ const createStyles = (theme: Theme) =>
       padding: spacing.md,
     },
     title: {
-      marginBottom: spacing.md,
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: spacing.lg,
       textAlign: "center",
+      color: colors.text,
     },
     formCard: {
-      padding: spacing.md,
-      marginBottom: spacing.md,
-      ...shadows.medium,
-      backgroundColor: theme.card + "15", // Add a subtle tint to the card background
+      backgroundColor: theme.card,
+      padding: spacing.lg,
+      borderRadius: borderRadius.medium,
+      marginBottom: spacing.lg,
     },
     formGroup: {
       marginBottom: spacing.md,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
     },
-    dateButton: {
+    label: {
+      fontSize: 16,
+      marginBottom: spacing.sm,
+      color: colors.text,
+    },
+    dateInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.textLight,
+      borderRadius: borderRadius.small,
+      padding: spacing.sm,
+    },
+    dateInputText: {
       flex: 1,
+      fontSize: 16,
+      color: colors.text,
+    },
+    calendarIcon: {
       marginLeft: spacing.sm,
+    },
+    switch: {
+      marginLeft: "auto",
     },
     buttonContainer: {
       flexDirection: "row",
@@ -156,4 +175,4 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default HomeworkScreen;
+export default HomeworkForm;

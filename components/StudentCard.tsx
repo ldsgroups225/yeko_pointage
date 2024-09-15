@@ -14,12 +14,12 @@ type StudentCardProps = {
 };
 
 const statusConfig = {
-  present: { color: "#10B981", label: "Present", icon: "user-check" },
+  present: { color: "#10B981", label: "Présent", icon: "user-check" },
   absent: { color: "#EF4444", label: "Absent", icon: "user-times" },
-  late: { color: "#F59E0B", label: "Late", icon: "user-clock" },
+  late: { color: "#F59E0B", label: "Retard", icon: "user-clock" },
   early_departure: {
     color: "#6366F1",
-    label: "Early Departure",
+    label: "Départ anticipé",
     icon: "sign-out-alt",
   },
 };

@@ -48,7 +48,8 @@ export const classService = {
       const { data: students, error } = await supabase
         .from(STUDENT_TABLE_ID) // Assuming your student table is named "students"
         .select("id, parent_id, id_number, first_name, last_name")
-        .eq("class_id", classId);
+        .eq("class_id", classId)
+        .order("last_name", { ascending: true });
 
       if (error) {
         console.error("Error fetching students for class:", error);
