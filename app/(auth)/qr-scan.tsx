@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { CsText, CsButton, CsCard } from "@/components/commons";
 import { QRScanner } from "@/components/QRScanner";
-import { useThemedStyles } from "@/hooks";
+import { useClass, useThemedStyles, useSchool } from "@/hooks";
 import { spacing } from "@/styles";
 import { UserRoleText, Teacher, ClassSchedule } from "@/types";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -14,6 +14,8 @@ import {
   currentTeacherAtom,
   teachersListAtom,
   currentScheduleAtom,
+  currentSchoolAtom,
+  studentsListAtom,
 } from "@/store/atoms";
 import { checkScheduledClass, extractHourAndMinute } from "@/utils/dateTime";
 import ToastColor from "../../styles/toast";
@@ -88,6 +90,17 @@ export default function QRScanScreen() {
   const [scanAnimation] = useState(new Animated.Value(0));
   const [fadeAnimation] = useState(new Animated.Value(1));
 
+  //! TODO: Remove
+  const [isSimulateClassAttribution, setIsSimulateClassAttribution] =
+    useState(false);
+  const setCurrentClass = useSetAtom(currentClassAtom);
+  const setCurrentSchool = useSetAtom(currentSchoolAtom);
+  const setStudentsList = useSetAtom(studentsListAtom);
+  const setTeachersList = useSetAtom(teachersListAtom);
+  const setClassScheduleList = useSetAtom(classScheduleAtom);
+  const { getSchoolById } = useSchool();
+  const { fetchClassDetails } = useClass();
+
   useEffect(() => {
     // Breathing animation for the scan area
     Animated.loop(
@@ -107,6 +120,36 @@ export default function QRScanScreen() {
       ]),
     ).start();
   }, []);
+
+  //! TODO: Remove
+  const handleSaveConfig = async () => {
+    try {
+      setIsSimulateClassAttribution(true);
+      const promiseSchool = getSchoolById(
+        "ed85f4e4-5133-4270-b52d-795c6e65c0f0",
+      );
+      const promiseClassDetails = fetchClassDetails(
+        "c1d2e3f4-a5b6-4f7c-8d9e-0f1a2b3c4d5e",
+      );
+      const [school, classDetails] = await Promise.all([
+        promiseSchool,
+        promiseClassDetails,
+      ]);
+
+      if (school && classDetails) {
+        setCurrentClass(classDetails.class);
+        setCurrentSchool(school);
+        setStudentsList(classDetails.students);
+        setTeachersList(classDetails.teachers);
+        setClassScheduleList(classDetails.schedules);
+      }
+    } catch (err) {
+      setError("Failed to save configuration. Please try again later.");
+      console.error("[E_CONFIG_SAVE_CONF]:", err);
+    } finally {
+      setIsSimulateClassAttribution(false);
+    }
+  };
 
   // QR Code Validation
   const validateQRCodeData = (
@@ -266,6 +309,14 @@ export default function QRScanScreen() {
             )
           }
           variant="text"
+          style={styles.simulateButton}
+        />
+
+        <CsButton
+          title="Simuler l'attribution de classe"
+          onPress={() => handleSaveConfig()}
+          variant="text"
+          loading={isSimulateClassAttribution}
           style={styles.simulateButton}
         />
 
