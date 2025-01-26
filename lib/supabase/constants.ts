@@ -85,6 +85,11 @@ export const HOMEWORK_TABLE_ID = "homeworks";
 export const NOTE_TABLE_ID = "notes";
 
 /**
+ * The ID of the collection storing Note documents in the Supabase database.
+ */
+export const NOTE_DETAILS_TABLE_ID = "note_details";
+
+/**
  * The ID of the collection storing School Year documents in the Supabase database.
  */
 export const SCHOOL_YEAR_TABLE_ID = "school_years";

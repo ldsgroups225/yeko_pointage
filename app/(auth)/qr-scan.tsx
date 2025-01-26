@@ -239,7 +239,7 @@ export default function QRScanScreen() {
 
     // TODO: Remove
     updateMetaData({
-      teacherId: "ed85f4e4-5133-4270-b52d-795c6e65c0f0",
+      teacherId: "46cf18f8-1608-4fac-859b-f6ffb9e2f4ce",
       subjectId: currentSchedule!.subjectId,
     });
   };

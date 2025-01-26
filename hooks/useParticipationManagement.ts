@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Alert } from "react-native";
-import { atom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   studentsListAtom,
   currentParticipationSessionAtom,
@@ -121,12 +121,7 @@ export const useParticipationManagement = (
         await Promise.all([
           currentAttendanceSession &&
             createAttendances(currentAttendanceSession.records),
-          participations.length &&
-            createParticipations(
-              classId,
-              currentSchedule!.subjectId,
-              participations,
-            ),
+          participations.length && createParticipations(participations),
           homework && createHomework(homework),
         ]);
 
@@ -138,8 +133,8 @@ export const useParticipationManagement = (
       } catch (e) {
         console.error("Error submitting session data:", e);
         Alert.alert(
-          "Error",
-          "Failed to submit session data. Please try again.",
+          "Erreur",
+          "Oups, une erreur est survenue lors de l'enregistrement des données. Veuillez réessayer plus tard.",
         );
       } finally {
         setIsSubmitting(false);
