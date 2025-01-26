@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 
 // Components
 import {
@@ -24,8 +24,10 @@ import {
   classScheduleAtom,
   currentClassAtom,
   currentSchoolAtom,
+  metaDataAtom,
   studentsListAtom,
   teachersListAtom,
+  updateMetaDataAtom,
 } from "@/store/atoms";
 
 // Styles
@@ -52,6 +54,7 @@ const ConfigureTablet = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Atoms
+  const [, updateMetaData] = useAtom(updateMetaDataAtom);
   const setCurrentClass = useSetAtom(currentClassAtom);
   const setCurrentSchool = useSetAtom(currentSchoolAtom);
   const setStudentsList = useSetAtom(studentsListAtom);
@@ -122,6 +125,11 @@ const ConfigureTablet = () => {
         setStudentsList(classDetails.students);
         setTeachersList(classDetails.teachers);
         setClassScheduleList(classDetails.schedules);
+
+        updateMetaData({
+          schoolId: school.id,
+          classId: classDetails.class.id,
+        });
       }
 
       setShowConfirmation(true);

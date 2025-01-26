@@ -22,7 +22,6 @@ const AttendanceScreen: React.FC = () => {
     classId: string;
     scheduleId: string;
   }>();
-
   const students = useAtomValue(studentsListAtom);
   const currentSchedule = useAtomValue(currentScheduleAtom);
 

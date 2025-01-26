@@ -7,7 +7,7 @@ import { QRScanner } from "@/components/QRScanner";
 import { useClass, useThemedStyles, useSchool } from "@/hooks";
 import { spacing } from "@/styles";
 import { UserRoleText, Teacher, ClassSchedule } from "@/types";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   classScheduleAtom,
   currentClassAtom,
@@ -16,9 +16,12 @@ import {
   currentScheduleAtom,
   currentSchoolAtom,
   studentsListAtom,
+  metaDataAtom,
+  updateMetaDataAtom,
 } from "@/store/atoms";
 import { checkScheduledClass, extractHourAndMinute } from "@/utils/dateTime";
 import ToastColor from "../../styles/toast";
+import { useSchoolYear } from "@/hooks/useSchoolYear";
 
 interface WelcomeModalProps {
   isVisible: boolean;
@@ -83,8 +86,11 @@ export default function QRScanScreen() {
   const currentTeacher = useAtomValue(currentTeacherAtom);
   const currentSchedule = useAtomValue(currentScheduleAtom);
 
+  const [, updateMetaData] = useAtom(updateMetaDataAtom);
   const setCurrentTeacher = useSetAtom(currentTeacherAtom);
   const setCurrentSchedule = useSetAtom(currentScheduleAtom);
+
+  const { fetchSchoolYearAndSemester } = useSchoolYear();
 
   // Animations
   const [scanAnimation] = useState(new Animated.Value(0));
@@ -142,6 +148,13 @@ export default function QRScanScreen() {
         setStudentsList(classDetails.students);
         setTeachersList(classDetails.teachers);
         setClassScheduleList(classDetails.schedules);
+
+        updateMetaData({
+          schoolId: school.id,
+          classId: classDetails.class.id,
+        });
+
+        await fetchSchoolYearAndSemester();
       }
     } catch (err) {
       setError("Failed to save configuration. Please try again later.");
@@ -177,6 +190,13 @@ export default function QRScanScreen() {
   const handleTeacherRole = (teacher: Teacher, schedule: ClassSchedule) => {
     setCurrentTeacher(teacher);
     setCurrentSchedule(schedule);
+
+    fetchSchoolYearAndSemester();
+
+    updateMetaData({
+      teacherId: teacher.id,
+      subjectId: currentSchedule!.subjectId,
+    });
     setShowWelcomeModal(true);
   };
 
@@ -216,6 +236,12 @@ export default function QRScanScreen() {
     setCurrentSchedule(schedule);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     handleTeacherRole(teacher, schedule);
+
+    // TODO: Remove
+    updateMetaData({
+      teacherId: "ed85f4e4-5133-4270-b52d-795c6e65c0f0",
+      subjectId: currentSchedule!.subjectId,
+    });
   };
 
   // QR Scan Handler

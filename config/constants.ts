@@ -42,3 +42,21 @@ export const ENABLE_BIOMETRIC_AUTH = false;
 
 // Version
 export const APP_VERSION = "1.0.0";
+
+export const NOTE_OPTIONS = [
+  { label: "Interrogation écrite", value: "WRITING_QUESTION" },
+  { label: "Devoir de classe", value: "CLASS_TEST" },
+  { label: "Devoir de niveau", value: "LEVEL_TEST" },
+  { label: "Exercice de maison", value: "HOMEWORK" },
+  { label: "Participation", value: "PARTICIPATION" },
+];
+
+export const NOTE_ENUMS = {
+  WRITING_QUESTION: "WRITING_QUESTION",
+  CLASS_TEST: "CLASS_TEST",
+  LEVEL_TEST: "LEVEL_TEST",
+  HOMEWORK: "HOMEWORK",
+  PARTICIPATION: "PARTICIPATION",
+};
+
+export type NoteType = (typeof NOTE_ENUMS)[keyof typeof NOTE_ENUMS];

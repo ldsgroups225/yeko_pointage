@@ -75,8 +75,10 @@ export const classService = {
       const { data: teachers, error } = await supabase
         .from(USERS_TABLE_ID)
         .select(
+          // "id, phone, first_name, last_name, teacher_class_assignments (id), school_teachers (teacher_id, status)",
           "id, phone, first_name, last_name, teacher_class_assignments (id)",
         )
+        // .eq("school_teachers.status", "accepted")
         .eq("teacher_class_assignments.class_id", classId);
 
       if (error) {

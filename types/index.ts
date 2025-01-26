@@ -11,4 +11,8 @@ export type { Homework } from "./homework";
 export type { Incident } from "./incidents";
 export type { Cycle } from "./cycle";
 export type { Grade } from "./grade";
+export type { IMetaDataDTO } from "./metaData";
+export type { INoteDTO, INoteDetailDTO } from "./notes";
 export { UserRoleText } from "./enums";
+export type { ISchoolYear } from "./schoolYear";
+export type { ISemester } from "./semester";

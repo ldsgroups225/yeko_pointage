@@ -22,7 +22,6 @@ import { StatCard } from "@/components/StatCard";
 import { useParticipationManagement } from "@/hooks/useParticipationManagement";
 import { useAtomValue } from "jotai/index";
 import { currentScheduleAtom } from "@/store/atoms";
-import homework from "./homework";
 
 const ParticipationScreen: React.FC = () => {
   const styles = useThemedStyles(createStyles);
@@ -198,19 +197,24 @@ const ParticipationScreen: React.FC = () => {
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
-        snapPoints={["70%"]}
+        snapPoints={["76%", "84%"]}
         enablePanDownToClose
         backgroundStyle={styles.bottomSheetBackground}
       >
         <BottomSheetView style={styles.bottomSheetContent}>
           <HomeworkForm
-            onSubmit={async (dueDate: Date, isGraded: boolean) => {
+            onSubmit={async (
+              dueDate: Date,
+              isGraded: boolean,
+              totalPoints: number,
+            ) => {
               const _homework: Homework = {
                 dueDate: dueDate.toISOString(),
                 isGraded,
                 teacherId: teacherId,
                 classId: classId,
                 subjectId: currentSchedule!.subjectId,
+                totalPoints,
               };
 
               bottomSheetRef.current?.close();

@@ -22,11 +22,12 @@ export default function HomeworkForm({ classId, onSubmit }: HomeworkFormProps) {
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [isGraded, setIsGraded] = useState(false);
+  const [totalPoints, setTotalPoints] = useState(0);
 
   const currentSchedule = useAtomValue(currentScheduleAtom);
 
   const handleSubmit = async () => {
-    if (!subject || !description || !dueDate) {
+    if (!subject.trim() || !description.trim() || !dueDate.trim()) {
       alert("Please fill in all fields");
       return;
     }
@@ -36,6 +37,7 @@ export default function HomeworkForm({ classId, onSubmit }: HomeworkFormProps) {
       classId,
       dueDate: formatDate(new Date(dueDate)),
       isGraded,
+      totalPoints: 0,
     };
 
     try {

@@ -24,6 +24,7 @@ import {
   Homework,
   Incident,
   ClassSchedule,
+  IMetaDataDTO,
 } from "@/types";
 
 // Theme Atoms
@@ -196,3 +197,46 @@ export const activeHomeworkCountAtom = atom((get) => {
   return get(homeworkListAtom).filter((hw) => new Date(hw.dueDate) > now)
     .length;
 });
+
+// MetaData Atoms
+/**
+ * Atom storing the metaData of the current class.
+ */
+export const metaDataAtom = atom<IMetaDataDTO | null>(null);
+
+// Derived atom for partial updates
+export const updateMetaDataAtom = atom(
+  null, // No read function (write-only)
+  (get, set, update: Partial<IMetaDataDTO>) => {
+    const prev = get(metaDataAtom);
+    const defaultState: IMetaDataDTO = {
+      schoolId: null,
+      schoolYearId: null,
+      semesterId: null,
+      subjectId: null,
+      teacherId: null,
+      classId: null,
+      semesters: [],
+    };
+
+    // Merge with existing state or use defaults
+    const current = prev ? { ...prev } : defaultState;
+
+    // Process each property to convert undefined -> null
+    const processedUpdate = Object.fromEntries(
+      Object.entries(update).map(([key, value]) => [
+        key,
+        value !== undefined ? value : null,
+      ]),
+    ) as Partial<IMetaDataDTO>;
+
+    // Special handling for semesters array
+    const finalState = {
+      ...current,
+      ...processedUpdate,
+      semesters: update.semesters ?? current.semesters,
+    };
+
+    set(metaDataAtom, finalState);
+  },
+);

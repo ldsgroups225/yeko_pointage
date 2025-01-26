@@ -6,18 +6,21 @@ import {
   Switch,
   Alert,
   Platform,
+  ScrollView,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { CsText, CsButton } from "@/components/commons";
+import { CsText, CsButton, CsTextField, CsPicker } from "@/components/commons";
 import { useThemedStyles } from "@/hooks";
 import { spacing, colors, borderRadius } from "@/styles";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatDate } from "@/utils/dateTime";
+import { useAtomValue } from "jotai";
+import { metaDataAtom } from "@/store/atoms";
 
 interface HomeworkFormProps {
   initialDueDate?: Date;
   initialIsGraded?: boolean;
-  onSubmit: (dueDate: Date, isGraded: boolean) => void;
+  onSubmit: (dueDate: Date, isGraded: boolean, totalPoints: number) => void;
   onCancel: () => void;
 }
 
@@ -28,6 +31,12 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
   onCancel,
 }) => {
   const styles = useThemedStyles(createStyles);
+  const metaData = useAtomValue(metaDataAtom);
+
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [selectedSemester, setSelectedSemester] = useState<number | null>(
+    metaData?.semesterId ?? null,
+  );
   const [dueDate, setDueDate] = useState(initialDueDate);
   const [isGraded, setIsGraded] = useState(initialIsGraded);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -42,7 +51,7 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
       return;
     }
 
-    onSubmit(dueDate, isGraded);
+    onSubmit(dueDate, isGraded, totalPoints);
   };
 
   const handleDateChange = (event: any, selectedDate: Date | undefined) => {
@@ -53,12 +62,31 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      // keyboardShouldPersistTaps="always"
+    >
       <CsText variant="h2" style={styles.title}>
         Ajouter un devoir
       </CsText>
 
       <View style={styles.formCard}>
+        <View style={styles.formGroup}>
+          <CsPicker
+            label="Sélectionner le trimestre :"
+            items={
+              metaData?.semesters.map((c) => ({
+                label: c.name,
+                value: c.id.toString(),
+              })) ?? []
+            }
+            selectedValue={selectedSemester?.toString()}
+            onValueChange={(val) => setSelectedSemester(parseInt(val))}
+            style={styles.input}
+          />
+        </View>
+
         <View style={styles.formGroup}>
           <CsText variant="body" style={styles.label}>
             Date d'échéance :
@@ -99,6 +127,38 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
             style={styles.switch}
           />
         </View>
+
+        {isGraded && (
+          <View style={styles.formGroup}>
+            <CsTextField
+              label="Noté sur (points) :"
+              value={totalPoints as any}
+              onChangeText={(val) => setTotalPoints(parseInt(val))}
+              placeholder="Total de points"
+              keyboardType="numeric"
+              autoCapitalize="none"
+              returnKeyType="done"
+              maxLength={2}
+              onBlur={(e) => {
+                let val = e.nativeEvent.text;
+                let _val = parseInt(val);
+
+                // min 1 point, max 40 points
+                if (_val < 1 || _val > 40) {
+                  Alert.alert(
+                    "Points invalides",
+                    "Le total de points doit être entre 1 et 40.",
+                    [{ text: "OK" }],
+                  );
+                  setTotalPoints(0);
+                } else {
+                  setTotalPoints(_val);
+                }
+              }}
+              onSubmitEditing={handleSubmit}
+            />
+          </View>
+        )}
       </View>
 
       <View style={styles.buttonContainer}>
@@ -114,7 +174,7 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
           style={styles.button}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

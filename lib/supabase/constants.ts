@@ -25,6 +25,11 @@ export const SUPABASE_DATABASE_ID = "66be64450002df997457";
 export const USERS_TABLE_ID = "users";
 
 /**
+ * The ID of the collection storing School Teacher documents in the Supabase database.
+ */
+export const SCHOOL_TEACHERS_TABLE_ID = "school_teachers";
+
+/**
  * The ID of the collection storing User Roles documents in the Supabase database.
  */
 export const USER_ROLES_TABLE_ID = "user_roles";
@@ -73,3 +78,18 @@ export const PARTICIPATION_TABLE_ID = "participations";
  * The ID of the collection storing Homework documents in the Supabase database.
  */
 export const HOMEWORK_TABLE_ID = "homeworks";
+
+/**
+ * The ID of the collection storing Note documents in the Supabase database.
+ */
+export const NOTE_TABLE_ID = "notes";
+
+/**
+ * The ID of the collection storing School Year documents in the Supabase database.
+ */
+export const SCHOOL_YEAR_TABLE_ID = "school_years";
+
+/**
+ * The ID of the collection storing Semester documents in the Supabase database.
+ */
+export const SEMESTER_TABLE_ID = "semesters";
