@@ -26,11 +26,7 @@ export interface Student {
 }
 
 export interface Teacher {
-  id: string; // UUID
+  id: string;
   fullName: string;
   phone: string;
-}
-
-export interface Schedule {
-  // TODO: implement
 }
