@@ -1,5 +1,3 @@
-"use server";
-
 import {
   SCHOOL_YEAR_TABLE_ID,
   SEMESTER_TABLE_ID,
