@@ -16,7 +16,6 @@ import {
   currentScheduleAtom,
   currentSchoolAtom,
   studentsListAtom,
-  metaDataAtom,
   updateMetaDataAtom,
 } from "@/store/atoms";
 import { checkScheduledClass, extractHourAndMinute } from "@/utils/dateTime";
