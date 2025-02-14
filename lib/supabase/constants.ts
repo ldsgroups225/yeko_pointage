@@ -60,6 +60,11 @@ export const GRADE_TABLE_ID = "grades";
 export const STUDENT_TABLE_ID = "students";
 
 /**
+ * The ID of the collection storing Student candidate documents in the Supabase database.
+ */
+export const STUDENT_SCHOOL_CLASS_TABLE_ID = "student_school_class";
+
+/**
  * The ID of the collection storing Schedule documents in the Supabase database.
  */
 export const SCHEDULE_TABLE_ID = "schedules";
