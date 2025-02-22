@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "git": {
+      "command": "python3.12",
+      "args": ["-m", "mcp_server_git", "--repository", "/home/darius-kassi/Projects/Yeko/yeko_pointage"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
