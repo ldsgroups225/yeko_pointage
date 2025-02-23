@@ -26,7 +26,7 @@ export interface Student {
 }
 
 export interface Teacher {
-  id: string; // UUID
+  id: string;
   fullName: string;
   phone: string;
 }
