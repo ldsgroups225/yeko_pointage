@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -48,7 +47,6 @@
       "eas": {
         "projectId": "ab681a19-85d8-4808-905a-849369ea71ef"
       }
-    },
-    "owner": "ldsgroups225"
+    }
   }
 }

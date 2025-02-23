@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, StatusBar, Image } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { CsText } from "@/components/commons";
 import { useThemedStyles } from "@/hooks";
 import { spacing, borderRadius } from "@/styles";
 import { getCurrentTimeString, formatDate } from "@/utils/dateTime";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useAtomValue } from "jotai/index";
-import { currentClassAtom, currentSchoolAtom } from "@/store/atoms";
+import { currentSchoolAtom } from "@/store/atoms";
+
+interface School {
+  id: string;
+  cycleId: string;
+  name: string;
+  code: string;
+  imageUrl: string;
+}
 
 export default function TeacherLayout() {
   const styles = useThemedStyles(createStyles);
   const [currentTime, setCurrentTime] = useState(getCurrentTimeString());
   const [sessionStartTime] = useState(getCurrentTimeString());
   const school = useAtomValue(currentSchoolAtom);
-  const classroom = useAtomValue(currentClassAtom);
 
   useEffect(() => {
     StatusBar.setHidden(true);
@@ -40,7 +47,7 @@ export default function TeacherLayout() {
         )}
         <View>
           <CsText variant="h3" style={styles.schoolName}>
-            {school?.name || "École"} ({classroom?.name || "Classe"})
+            {school?.name || "École"}
           </CsText>
           <CsText variant="h2" style={styles.title}>
             {title}
