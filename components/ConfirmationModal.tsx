@@ -16,12 +16,13 @@ interface ConfirmationModalProps {
   isVisible: boolean;
   onConfirm: () => void;
   onCancel: () => void;
-  message: string;
+  message?: string;
   title?: string;
   confirmText?: string;
   cancelText?: string;
   image?: ImageSourcePropType;
   SvgComponent?: React.FC<SvgProps>;
+  children?: React.ReactNode;
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -34,13 +35,19 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   cancelText = "Non",
   image,
   SvgComponent,
+  children,
 }) => {
   const styles = useThemedStyles(createStyles);
 
   if (!isVisible) return null;
 
   return (
-    <Modal transparent visible={isVisible} animationType="fade">
+    <Modal
+      transparent
+      visible={isVisible}
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
       <View style={styles.modalOverlay}>
         <Animated.View
           entering={FadeIn.duration(300)}
@@ -51,12 +58,17 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {SvgComponent && (
             <SvgComponent width={100} height={100} style={styles.image} />
           )}
-          <CsText variant="h3" style={styles.modalTitle}>
-            {title}
-          </CsText>
-          <CsText variant="body" style={styles.modalMessage}>
-            {message}
-          </CsText>
+          {title && (
+            <CsText variant="h3" style={styles.modalTitle}>
+              {title}
+            </CsText>
+          )}
+          {message && (
+            <CsText variant="body" style={styles.modalMessage}>
+              {message}
+            </CsText>
+          )}
+          {children}
           <View style={styles.buttonContainer}>
             <CsButton
               title={cancelText}
@@ -91,6 +103,11 @@ const createStyles = (theme: Theme) =>
       width: "80%",
       maxWidth: 400,
       alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
     },
     modalTitle: {
       marginBottom: spacing.md,
@@ -103,6 +120,7 @@ const createStyles = (theme: Theme) =>
     buttonContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
+      width: "100%",
     },
     button: {
       flex: 1,
@@ -112,5 +130,8 @@ const createStyles = (theme: Theme) =>
       width: 100,
       height: 100,
       marginBottom: spacing.md,
+      resizeMode: "contain",
     },
   });
+
+export default ConfirmationModal;

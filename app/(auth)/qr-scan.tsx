@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Modal, Image, Animated, Easing } from "react-native";
+import { View, StyleSheet, Image, Animated, Easing } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { CsText, CsButton, CsCard } from "@/components/commons";
@@ -18,16 +18,10 @@ import {
   studentsListAtom,
   updateMetaDataAtom,
 } from "@/store/atoms";
-import { checkScheduledClass, extractHourAndMinute } from "@/utils/dateTime";
+import { checkScheduledClass } from "@/utils/dateTime";
 import ToastColor from "../../styles/toast";
 import { useSchoolYear } from "@/hooks/useSchoolYear";
-
-interface WelcomeModalProps {
-  isVisible: boolean;
-  teacher: Teacher;
-  schedule: ClassSchedule;
-  onContinue: () => void;
-}
+import WelcomeModal from "@/components/WelcomeModal";
 
 // Helper function for handling errors
 const handleError = (
@@ -37,38 +31,6 @@ const handleError = (
 ) => {
   setError(message);
   showErrorModal(true); // Show the error modal in QRScanner
-};
-
-// Welcome Modal Component
-const WelcomeModal: React.FC<WelcomeModalProps> = ({
-  isVisible,
-  teacher,
-  schedule,
-  onContinue,
-}) => {
-  const styles = useThemedStyles(createStyles);
-
-  return (
-    <Modal visible={isVisible} transparent animationType="fade">
-      <View style={styles.modalOverlay}>
-        <CsCard style={styles.modalContent}>
-          <CsText variant="h3" style={styles.modalTitle}>
-            Bienvenue, {teacher.fullName}!
-          </CsText>
-          <CsText variant="body" style={styles.modalText}>
-            Votre cours ici commence à{" "}
-            {extractHourAndMinute(schedule.startTime)} et se termine à{" "}
-            {extractHourAndMinute(schedule.endTime)}.
-          </CsText>
-          <CsButton
-            title="Continuer"
-            onPress={onContinue}
-            style={styles.modalButton}
-          />
-        </CsCard>
-      </View>
-    </Modal>
-  );
 };
 
 export default function QRScanScreen() {
@@ -381,7 +343,7 @@ export default function QRScanScreen() {
 
       {currentTeacher && currentSchedule && (
         <WelcomeModal
-          isVisible={showWelcomeModal}
+          isVisible={true}
           teacher={currentTeacher}
           schedule={currentSchedule}
           onContinue={handleContinue}
@@ -453,28 +415,5 @@ const createStyles = (theme: Theme) =>
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: "rgba(0, 0, 0, 0.8)",
-    },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(0,0,0,0.5)",
-    },
-    modalContent: {
-      backgroundColor: theme.background,
-      padding: spacing.lg,
-      borderRadius: 8,
-      alignItems: "center",
-    },
-    modalTitle: {
-      marginBottom: spacing.md,
-      textAlign: "center",
-    },
-    modalText: {
-      marginBottom: spacing.lg,
-      textAlign: "center",
-    },
-    modalButton: {
-      marginTop: spacing.md,
     },
   });
