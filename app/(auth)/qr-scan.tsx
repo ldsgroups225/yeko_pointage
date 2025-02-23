@@ -23,14 +23,13 @@ import ToastColor from "../../styles/toast";
 import { useSchoolYear } from "@/hooks/useSchoolYear";
 import WelcomeModal from "@/components/WelcomeModal";
 
-// Helper function for handling errors
 const handleError = (
   setError: Function,
   message: string,
   showErrorModal: Function,
 ) => {
   setError(message);
-  showErrorModal(true); // Show the error modal in QRScanner
+  showErrorModal(true);
 };
 
 export default function QRScanScreen() {
@@ -38,7 +37,7 @@ export default function QRScanScreen() {
   const router = useRouter();
   const [showScanner, setShowScanner] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showErrorModal, setShowErrorModal] = useState(false); // State for the error modal in QRScanner
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const teachers = useAtomValue(teachersListAtom);
@@ -343,7 +342,7 @@ export default function QRScanScreen() {
 
       {currentTeacher && currentSchedule && (
         <WelcomeModal
-          isVisible={true}
+          isVisible={showWelcomeModal}
           teacher={currentTeacher}
           schedule={currentSchedule}
           onContinue={handleContinue}

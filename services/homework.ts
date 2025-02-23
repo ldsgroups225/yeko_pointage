@@ -1,29 +1,24 @@
 import { Homework, IMetaDataDTO, INoteDTO } from "@/types";
-import { HOMEWORK_TABLE_ID, NOTE_TABLE_ID, supabase } from "@/lib/supabase";
+import { NOTE_TABLE_ID, supabase } from "@/lib/supabase";
 
 export const homework = {
   async createHomework(
     homeworkData: Homework,
     metaData: IMetaDataDTO,
   ): Promise<void> {
-    console.log("homeworkData", homeworkData);
-    console.log("metaData", metaData);
-
     try {
       const noteData: INoteDTO = {
         classId: homeworkData.classId!,
         teacherId: homeworkData.teacherId!,
         subjectId: homeworkData.subjectId!,
-        dueDate: homeworkData.dueDate
-          ? new Date(homeworkData.dueDate)
-          : undefined,
+        dueDate: new Date(homeworkData.dueDate),
         noteType: "HOMEWORK",
         isGraded: homeworkData.isGraded,
         totalPoints: homeworkData.totalPoints,
 
-        isActive: !homeworkData.isGraded,
-        isPublished: !homeworkData.isGraded,
-        publishedAt: homeworkData.isGraded ? undefined : new Date(),
+        isActive: true,
+        isPublished: true,
+        publishedAt: new Date(),
 
         schoolId: metaData.schoolId!,
         semesterId: homeworkData.semesterId ?? metaData.semesterId!,
@@ -49,23 +44,6 @@ export const homework = {
       });
     } catch (error) {
       console.error("Error creating homework record:", error);
-      throw error;
-    }
-  },
-
-  async createHomeworks(homeworkDataArray: Homework[]): Promise<void> {
-    const formattedData = homeworkDataArray.map((homework) => ({
-      class_id: homework.classId,
-      teacher_id: homework.teacherId,
-      subject_id: homework.subjectId,
-      due_date: homework.dueDate,
-      is_graded: homework.isGraded,
-    }));
-
-    try {
-      await supabase.from(HOMEWORK_TABLE_ID).insert(formattedData);
-    } catch (error) {
-      console.error("Error creating homework records:", error);
       throw error;
     }
   },

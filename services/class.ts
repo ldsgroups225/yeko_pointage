@@ -3,8 +3,7 @@ import {
   CLASS_TABLE_ID,
   SCHEDULE_TABLE_ID,
   supabase,
-  STUDENT_TABLE_ID,
-  USERS_TABLE_ID,
+  TEACHER_CLASS_ASSIGNMENTS_TABLE_ID,
   STUDENT_SCHOOL_CLASS_TABLE_ID,
 } from "@/lib/supabase";
 import { formatFullName } from "@/utils/formatting";
@@ -85,23 +84,28 @@ export const classService = {
 
   async fetchTeachersForClass(classId: string): Promise<Teacher[]> {
     try {
-      const { data: teachers, error } = await supabase
-        .from(USERS_TABLE_ID)
-        .select(
-          // "id, phone, first_name, last_name, teacher_class_assignments (id), school_teachers (teacher_id, status)",
-          "id, phone, first_name, last_name, teacher_class_assignments (id)",
-        )
-        // .eq("school_teachers.status", "accepted")
-        .eq("teacher_class_assignments.class_id", classId);
+      const { data, error } = await supabase
+        .from(TEACHER_CLASS_ASSIGNMENTS_TABLE_ID)
+        .select("teacher: users!inner(id, phone, first_name, last_name)")
+        .eq("class_id", classId);
 
       if (error) {
         throw error;
       }
 
-      return teachers.map((teacher) => ({
-        id: teacher.id,
-        phone: teacher.phone,
-        fullName: formatFullName(teacher.first_name, teacher.last_name),
+      type Response = {
+        teacher: {
+          id: string;
+          phone: string;
+          first_name: string;
+          last_name: string;
+        };
+      };
+
+      return (data as unknown as Response[]).map((d) => ({
+        id: d.teacher.id,
+        phone: d.teacher.phone,
+        fullName: formatFullName(d.teacher.first_name, d.teacher.last_name),
       }));
     } catch (error) {
       throw error;

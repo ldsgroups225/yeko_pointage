@@ -110,15 +110,12 @@ export const school = {
     schoolId: string,
   ): Promise<boolean> {
     try {
-      console.log("[USER_ID]", userId);
-      console.log("[SCHOOL_ID]", schoolId);
       const { data: director, error: directorError } = await supabase
         .from(USER_ROLES_TABLE_ID)
         .select("role_id")
         .eq("user_id", userId)
         .eq("role_id", ERole.DIRECTOR)
         .single();
-      console.log("[USER_ROLES]", director);
 
       if (directorError || !director) {
         console.error("Error verifying director access:", directorError);

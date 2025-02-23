@@ -5,10 +5,9 @@ import { useAtomValue } from "jotai";
 import { metaDataAtom } from "@/store/atoms";
 
 interface UseHomeworkReturn {
-  createHomework: (homeworkData: Homework) => Promise<void>;
-  createHomeworks: (homeworkDataArray: Homework[]) => Promise<void>;
   loading: boolean;
   error: string | null;
+  createHomework: (homeworkData: Homework) => Promise<void>;
 }
 
 export const useHomework = (): UseHomeworkReturn => {
@@ -34,25 +33,8 @@ export const useHomework = (): UseHomeworkReturn => {
     }
   };
 
-  const createHomeworks = async (
-    homeworkDataArray: Homework[],
-  ): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      await homework.createHomeworks(homeworkDataArray);
-    } catch (err) {
-      console.error("[E_CREATE_HOMEWORKS]:", err);
-      setError("Failed to create homework records.");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return {
     createHomework,
-    createHomeworks,
     loading,
     error,
   };

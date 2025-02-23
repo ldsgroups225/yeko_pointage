@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { CsText, CsButton, CsTextField, CsPicker } from "@/components/commons";
@@ -33,6 +34,8 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
   const styles = useThemedStyles(createStyles);
   const metaData = useAtomValue(metaDataAtom);
 
+  const isTablet = Dimensions.get("window").width >= 768;
+
   const [totalPoints, setTotalPoints] = useState(0);
   const [selectedSemester, setSelectedSemester] = useState<number | null>(
     metaData?.semesterId ?? null,
@@ -50,7 +53,6 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
       );
       return;
     }
-
     onSubmit(dueDate, isGraded, totalPoints);
   };
 
@@ -60,6 +62,126 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
       setDueDate(selectedDate);
     }
   };
+
+  // Render form parts as reusable pieces
+  const renderSemesterPicker = (
+    <View style={styles.formGroup}>
+      <CsPicker
+        label="Sélectionner le trimestre :"
+        items={
+          metaData?.semesters.map((c) => ({
+            label: c.name,
+            value: c.id.toString(),
+          })) ?? []
+        }
+        selectedValue={selectedSemester?.toString()}
+        onValueChange={(val) => setSelectedSemester(parseInt(val))}
+        style={styles.input}
+      />
+    </View>
+  );
+
+  const renderDateInput = (
+    <View style={styles.formGroup}>
+      <CsText variant="body" style={styles.label}>
+        Date d'échéance :
+      </CsText>
+      <View style={styles.dateInputContainer}>
+        <CsText style={styles.dateInputText}>{formatDate(dueDate)}</CsText>
+        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <FontAwesome5
+            name="calendar-alt"
+            size={20}
+            color={colors.primary}
+            style={styles.calendarIcon}
+          />
+        </TouchableOpacity>
+      </View>
+      {showDatePicker && (
+        <DateTimePicker
+          value={dueDate}
+          mode="date"
+          display={Platform.OS === "ios" ? "inline" : "default"}
+          onChange={handleDateChange}
+        />
+      )}
+    </View>
+  );
+
+  const renderGradedSwitch = (
+    <View style={styles.formGroup}>
+      <CsText variant="body" style={styles.label}>
+        Est-ce un exercice noté ?
+      </CsText>
+      <Switch
+        value={isGraded}
+        onValueChange={setIsGraded}
+        trackColor={{
+          false: colors.textLight + "45",
+          true: colors.primary,
+        }}
+        thumbColor={isGraded ? colors.white : colors.textLight}
+        style={styles.switch}
+      />
+    </View>
+  );
+
+  const renderTotalPointsInput = isGraded && (
+    <View style={styles.formGroup}>
+      <CsTextField
+        label="Noté sur (points) :"
+        value={totalPoints as any}
+        onChangeText={(val) => setTotalPoints(parseInt(val))}
+        placeholder="Total de points"
+        keyboardType="numeric"
+        autoCapitalize="none"
+        returnKeyType="done"
+        maxLength={2}
+        onBlur={(e) => {
+          const val = e.nativeEvent.text;
+          const _val = parseInt(val);
+          // min 1 point, max 40 points
+          if (_val < 1 || _val > 40) {
+            Alert.alert(
+              "Points invalides",
+              "Le total de points doit être entre 1 et 40.",
+              [{ text: "OK" }],
+            );
+            setTotalPoints(0);
+          } else {
+            setTotalPoints(_val);
+          }
+        }}
+        onSubmitEditing={handleSubmit}
+      />
+    </View>
+  );
+
+  const renderButtons = (
+    <View style={isTablet ? styles.buttonColumn : styles.buttonContainer}>
+      <CsButton
+        title="Annuler"
+        onPress={onCancel}
+        variant="outline"
+        style={StyleSheet.flatten([
+          styles.button,
+          {
+            flex: isTablet ? 0 : 1,
+            width: isTablet ? 170 : "100%",
+            marginBottom: 10,
+          },
+        ])}
+      />
+      <CsButton
+        title="Soumettre"
+        onPress={handleSubmit}
+        style={StyleSheet.flatten([
+          styles.button,
+          { flex: isTablet ? 0 : 1, width: isTablet ? 170 : "100%" },
+        ])}
+      />
+    </View>
+  );
 
   return (
     <ScrollView
@@ -71,114 +193,34 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
         Ajouter un devoir
       </CsText>
 
-      <View style={styles.formCard}>
-        <View style={styles.formGroup}>
-          <CsPicker
-            label="Sélectionner le trimestre :"
-            items={
-              metaData?.semesters.map((c) => ({
-                label: c.name,
-                value: c.id.toString(),
-              })) ?? []
-            }
-            selectedValue={selectedSemester?.toString()}
-            onValueChange={(val) => setSelectedSemester(parseInt(val))}
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <CsText variant="body" style={styles.label}>
-            Date d'échéance :
-          </CsText>
-          <View style={styles.dateInputContainer}>
-            <CsText style={styles.dateInputText}>{formatDate(dueDate)}</CsText>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <FontAwesome5
-                name="calendar-alt"
-                size={20}
-                color={colors.primary}
-                style={styles.calendarIcon}
-              />
-            </TouchableOpacity>
+      {isTablet ? (
+        <View style={styles.tabletRow}>
+          <View style={styles.formColumn}>
+            {renderSemesterPicker}
+            {renderDateInput}
           </View>
-          {showDatePicker && (
-            <DateTimePicker
-              value={dueDate}
-              mode="date"
-              display={Platform.OS === "ios" ? "inline" : "default"}
-              onChange={handleDateChange}
-            />
-          )}
-        </View>
-
-        <View style={styles.formGroup}>
-          <CsText variant="body" style={styles.label}>
-            Noté :
-          </CsText>
-          <Switch
-            value={isGraded}
-            onValueChange={setIsGraded}
-            trackColor={{
-              false: colors.textLight + "45",
-              true: colors.primary,
-            }}
-            thumbColor={isGraded ? colors.white : colors.textLight}
-            style={styles.switch}
-          />
-        </View>
-
-        {isGraded && (
-          <View style={styles.formGroup}>
-            <CsTextField
-              label="Noté sur (points) :"
-              value={totalPoints as any}
-              onChangeText={(val) => setTotalPoints(parseInt(val))}
-              placeholder="Total de points"
-              keyboardType="numeric"
-              autoCapitalize="none"
-              returnKeyType="done"
-              maxLength={2}
-              onBlur={(e) => {
-                let val = e.nativeEvent.text;
-                let _val = parseInt(val);
-
-                // min 1 point, max 40 points
-                if (_val < 1 || _val > 40) {
-                  Alert.alert(
-                    "Points invalides",
-                    "Le total de points doit être entre 1 et 40.",
-                    [{ text: "OK" }],
-                  );
-                  setTotalPoints(0);
-                } else {
-                  setTotalPoints(_val);
-                }
-              }}
-              onSubmitEditing={handleSubmit}
-            />
+          <View style={styles.formColumn}>
+            {renderGradedSwitch}
+            {renderTotalPointsInput}
           </View>
-        )}
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <CsButton
-          title="Annuler"
-          onPress={onCancel}
-          variant="outline"
-          style={styles.button}
-        />
-        <CsButton
-          title="Soumettre"
-          onPress={handleSubmit}
-          style={styles.button}
-        />
-      </View>
+          {renderButtons}
+        </View>
+      ) : (
+        <>
+          <View style={styles.formCard}>
+            {renderSemesterPicker}
+            {renderDateInput}
+            {renderGradedSwitch}
+            {renderTotalPointsInput}
+          </View>
+          {renderButtons}
+        </>
+      )}
     </ScrollView>
   );
 };
 
-const createStyles = (theme: Theme) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -230,8 +272,24 @@ const createStyles = (theme: Theme) =>
       justifyContent: "space-between",
     },
     button: {
-      flex: 1,
       marginHorizontal: spacing.xs,
+    },
+    tabletRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+    },
+    formColumn: {
+      flex: 1,
+      padding: spacing.sm,
+    },
+    buttonColumn: {
+      justifyContent: "center",
+      alignItems: "center",
+      padding: spacing.sm,
+    },
+    input: {
+      // Additional styles for CsPicker input if needed
     },
   });
 
