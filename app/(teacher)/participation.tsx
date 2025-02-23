@@ -13,7 +13,6 @@ import { AlertModal } from "@/components/AlertModal";
 import { useThemedStyles } from "@/hooks";
 import { spacing, borderRadius } from "@/styles";
 import { Homework, Student } from "@/types";
-import { SafeAreaView } from "react-native-safe-area-context";
 import HomeworkForm from "./homework";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { StatCard } from "@/components/StatCard";
@@ -110,7 +109,7 @@ const ParticipationScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
+    <>
       <View style={styles.body}>
         <View style={styles.leftColumn}>
           <CsText variant="h3" style={styles.sectionTitle}>
@@ -254,7 +253,7 @@ const ParticipationScreen: React.FC = () => {
         title="Nombre de participations invalide"
         message="Veuillez sélectionner au moins 1 et au plus 5 élèves pour la participation."
       />
-    </SafeAreaView>
+    </>
   );
 };
 

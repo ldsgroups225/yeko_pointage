@@ -2,11 +2,11 @@ import React from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import IncidentReport from "@/components/IncidentReport";
 import { useAtom } from "jotai";
-import { currentClassAtom, studentsListAtom } from "@/store/atoms";
+import { studentsListAtom } from "@/store/atoms";
 import { Incident } from "@/types";
 
 export default function IncidentsScreen() {
-  const [currentClass] = useAtom(currentClassAtom);
+  // const [currentClass] = useAtom(currentClassAtom);
   const [students] = useAtom(studentsListAtom);
 
   // Mock data for incidents, replace with actual data fetching
