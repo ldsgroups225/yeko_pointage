@@ -5,6 +5,7 @@ import {
   supabase,
   STUDENT_TABLE_ID,
   USERS_TABLE_ID,
+  STUDENT_SCHOOL_CLASS_TABLE_ID,
 } from "@/lib/supabase";
 import { formatFullName } from "@/utils/formatting";
 
@@ -18,7 +19,6 @@ export const classService = {
         .single();
 
       if (classError) {
-        console.error("Error fetching class details:", classError);
         throw classError;
       }
 
@@ -38,34 +38,47 @@ export const classService = {
         schedules,
       };
     } catch (error) {
-      console.error("Error fetching class details:", error);
       throw error;
     }
   },
 
   async fetchStudentsForClass(classId: string): Promise<Student[]> {
+    type StudentResponse = {
+      student: {
+        first_name: string;
+        id: string;
+        id_number: string;
+        last_name: string;
+        parent_id: string;
+      };
+    };
+
     try {
       const { data: students, error } = await supabase
-        .from(STUDENT_TABLE_ID) // Assuming your student table is named "students"
-        .select("id, parent_id, id_number, first_name, last_name")
+        .from(STUDENT_SCHOOL_CLASS_TABLE_ID)
+        .select(
+          "student: students!inner(id, parent_id, id_number, first_name, last_name)",
+        )
         .eq("class_id", classId)
-        .order("last_name", { ascending: true });
+        .eq("enrollment_status", "accepted")
+        .is("is_active", true)
+        .order("last_name", { ascending: true, referencedTable: "students" })
+        .order("first_name", { ascending: true, referencedTable: "students" })
+        .returns<StudentResponse[]>();
 
       if (error) {
-        console.error("Error fetching students for class:", error);
         throw error;
       }
 
-      return students.map((student) => ({
-        id: student.id,
-        parentId: student.parent_id,
-        idNumber: student.id_number,
-        firstName: student.first_name,
-        lastName: student.last_name,
-        fullName: formatFullName(student.first_name, student.last_name),
+      return students.map((sts) => ({
+        id: sts.student.id,
+        parentId: sts.student.parent_id,
+        idNumber: sts.student.id_number,
+        firstName: sts.student.first_name,
+        lastName: sts.student.last_name,
+        fullName: formatFullName(sts.student.first_name, sts.student.last_name),
       }));
     } catch (error) {
-      console.error("Error fetching students for class:", error);
       throw error;
     }
   },
@@ -82,7 +95,6 @@ export const classService = {
         .eq("teacher_class_assignments.class_id", classId);
 
       if (error) {
-        console.error("Error fetching teachers for class:", error);
         throw error;
       }
 
@@ -92,7 +104,6 @@ export const classService = {
         fullName: formatFullName(teacher.first_name, teacher.last_name),
       }));
     } catch (error) {
-      console.error("Error fetching teachers for class:", error);
       throw error;
     }
   },
@@ -105,7 +116,6 @@ export const classService = {
         .eq("class_id", classId);
 
       if (error) {
-        console.error("Error fetching schedules for class:", error);
         throw error;
       }
 
@@ -121,7 +131,6 @@ export const classService = {
         room: schedule.room,
       }));
     } catch (error) {
-      console.error("Error fetching schedules for class:", error);
       throw error;
     }
   },
