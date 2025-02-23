@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, SafeAreaView, Modal } from "react-native";
+import { Modal, StyleSheet, View, SafeAreaView } from "react-native";
 import {
   BarcodeScanningResult,
   CameraType,
@@ -10,9 +10,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { QR_CODE_PREFIX } from "@/config/constants";
 import { useThemedStyles } from "@/hooks";
 import { spacing } from "@/styles";
-import { CsButton, CsText } from "@/components/commons";
+import { CsButton, CsCard, CsText } from "@/components/commons";
 import type { ITheme } from "@/styles/theme";
-import ConfirmationModal from "./ConfirmationModal";
 
 interface QRScannerProps {
   isVisible: boolean;
@@ -47,7 +46,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({
       const scanResult = data.slice(QR_CODE_PREFIX.length);
       onScan(scanResult);
     } else {
-      setShowErrorModal(true);
+      setShowErrorModal(true); // Show error modal if QR code is invalid
     }
   };
 
@@ -111,15 +110,25 @@ export const QRScanner: React.FC<QRScannerProps> = ({
           </CsText>
         </View>
 
-        <ConfirmationModal
-          isVisible={showErrorModal}
-          onConfirm={handleRescan}
-          onCancel={handleRescan}
-          message={errorMessage || "Code QR invalide"}
-          title="Erreur"
-          confirmText="Scanner à nouveau"
-          cancelText="Fermer"
-        />
+        {/* Error Modal */}
+        <Modal visible={showErrorModal} transparent animationType="fade">
+          <View style={themedStyles.modalOverlay}>
+            <CsCard style={themedStyles.modalContent}>
+              <CsText variant="h3" style={themedStyles.modalTitle}>
+                {errorMessage || "Code QR invalide"}{" "}
+                {/* Display error message or default */}
+              </CsText>
+              <View style={themedStyles.buttonContainer}>
+                <CsButton
+                  title="Scanner à nouveau"
+                  onPress={handleRescan}
+                  style={themedStyles.button}
+                  variant="outline"
+                />
+              </View>
+            </CsCard>
+          </View>
+        </Modal>
       </SafeAreaView>
     </Modal>
   );
@@ -173,5 +182,32 @@ const styles = (theme: ITheme) =>
     footerText: {
       color: theme.text,
       textAlign: "center",
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.7)",
+    },
+    modalContent: {
+      padding: spacing.lg,
+      width: "90%",
+      maxWidth: 400,
+    },
+    modalTitle: {
+      marginBottom: spacing.md,
+      textAlign: "center",
+    },
+    modalText: {
+      marginBottom: spacing.lg,
+      textAlign: "center",
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    button: {
+      flex: 1,
+      marginHorizontal: spacing.xs,
     },
   });

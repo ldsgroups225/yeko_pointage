@@ -4,5 +4,4 @@ module.exports = {
   rules: {
     "prettier/prettier": "error",
   },
-  ignorePatterns: ["ARCHITECTURE.md", "*.md"],
 };

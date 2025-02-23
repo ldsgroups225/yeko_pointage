@@ -15,12 +15,17 @@ export const useHomework = (): UseHomeworkReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const localMetaData = useAtomValue(metaDataAtom);
   const metaData = useAtomValue(metaDataAtom);
 
   const createHomework = async (homeworkData: Homework): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
+      console.log("homeworkData", homeworkData);
+      console.log("metaData", metaData);
+      console.log("localMetaData", localMetaData);
+
       if (!metaData) {
         throw new Error("No metaData found");
       }

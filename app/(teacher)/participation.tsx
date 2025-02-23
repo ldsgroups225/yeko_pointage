@@ -4,11 +4,13 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Modal,
   TextInput,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { CsText, CsButton, CsCard } from "@/components/commons";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { AlertModal } from "@/components/AlertModal";
 import { useThemedStyles } from "@/hooks";
 import { spacing, borderRadius } from "@/styles";
@@ -20,7 +22,6 @@ import { StatCard } from "@/components/StatCard";
 import { useParticipationManagement } from "@/hooks/useParticipationManagement";
 import { useAtomValue } from "jotai/index";
 import { currentScheduleAtom } from "@/store/atoms";
-import { ConfirmationModal } from "@/components/ConfirmationModal";
 
 const ParticipationScreen: React.FC = () => {
   const styles = useThemedStyles(createStyles);
@@ -228,25 +229,37 @@ const ParticipationScreen: React.FC = () => {
         </BottomSheetView>
       </BottomSheet>
 
-      <ConfirmationModal
-        isVisible={showCommentModal}
-        onConfirm={() => {
-          saveComment();
-          setShowCommentModal(false);
-        }}
-        onCancel={() => setShowCommentModal(false)}
-        title="Ajouter un commentaire"
-        confirmText="Enregistrer"
-        cancelText="Annuler"
-      >
-        <TextInput
-          style={styles.commentInput}
-          value={comment}
-          onChangeText={setComment}
-          placeholder="Entrez un commentaire"
-          multiline
-        />
-      </ConfirmationModal>
+      <Modal visible={showCommentModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <CsText variant="h3" style={styles.modalTitle}>
+              Ajouter un commentaire
+            </CsText>
+            <TextInput
+              style={styles.commentInput}
+              value={comment}
+              onChangeText={setComment}
+              placeholder="Entrez un commentaire"
+              multiline
+            />
+            <View style={styles.modalButtons}>
+              <CsButton
+                title="Annuler"
+                onPress={() => setShowCommentModal(false)}
+                variant="outline"
+              />
+              <CsButton
+                title="Enregistrer"
+                onPress={() => {
+                  saveComment();
+                  setShowCommentModal(false);
+                }}
+                loading={isSubmitting}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <AlertModal
         isVisible={showInvalidParticipationAlert}

@@ -6,6 +6,9 @@ export const homework = {
     homeworkData: Homework,
     metaData: IMetaDataDTO,
   ): Promise<void> {
+    console.log("homeworkData", homeworkData);
+    console.log("metaData", metaData);
+
     try {
       const noteData: INoteDTO = {
         classId: homeworkData.classId!,

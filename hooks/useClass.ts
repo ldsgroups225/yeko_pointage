@@ -18,7 +18,11 @@ export const useClass = (): UseClassReturn => {
     setLoading(true);
     setError(null);
     try {
-      return await classService.fetchClassDetails(classId);
+      const classDetails = await classService.fetchClassDetails(classId);
+
+      // TODO: Save MetaData to context
+
+      return classDetails;
     } catch (err) {
       setError("Failed to fetch class details.");
       console.error("[E_CLASS_DETAILS]:", err);

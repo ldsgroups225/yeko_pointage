@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { participation } from "@/services/participation";
 import { Participation } from "@/types";
-import { metaDataAtom } from "@/store/atoms";
-import { useAtomValue } from "jotai";
 
 interface UseParticipationReturn {
+  createParticipation: (
+    classId: string,
+    subjectId: string,
+    participationData: Participation,
+  ) => Promise<void>;
   createParticipations: (
+    classId: string,
+    subjectId: string,
     participationDataArray: Participation[],
   ) => Promise<void>;
   loading: boolean;
@@ -16,21 +21,40 @@ export const useParticipation = (): UseParticipationReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const metaData = useAtomValue(metaDataAtom);
+  const createParticipation = async (
+    classId: string,
+    subjectId: string,
+    participationData: Participation,
+  ): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    try {
+      await participation.createParticipation(
+        classId,
+        subjectId,
+        participationData,
+      );
+    } catch (err) {
+      console.error("[E_CREATE_PARTICIPATION]:", err);
+      setError("Failed to create participation record.");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const createParticipations = async (
+    classId: string,
+    subjectId: string,
     participationDataArray: Participation[],
   ): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      if (!metaData) {
-        throw new Error("No metaData found");
-      }
-
       await participation.createParticipations(
+        classId,
+        subjectId,
         participationDataArray,
-        metaData,
       );
     } catch (err) {
       console.error("[E_CREATE_PARTICIPATIONS]:", err);
@@ -42,6 +66,7 @@ export const useParticipation = (): UseParticipationReturn => {
   };
 
   return {
+    createParticipation,
     createParticipations,
     loading,
     error,
