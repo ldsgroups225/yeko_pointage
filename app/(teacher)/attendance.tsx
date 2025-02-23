@@ -13,6 +13,7 @@ import { studentsListAtom, currentScheduleAtom } from "@/store/atoms";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatCard } from "@/components/StatCard";
 import { useAttendanceRecords } from "@/hooks/useAttendanceRecords";
+import { ScrollView } from "react-native-gesture-handler";
 
 const AttendanceScreen: React.FC = () => {
   const styles = useThemedStyles(createStyles);
@@ -107,11 +108,14 @@ const AttendanceScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <View style={styles.body}>
-        <View style={styles.leftColumn}>
+        <ScrollView
+          style={styles.leftColumn}
+          showsVerticalScrollIndicator={false}
+        >
           <CsText variant="h3" style={styles.sectionTitle}>
             Statistiques
           </CsText>
-          <View style={styles.statsContainer}>
+          <View>
             <StatCard
               icon="users"
               title="Total"
@@ -170,7 +174,7 @@ const AttendanceScreen: React.FC = () => {
             confirmText="Continuer"
             cancelText="Annuler"
           />
-        </View>
+        </ScrollView>
 
         <View style={styles.rightColumn}>
           <CsText variant="h3" style={styles.sectionTitle}>
@@ -221,6 +225,7 @@ const createStyles = (theme: Theme) =>
     },
     finalizeButton: {
       marginTop: spacing.md,
+      marginBottom: spacing.lg,
     },
   });
 

@@ -24,7 +24,6 @@ import {
   classScheduleAtom,
   currentClassAtom,
   currentSchoolAtom,
-  metaDataAtom,
   studentsListAtom,
   teachersListAtom,
   updateMetaDataAtom,
