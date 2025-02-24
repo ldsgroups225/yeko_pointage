@@ -133,7 +133,7 @@ export default function QRScanScreen() {
   };
 
   // Teacher Data Retrieval
-  const fetchTeacherData = (userId: string): Teacher | null => {
+  const findTeacherData = (userId: string): Teacher | null => {
     return teachers.find((t) => t.id === userId) || null;
   };
 
@@ -147,17 +147,28 @@ export default function QRScanScreen() {
   };
 
   // Teacher Role Handling
-  const handleTeacherRole = (teacher: Teacher, schedule: ClassSchedule) => {
-    setCurrentTeacher(teacher);
-    setCurrentSchedule(schedule);
+  const handleTeacherRole = async (
+    teacher: Teacher,
+    schedule: ClassSchedule,
+  ) => {
+    try {
+      setCurrentTeacher(teacher);
+      setCurrentSchedule(schedule);
 
-    fetchSchoolYearAndSemester();
+      await fetchSchoolYearAndSemester();
 
-    updateMetaData({
-      teacherId: teacher.id,
-      subjectId: currentSchedule!.subjectId,
-    });
-    setShowWelcomeModal(true);
+      updateMetaData({
+        teacherId: teacher.id,
+        subjectId: currentSchedule?.subjectId,
+      });
+      setShowWelcomeModal(true);
+    } catch (error) {
+      handleError(
+        setError,
+        "Veuillez scanner à  nouveau le code QR.",
+        setShowErrorModal,
+      );
+    }
   };
 
   // Director Scan Handling
@@ -171,7 +182,7 @@ export default function QRScanScreen() {
 
   // Teacher Scan Handling
   const handleTeacherScan = async (userId: string) => {
-    const teacher = fetchTeacherData(userId);
+    const teacher = findTeacherData(userId);
     if (!teacher) {
       handleError(
         setError,
@@ -195,12 +206,12 @@ export default function QRScanScreen() {
 
     setCurrentSchedule(schedule);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    handleTeacherRole(teacher, schedule);
+    await handleTeacherRole(teacher, schedule);
 
     // TODO: Remove
     updateMetaData({
       teacherId: "46cf18f8-1608-4fac-859b-f6ffb9e2f4ce",
-      subjectId: currentSchedule!.subjectId,
+      subjectId: currentSchedule?.subjectId,
     });
   };
 
@@ -289,8 +300,8 @@ export default function QRScanScreen() {
         {/* TODO: Remove later */}
         <CsButton
           title="Simuler le résultat du scan"
-          onPress={() =>
-            handleQRScan(
+          onPress={async () =>
+            await handleQRScan(
               "teacher|---|ed85f4e4-5133-4270-b52d-795c6e65c0f0|---|46cf18f8-1608-4fac-859b-f6ffb9e2f4ce",
             )
           }
@@ -300,7 +311,7 @@ export default function QRScanScreen() {
 
         <CsButton
           title="Simuler l'attribution de classe"
-          onPress={() => handleSaveConfig()}
+          onPress={handleSaveConfig}
           variant="text"
           loading={isSimulateClassAttribution}
           style={styles.simulateButton}

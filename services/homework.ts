@@ -15,6 +15,10 @@ export const homework = {
         noteType: "HOMEWORK",
         isGraded: homeworkData.isGraded,
         totalPoints: homeworkData.totalPoints,
+        title: "Devoir",
+        description: homeworkData.isGraded
+          ? "Devoir à rendre"
+          : "Devoir à faire",
 
         isActive: true,
         isPublished: true,
@@ -23,10 +27,10 @@ export const homework = {
         schoolId: metaData.schoolId!,
         semesterId: homeworkData.semesterId ?? metaData.semesterId!,
         schoolYearId: metaData.schoolYearId!,
-        weight: homeworkData.isGraded ? 1 : 0, // Pondération conditionnelle
+        weight: 1,
       };
 
-      await supabase.from(NOTE_TABLE_ID).insert({
+      const { error } = await supabase.from(NOTE_TABLE_ID).insert({
         class_id: noteData.classId,
         teacher_id: noteData.teacherId,
         subject_id: noteData.subjectId,
@@ -41,9 +45,14 @@ export const homework = {
         school_year_id: noteData.schoolYearId,
         total_points: noteData.totalPoints,
         weight: noteData.weight,
+        title: noteData.title,
+        description: noteData.description,
       });
+
+      if (error) {
+        throw error;
+      }
     } catch (error) {
-      console.error("Error creating homework record:", error);
       throw error;
     }
   },

@@ -117,12 +117,22 @@ export const useParticipationManagement = (
       setCurrentParticipationSession(participationSession);
 
       try {
-        await Promise.all([
-          currentAttendanceSession &&
-            createAttendances(currentAttendanceSession.records),
-          participations.length && createParticipations(participations),
-          homework && createHomework(homework),
-        ]);
+        // await Promise.all([
+        //   currentAttendanceSession &&
+        //     createAttendances(currentAttendanceSession.records),
+        //   participations.length && createParticipations(participations),
+        //   homework && createHomework(homework),
+        // ]);
+
+        if (currentAttendanceSession) {
+          await createAttendances(currentAttendanceSession.records);
+        }
+        if (participations.length) {
+          await createParticipations(participations);
+        }
+        if (homework) {
+          await createHomework(homework);
+        }
 
         // Clear atoms
         setCurrentAttendanceSession(null);
