@@ -159,7 +159,7 @@ export default function QRScanScreen() {
 
       updateMetaData({
         teacherId: teacher.id,
-        subjectId: currentSchedule?.subjectId,
+        subjectId: currentSchedule!.subjectId,
       });
       setShowWelcomeModal(true);
     } catch (error) {
@@ -182,37 +182,45 @@ export default function QRScanScreen() {
 
   // Teacher Scan Handling
   const handleTeacherScan = async (userId: string) => {
-    const teacher = findTeacherData(userId);
-    if (!teacher) {
+    try {
+      const teacher = findTeacherData(userId);
+      if (!teacher) {
+        handleError(
+          setError,
+          "Enseignant introuvable pour ce cours.",
+          setShowErrorModal,
+        );
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        return;
+      }
+
+      const schedule = checkSchedule(userId);
+      if (!schedule) {
+        handleError(
+          setError,
+          "Aucun cours n'est prévu pour cet enseignant à l'heure actuelle.",
+          setShowErrorModal,
+        );
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        return;
+      }
+
+      setCurrentSchedule(schedule);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await handleTeacherRole(teacher, schedule);
+
+      // TODO: Remove
+      updateMetaData({
+        teacherId: "46cf18f8-1608-4fac-859b-f6ffb9e2f4ce",
+        subjectId: currentSchedule!.subjectId,
+      });
+    } catch (error) {
       handleError(
         setError,
-        "Enseignant introuvable pour ce cours.",
+        "Veuillez scanner à  nouveau le code QR.",
         setShowErrorModal,
       );
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      return;
     }
-
-    const schedule = checkSchedule(userId);
-    if (!schedule) {
-      handleError(
-        setError,
-        "Aucun cours n'est prévu pour cet enseignant à l'heure actuelle.",
-        setShowErrorModal,
-      );
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      return;
-    }
-
-    setCurrentSchedule(schedule);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    await handleTeacherRole(teacher, schedule);
-
-    // TODO: Remove
-    updateMetaData({
-      teacherId: "46cf18f8-1608-4fac-859b-f6ffb9e2f4ce",
-      subjectId: currentSchedule?.subjectId,
-    });
   };
 
   // QR Scan Handler
