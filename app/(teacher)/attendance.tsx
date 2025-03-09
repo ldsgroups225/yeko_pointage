@@ -36,74 +36,78 @@ const AttendanceScreen: React.FC = () => {
 
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
-  const handleProceedToParticipation = useCallback(() => {
-    setShowConfirmationModal(true);
-  }, []);
-
-  const handleFinalizeAttendance = useCallback(() => {
+  // Simplified finalize handler: if the first attendance check is complete, finalize and show modal; otherwise, mark as complete.
+  const handleFinalizeAttendance = () => {
     if (isFirstAttendanceFinished) {
       finalizeAttendance();
-      handleProceedToParticipation();
+      setShowConfirmationModal(true);
     } else {
       setIsFirstAttendanceFinished(true);
     }
-  }, [
-    isFirstAttendanceFinished,
-    handleProceedToParticipation,
-    setIsFirstAttendanceFinished,
-    finalizeAttendance,
-  ]);
+  };
 
-  const confirmProceedToParticipation = useCallback(() => {
+  // When the modal confirms, navigate to participation.
+  const confirmProceedToParticipation = () => {
     setShowConfirmationModal(false);
     router.push({
       pathname: "/participation",
       params: { teacherId, classId, scheduleId },
     });
-  }, [router, teacherId, classId, scheduleId]);
+  };
 
-  const renderStudentItem = useCallback(
-    ({ item: student }: { item: Student }) => {
-      const record = attendanceRecords.find((r) => r.studentId === student.id);
-      if (!record) {
-        // console.error(`No attendance record found for student ${student.id}`);
-        return null;
-      }
-      return (
-        <StudentCard
-          student={student}
-          attendanceRecord={record}
-          onUpdateStatus={updateAttendanceStatus}
-          isFirstAttendanceCheck={!isFirstAttendanceFinished}
-        />
-      );
-    },
-    [attendanceRecords, updateAttendanceStatus, isFirstAttendanceFinished],
-  );
+  // Precompute a lookup map for attendance records by student ID.
+  const recordsMap = useMemo(() => {
+    return attendanceRecords.reduce<Record<string, any>>((map, record) => {
+      map[record.studentId] = record;
+      return map;
+    }, {});
+  }, [attendanceRecords]);
 
+  // Render a student item using the precomputed lookup.
+  const renderStudentItem = ({ item: student }: { item: Student }) => {
+    const record = recordsMap[student.id];
+    if (!record) return null;
+    return (
+      <StudentCard
+        student={student}
+        attendanceRecord={record}
+        onUpdateStatus={updateAttendanceStatus}
+        isFirstAttendanceCheck={!isFirstAttendanceFinished}
+      />
+    );
+  };
+
+  // Optimize attendance stats calculation in one iteration.
   const attendanceStats = useMemo(() => {
-    const totalStudents = students.length;
-    const presentCount = attendanceRecords.filter(
-      (r) => r.status === "present",
-    ).length;
-    const absentCount = attendanceRecords.filter(
-      (r) => r.status === "absent",
-    ).length;
-    const lateCount = attendanceRecords.filter(
-      (r) => r.status === "late",
-    ).length;
-    const earlyDepartureCount = attendanceRecords.filter(
-      (r) => r.status === "early_departure",
-    ).length;
-
-    return {
-      totalStudents,
-      presentCount,
-      absentCount,
-      lateCount,
-      earlyDepartureCount,
+    const stats = {
+      presentCount: 0,
+      absentCount: 0,
+      lateCount: 0,
+      earlyDepartureCount: 0,
     };
-  }, [students, attendanceRecords]);
+    attendanceRecords.forEach((record) => {
+      switch (record.status) {
+        case "present":
+          stats.presentCount++;
+          break;
+        case "absent":
+          stats.absentCount++;
+          break;
+        case "late":
+          stats.lateCount++;
+          break;
+        case "early_departure":
+          stats.earlyDepartureCount++;
+          break;
+        default:
+          break;
+      }
+    });
+    return {
+      totalStudents: students.length,
+      ...stats,
+    };
+  }, [students.length, attendanceRecords]);
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
@@ -193,7 +197,7 @@ const AttendanceScreen: React.FC = () => {
   );
 };
 
-const createStyles = (theme: Theme) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
