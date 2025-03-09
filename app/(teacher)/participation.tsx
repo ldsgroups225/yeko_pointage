@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -54,51 +54,51 @@ const ParticipationScreen: React.FC = () => {
 
   const bottomSheetRef = useRef<BottomSheet>(null);
 
-  const renderStudentItem = useCallback(
-    ({ item: student }: { item: Student }) => {
-      const hasParticipated = participations.some(
-        (p) => p.studentId === student.id,
-      );
-      const participation = participations.find(
-        (p) => p.studentId === student.id,
-      );
+  // Precompute a map for participations to avoid redundant array searches in each render.
+  const participationMap = useMemo(() => {
+    return participations.reduce<Record<string, any>>((map, p) => {
+      map[p.studentId] = p;
+      return map;
+    }, {});
+  }, [participations]);
 
-      return (
-        <CsCard style={styles.studentCard}>
-          <TouchableOpacity onPress={() => toggleParticipation(student.id)}>
-            <View style={styles.studentInfo}>
-              <CsText variant="body">{student.fullName}</CsText>
-              {hasParticipated && (
-                <FontAwesome5 name="star" size={18} color="#F5A623" solid />
-              )}
-            </View>
-          </TouchableOpacity>
-          {hasParticipated && (
-            <TouchableOpacity
-              onPress={() => {
-                openCommentModal(student.id);
-                setShowCommentModal(true);
-              }}
-              style={styles.commentButton}
-            >
-              <FontAwesome5 name="comment" size={16} color="#4A90E2" />
-              <CsText variant="caption" style={styles.commentButtonText}>
-                {participation?.comment
-                  ? "Modifier le commentaire"
-                  : "Ajouter un commentaire"}{" "}
-              </CsText>
-            </TouchableOpacity>
-          )}
-          {participation?.comment && (
-            <CsText variant="caption" style={styles.comment}>
-              {participation.comment}
+  const renderStudentItem = ({ item: student }: { item: Student }) => {
+    const participation = participationMap[student.id];
+    const hasParticipated = !!participation;
+    return (
+      <CsCard style={styles.studentCard}>
+        <TouchableOpacity onPress={() => toggleParticipation(student.id)}>
+          <View style={styles.studentInfo}>
+            <CsText variant="body">{student.fullName}</CsText>
+            {hasParticipated && (
+              <FontAwesome5 name="star" size={18} color="#F5A623" solid />
+            )}
+          </View>
+        </TouchableOpacity>
+        {hasParticipated && (
+          <TouchableOpacity
+            onPress={() => {
+              openCommentModal(student.id);
+              setShowCommentModal(true);
+            }}
+            style={styles.commentButton}
+          >
+            <FontAwesome5 name="comment" size={16} color="#4A90E2" />
+            <CsText variant="caption" style={styles.commentButtonText}>
+              {participation?.comment
+                ? "Modifier le commentaire"
+                : "Ajouter un commentaire"}{" "}
             </CsText>
-          )}
-        </CsCard>
-      );
-    },
-    [participations, toggleParticipation, openCommentModal, styles],
-  );
+          </TouchableOpacity>
+        )}
+        {participation?.comment && (
+          <CsText variant="caption" style={styles.comment}>
+            {participation.comment}
+          </CsText>
+        )}
+      </CsCard>
+    );
+  };
 
   const handleEndSession = () => {
     if (isParticipationRangeValid()) {
@@ -257,7 +257,7 @@ const ParticipationScreen: React.FC = () => {
   );
 };
 
-const createStyles = (theme: Theme) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
