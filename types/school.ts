@@ -29,6 +29,7 @@ export interface Teacher {
   id: string;
   fullName: string;
   phone: string;
+  subjectId: string;
 }
 
 export interface Schedule {

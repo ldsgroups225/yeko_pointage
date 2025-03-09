@@ -21,16 +21,27 @@ export const classService = {
         throw classError;
       }
 
-      const students = await this.fetchStudentsForClass(classId);
-      const teachers = await this.fetchTeachersForClass(classId);
-      const schedules = await this.fetchSchedulesForClass(classId);
+      const studentQs = this.fetchStudentsForClass(classId);
+      const teacherQs = this.fetchTeachersForClass(classId);
+
+      const [students, teachers] = await Promise.all([studentQs, teacherQs]);
+
+      const teacherWithSubjectIDs = teachers.map((t) => ({
+        id: t.id,
+        subjectId: t.subjectId,
+      }));
+
+      const schedules = await this.fetchSchedulesForClass(
+        classId,
+        teacherWithSubjectIDs,
+      );
 
       return {
         class: {
           id: classData.id,
           name: classData.name,
           schoolId: classData.school_id,
-          schedule: classData.schedule || [],
+          // schedule: classData.schedule || [],
         },
         students,
         teachers,
@@ -86,7 +97,9 @@ export const classService = {
     try {
       const { data, error } = await supabase
         .from(TEACHER_CLASS_ASSIGNMENTS_TABLE_ID)
-        .select("teacher: users!inner(id, phone, first_name, last_name)")
+        .select(
+          "subject_id, teacher: users!inner(id, phone, first_name, last_name)",
+        )
         .eq("class_id", classId);
 
       if (error) {
@@ -94,6 +107,7 @@ export const classService = {
       }
 
       type Response = {
+        subject_id: string;
         teacher: {
           id: string;
           phone: string;
@@ -105,6 +119,7 @@ export const classService = {
       return (data as unknown as Response[]).map((d) => ({
         id: d.teacher.id,
         phone: d.teacher.phone,
+        subjectId: d.subject_id,
         fullName: formatFullName(d.teacher.first_name, d.teacher.last_name),
       }));
     } catch (error) {
@@ -112,11 +127,17 @@ export const classService = {
     }
   },
 
-  async fetchSchedulesForClass(classId: string): Promise<ClassSchedule[]> {
+  async fetchSchedulesForClass(
+    classId: string,
+    teacherWithSubjectIDs: {
+      id: string;
+      subjectId: string;
+    }[],
+  ): Promise<ClassSchedule[]> {
     try {
       const { data: schedules, error } = await supabase
         .from(SCHEDULE_TABLE_ID)
-        .select("*")
+        .select("*, subject: subjects!inner(name)")
         .eq("class_id", classId);
 
       if (error) {
@@ -127,12 +148,14 @@ export const classService = {
         id: schedule.id,
         classId: schedule.class_id,
         subjectId: schedule.subject_id,
-        subjectName: schedule.subject_name,
-        teacherId: schedule.teacher_id,
+        subjectName: schedule.subject.name,
+        teacherId:
+          teacherWithSubjectIDs.find((t) => t.subjectId === schedule.subject_id)
+            ?.id ?? "",
         dayOfWeek: schedule.day_of_week,
         startTime: schedule.start_time,
         endTime: schedule.end_time,
-        room: schedule.room,
+        room: schedule.room ?? undefined,
       }));
     } catch (error) {
       throw error;

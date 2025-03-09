@@ -115,6 +115,8 @@ export default function QRScanScreen() {
         });
 
         await fetchSchoolYearAndSemester();
+      } else {
+        throw new Error("Failed to save configuration.");
       }
     } catch (err) {
       setError("Failed to save configuration. Please try again later.");
