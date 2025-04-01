@@ -17,6 +17,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatDate } from "@/utils/dateTime";
 import { useAtomValue } from "jotai";
 import { metaDataAtom } from "@/store/atoms";
+import Slider from "@react-native-community/slider";
 
 interface HomeworkFormProps {
   initialDueDate?: Date;
@@ -36,7 +37,7 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
 
   const isTablet = Dimensions.get("window").width >= 768;
 
-  const [totalPoints, setTotalPoints] = useState(0);
+  const [totalPoints, setTotalPoints] = useState<number>(10);
   const [selectedSemester, setSelectedSemester] = useState<number | null>(
     metaData?.semesterId ?? null,
   );
@@ -53,7 +54,30 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
       );
       return;
     }
-    onSubmit(dueDate, isGraded, totalPoints);
+
+    if (isGraded) {
+      if (!totalPoints) {
+        Alert.alert(
+          "Points manquants",
+          "Veuillez entrer le nombre de points pour ce devoir noté.",
+          [{ text: "OK" }],
+        );
+        return;
+      }
+      if (totalPoints < 1 || totalPoints > 40) {
+        Alert.alert(
+          "Points invalides",
+          "Le total de points doit être entre 1 et 40 pour un devoir noté.",
+          [{ text: "OK" }],
+        );
+        return;
+      }
+    }
+
+    const finalPoints = isGraded ? totalPoints! : 20;
+    console.log("totalPoints", totalPoints);
+    console.log("finalPoints", finalPoints);
+    onSubmit(dueDate, isGraded, finalPoints);
   };
 
   const handleDateChange = (event: any, selectedDate: Date | undefined) => {
@@ -127,32 +151,26 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
   );
 
   const renderTotalPointsInput = isGraded && (
-    <View style={styles.formGroup}>
-      <CsTextField
-        label="Noté sur (points) :"
-        value={totalPoints as any}
-        onChangeText={(val) => setTotalPoints(parseInt(val))}
-        placeholder="Total de points"
-        keyboardType="numeric"
-        autoCapitalize="none"
-        returnKeyType="done"
-        maxLength={2}
-        onBlur={(e) => {
-          const val = e.nativeEvent.text;
-          const _val = parseInt(val);
-          // min 1 point, max 40 points
-          if (_val < 1 || _val > 40) {
-            Alert.alert(
-              "Points invalides",
-              "Le total de points doit être entre 1 et 40.",
-              [{ text: "OK" }],
-            );
-            setTotalPoints(0);
-          } else {
-            setTotalPoints(_val);
-          }
-        }}
-        onSubmitEditing={handleSubmit}
+    <View>
+      <View style={styles.sliderContainer}>
+        <CsText variant="body" style={styles.label}>
+          Noté sur (points) :*
+        </CsText>
+        <CsText variant="body" style={styles.pointsValue}>
+          {totalPoints} points
+        </CsText>
+      </View>
+      <Slider
+        style={styles.slider}
+        minimumValue={5}
+        maximumValue={40}
+        step={5}
+        value={totalPoints}
+        onValueChange={setTotalPoints}
+        minimumTrackTintColor={colors.primary}
+        maximumTrackTintColor={colors.textLight}
+        thumbTintColor={colors.primary}
+        renderStepNumber
       />
     </View>
   );
@@ -241,7 +259,7 @@ const createStyles = (theme: any) =>
       marginBottom: spacing.lg,
     },
     formGroup: {
-      marginBottom: spacing.md,
+      marginBottom: spacing.xs,
     },
     label: {
       fontSize: 16,
@@ -273,6 +291,7 @@ const createStyles = (theme: any) =>
     },
     button: {
       marginHorizontal: spacing.xs,
+      height: 50,
     },
     tabletRow: {
       flexDirection: "row",
@@ -290,6 +309,30 @@ const createStyles = (theme: any) =>
     },
     input: {
       // Additional styles for CsPicker input if needed
+    },
+    sliderContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    slider: {
+      width: "100%",
+      height: 52,
+    },
+    pointsValue: {
+      fontSize: 16,
+      color: colors.text,
+      fontWeight: "bold",
+    },
+    stepLabelsContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.sm,
+      marginTop: -spacing.sm,
+    },
+    stepLabel: {
+      fontSize: 12,
+      color: colors.textLight,
     },
   });
 

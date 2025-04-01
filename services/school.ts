@@ -8,6 +8,12 @@ import {
   USER_ROLES_TABLE_ID,
 } from "@/lib/supabase";
 import { ERole } from "@/types/enums";
+import { Database } from "@/lib/supabase/types";
+
+type SchoolRow = Database["public"]["Tables"]["schools"]["Row"];
+type ClassRow = Database["public"]["Tables"]["classes"]["Row"];
+type CycleRow = Database["public"]["Tables"]["cycles"]["Row"];
+type GradeRow = Database["public"]["Tables"]["grades"]["Row"];
 
 export const school = {
   async getSchoolById(schoolId: string): Promise<School> {
@@ -28,7 +34,7 @@ export const school = {
         name: data.name,
         cycleId: data.cycle_id,
         code: data.code,
-        imageUrl: data.image_url,
+        imageUrl: data.image_url ?? "",
       };
     } catch (error) {
       console.error("Error fetching school details:", error);
@@ -48,13 +54,13 @@ export const school = {
         throw error;
       }
 
-      return data.map((c) => ({
+      return data.map((c: ClassRow) => ({
         id: c.id,
         name: c.name,
         schoolId: c.school_id,
-        schedule: c.schedule || [],
-        mainTeacherId: c.main_teacher_id || "",
-        gradeId: c.grade_id || "",
+        schedule: [], // Since schedule is not in the DB, initialize as empty
+        mainTeacherId: "", // Since main_teacher_id is not in the DB, initialize as empty
+        gradeId: c.grade_id.toString(), // Convert number to string as required by Class type
       }));
     } catch (error) {
       console.error("Error fetching school classes:", error);
@@ -71,7 +77,7 @@ export const school = {
         throw error;
       }
 
-      return data.map((cycle) => ({
+      return data.map((cycle: CycleRow) => ({
         id: cycle.id,
         name: cycle.name,
         description: cycle.description,
@@ -94,8 +100,8 @@ export const school = {
         throw error;
       }
 
-      return data.map((grade) => ({
-        id: grade.id,
+      return data.map((grade: GradeRow) => ({
+        id: grade.id.toString(), // Convert number to string as required by Grade type
         name: grade.name,
         cycleId: grade.cycle_id,
       }));

@@ -1,12 +1,15 @@
 import { AttendanceRecord } from "@/types";
 import { ATTENDANCE_TABLE_ID, supabase } from "@/lib/supabase";
+import { Database } from "@/lib/supabase/types";
+
+type AttendanceInsert = Database["public"]["Tables"]["attendances"]["Insert"];
 
 export const attendance = {
   async createAttendance(attendanceData: AttendanceRecord): Promise<void> {
     try {
-      await supabase.from(ATTENDANCE_TABLE_ID).insert({
+      const insertData: AttendanceInsert = {
         student_id: attendanceData.studentId,
-        class_id: attendanceData.classId,
+        class_id: attendanceData.classId!,
         subject_id: attendanceData.subjectId,
         starts_at: attendanceData.startTime,
         ends_at:
@@ -15,7 +18,9 @@ export const attendance = {
             : attendanceData.endTime,
         status: attendanceData.status,
         is_excused: false,
-      });
+      };
+
+      await supabase.from(ATTENDANCE_TABLE_ID).insert(insertData);
     } catch (error) {
       console.error("Error creating attendance record:", error);
       throw error;
@@ -25,22 +30,21 @@ export const attendance = {
   async createAttendances(
     attendanceDataArray: AttendanceRecord[],
   ): Promise<void> {
-    const formatedData = attendanceDataArray.map((a) => {
-      return {
-        student_id: a.studentId,
-        class_id: a.classId,
-        subject_id: a.subjectId,
-        starts_at: a.startTime,
-        ends_at: a.status === "late" ? a.timestamp : a.endTime,
-        status: a.status,
-        is_excused: false,
-      };
-    });
+    const formattedData: AttendanceInsert[] = attendanceDataArray.map((a) => ({
+      student_id: a.studentId,
+      class_id: a.classId!,
+      subject_id: a.subjectId,
+      starts_at: a.startTime,
+      ends_at: a.status === "late" ? a.timestamp : a.endTime,
+      status: a.status,
+      is_excused: false,
+    }));
 
     try {
-      await supabase.from(ATTENDANCE_TABLE_ID).insert(formatedData);
+      await supabase.from(ATTENDANCE_TABLE_ID).insert(formattedData);
     } catch (e) {
       console.error("[E_AT]:", e);
+      throw e;
     }
   },
 };

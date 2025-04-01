@@ -1,5 +1,8 @@
 import { Homework, IMetaDataDTO, INoteDTO } from "@/types";
 import { NOTE_TABLE_ID, supabase } from "@/lib/supabase";
+import { Database } from "@/lib/supabase/types";
+
+type NoteInsert = Database["public"]["Tables"]["notes"]["Insert"];
 
 export const homework = {
   async createHomework(
@@ -7,6 +10,7 @@ export const homework = {
     metaData: IMetaDataDTO,
   ): Promise<void> {
     try {
+      const currentDate = new Date();
       const noteData: INoteDTO = {
         classId: homeworkData.classId!,
         teacherId: homeworkData.teacherId!,
@@ -19,27 +23,25 @@ export const homework = {
         description: homeworkData.isGraded
           ? "Devoir à rendre"
           : "Devoir à faire",
-
         isActive: true,
         isPublished: true,
-        publishedAt: new Date(),
-
+        publishedAt: currentDate,
         schoolId: metaData.schoolId!,
         semesterId: homeworkData.semesterId ?? metaData.semesterId!,
         schoolYearId: metaData.schoolYearId!,
         weight: 1,
       };
 
-      const { error } = await supabase.from(NOTE_TABLE_ID).insert({
+      const insertData: NoteInsert = {
         class_id: noteData.classId,
         teacher_id: noteData.teacherId,
         subject_id: noteData.subjectId,
-        due_date: noteData.dueDate,
+        due_date: homeworkData.dueDate,
         note_type: noteData.noteType,
         is_graded: noteData.isGraded,
         is_active: noteData.isActive,
         is_published: noteData.isPublished,
-        published_at: noteData.publishedAt,
+        published_at: currentDate.toISOString(),
         school_id: noteData.schoolId,
         semester_id: noteData.semesterId,
         school_year_id: noteData.schoolYearId,
@@ -47,7 +49,10 @@ export const homework = {
         weight: noteData.weight,
         title: noteData.title,
         description: noteData.description,
-      });
+        created_at: currentDate.toISOString(),
+      };
+
+      const { error } = await supabase.from(NOTE_TABLE_ID).insert(insertData);
 
       if (error) {
         throw error;
