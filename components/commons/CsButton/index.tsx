@@ -79,7 +79,7 @@ const CsButton: React.FC<CsButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           testID={`${testID}-loading`}
-          color={theme.background}
+          color={variant === "text" ? theme.primary : theme.background}
           size="small"
         />
       ) : (
