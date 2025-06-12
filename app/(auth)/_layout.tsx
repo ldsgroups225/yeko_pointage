@@ -1,5 +1,5 @@
-import React from "react";
-import { Stack } from "expo-router";
+import { Stack } from 'expo-router'
+import React from 'react'
 
 export default function AuthLayout() {
   return (
@@ -21,5 +21,5 @@ export default function AuthLayout() {
         }}
       />
     </Stack>
-  );
+  )
 }

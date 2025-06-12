@@ -1,18 +1,18 @@
-import { useTheme, useThemedStyles } from "@/hooks";
-import React, { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import type { CsTextFieldProps } from './type'
+import React, { useState } from 'react'
+import { Pressable, Text, TextInput, View } from 'react-native'
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-} from "react-native-reanimated";
-import { styles } from "./style";
-import { CsTextFieldProps } from "./type";
+} from 'react-native-reanimated'
+import { useTheme, useThemedStyles } from '@/hooks'
+import { styles } from './style'
 
-const AnimatedText = Animated.createAnimatedComponent(Text);
+const AnimatedText = Animated.createAnimatedComponent(Text)
 
-const testID = "csTextField";
+const testID = 'csTextField'
 
 const CsTextField: React.FC<CsTextFieldProps> = ({
   label,
@@ -27,16 +27,16 @@ const CsTextField: React.FC<CsTextFieldProps> = ({
   style,
   inputStyle,
   labelStyle,
-  autoCapitalize = "none",
-  returnKeyType = "next",
+  autoCapitalize = 'none',
+  returnKeyType = 'next',
   ...textInputProps
 }) => {
-  const theme = useTheme();
-  const themedStyles = useThemedStyles<typeof styles>(styles);
-  const [isFocused, setIsFocused] = useState(false);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
+  const theme = useTheme()
+  const themedStyles = useThemedStyles<typeof styles>(styles)
+  const [isFocused, setIsFocused] = useState(false)
+  const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry)
 
-  const labelPosition = useSharedValue(value ? 1 : 0);
+  const labelPosition = useSharedValue(value ? 1 : 0)
 
   const animatedLabelStyle = useAnimatedStyle(() => {
     return {
@@ -52,24 +52,24 @@ const CsTextField: React.FC<CsTextFieldProps> = ({
         duration: 200,
         easing: Easing.bezier(0.4, 0, 0.2, 1),
       }),
-    };
-  });
+    }
+  })
 
   const handleFocus = () => {
-    setIsFocused(true);
-    labelPosition.value = 1;
-  };
+    setIsFocused(true)
+    labelPosition.value = 1
+  }
 
   const handleBlur = () => {
-    setIsFocused(false);
+    setIsFocused(false)
     if (!value) {
-      labelPosition.value = 0;
+      labelPosition.value = 0
     }
-  };
+  }
 
   const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
-  };
+    setIsPasswordVisible(!isPasswordVisible)
+  }
 
   return (
     <View style={style}>
@@ -97,7 +97,7 @@ const CsTextField: React.FC<CsTextFieldProps> = ({
           ]}
           value={value}
           onChangeText={onChangeText}
-          placeholder={isFocused ? placeholder : ""}
+          placeholder={isFocused ? placeholder : ''}
           placeholderTextColor={theme.text}
           secureTextEntry={secureTextEntry && !isPasswordVisible}
           onFocus={handleFocus}
@@ -113,11 +113,13 @@ const CsTextField: React.FC<CsTextFieldProps> = ({
             onPress={togglePasswordVisibility}
             style={themedStyles.iconContainer}
           >
-            {isPasswordVisible ? (
-              <Text style={themedStyles.icon}>👁️</Text>
-            ) : (
-              <Text style={themedStyles.icon}>👁️‍🗨️</Text>
-            )}
+            {isPasswordVisible
+              ? (
+                  <Text style={themedStyles.icon}>👁️</Text>
+                )
+              : (
+                  <Text style={themedStyles.icon}>👁️‍🗨️</Text>
+                )}
           </Pressable>
         )}
         {rightIcon && (
@@ -126,7 +128,7 @@ const CsTextField: React.FC<CsTextFieldProps> = ({
       </View>
       {error && <Text style={themedStyles.errorText}>{error}</Text>}
     </View>
-  );
-};
+  )
+}
 
-export default CsTextField;
+export default CsTextField

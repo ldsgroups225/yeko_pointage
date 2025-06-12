@@ -1,34 +1,38 @@
-import React, { useState, useRef, useMemo } from "react";
+import type { Homework, Student } from '@/types'
+import { FontAwesome5 } from '@expo/vector-icons'
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useAtomValue } from 'jotai/index'
+import React, { useMemo, useRef, useState } from 'react'
 import {
-  View,
-  StyleSheet,
   FlatList,
-  TouchableOpacity,
+  StyleSheet,
   TextInput,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { CsText, CsButton, CsCard } from "@/components/commons";
-import { AlertModal } from "@/components/AlertModal";
-import { useThemedStyles } from "@/hooks";
-import { spacing, borderRadius } from "@/styles";
-import { Homework, Student } from "@/types";
-import HomeworkForm from "./homework";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { StatCard } from "@/components/StatCard";
-import { useParticipationManagement } from "@/hooks/useParticipationManagement";
-import { useAtomValue } from "jotai/index";
-import { currentScheduleAtom } from "@/store/atoms";
-import { ConfirmationModal } from "@/components/ConfirmationModal";
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { AlertModal } from '@/components/AlertModal'
+import { CsButton, CsCard, CsText } from '@/components/commons'
+import { ConfirmationModal } from '@/components/ConfirmationModal'
+import { StatCard } from '@/components/StatCard'
+import { useThemedStyles } from '@/hooks'
+import { useParticipationManagement } from '@/hooks/useParticipationManagement'
+import { currentScheduleAtom } from '@/store/atoms'
+import { borderRadius, spacing } from '@/styles'
+import HomeworkForm from './homework'
+
+const $whiteColor = '#FFFFFF'
+const $blueColor = '#4A90E2'
+const $blackColor = 'rgba(0, 0, 0, 0.8)'
 
 const ParticipationScreen: React.FC = () => {
-  const styles = useThemedStyles(createStyles);
-  const router = useRouter();
+  const styles = useThemedStyles(createStyles)
+  const router = useRouter()
   const { teacherId, classId } = useLocalSearchParams<{
-    teacherId: string;
-    classId: string;
-    scheduleId: string;
-  }>();
+    teacherId: string
+    classId: string
+    scheduleId: string
+  }>()
 
   const {
     students,
@@ -42,29 +46,29 @@ const ParticipationScreen: React.FC = () => {
     setComment,
     handleCloseSession,
     isParticipationRangeValid,
-  } = useParticipationManagement(teacherId, classId);
+  } = useParticipationManagement(teacherId, classId)
 
-  const currentSchedule = useAtomValue(currentScheduleAtom);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [showHomeworkConfirmationModal, setShowHomeworkConfirmationModal] =
-    useState(false);
-  const [showCommentModal, setShowCommentModal] = useState(false);
-  const [showInvalidParticipationAlert, setShowInvalidParticipationAlert] =
-    useState(false);
+  const currentSchedule = useAtomValue(currentScheduleAtom)
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  const [showHomeworkConfirmationModal, setShowHomeworkConfirmationModal]
+    = useState(false)
+  const [showCommentModal, setShowCommentModal] = useState(false)
+  const [showInvalidParticipationAlert, setShowInvalidParticipationAlert]
+    = useState(false)
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const bottomSheetRef = useRef<BottomSheet>(null)
 
   // Precompute a map for participations to avoid redundant array searches in each render.
   const participationMap = useMemo(() => {
     return participations.reduce<Record<string, any>>((map, p) => {
-      map[p.studentId] = p;
-      return map;
-    }, {});
-  }, [participations]);
+      map[p.studentId] = p
+      return map
+    }, {})
+  }, [participations])
 
   const renderStudentItem = ({ item: student }: { item: Student }) => {
-    const participation = participationMap[student.id];
-    const hasParticipated = !!participation;
+    const participation = participationMap[student.id]
+    const hasParticipated = !!participation
     return (
       <CsCard style={styles.studentCard}>
         <TouchableOpacity onPress={() => toggleParticipation(student.id)}>
@@ -78,16 +82,17 @@ const ParticipationScreen: React.FC = () => {
         {hasParticipated && (
           <TouchableOpacity
             onPress={() => {
-              openCommentModal(student.id);
-              setShowCommentModal(true);
+              openCommentModal(student.id)
+              setShowCommentModal(true)
             }}
             style={styles.commentButton}
           >
-            <FontAwesome5 name="comment" size={16} color="#4A90E2" />
+            <FontAwesome5 name="comment" size={16} color={$blueColor} />
             <CsText variant="caption" style={styles.commentButtonText}>
               {participation?.comment
-                ? "Modifier le commentaire"
-                : "Ajouter un commentaire"}{" "}
+                ? 'Modifier le commentaire'
+                : 'Ajouter un commentaire'}
+              {' '}
             </CsText>
           </TouchableOpacity>
         )}
@@ -97,16 +102,17 @@ const ParticipationScreen: React.FC = () => {
           </CsText>
         )}
       </CsCard>
-    );
-  };
+    )
+  }
 
   const handleEndSession = () => {
     if (isParticipationRangeValid()) {
-      setShowConfirmationModal(true);
-    } else {
-      setShowInvalidParticipationAlert(true);
+      setShowConfirmationModal(true)
     }
-  };
+    else {
+      setShowInvalidParticipationAlert(true)
+    }
+  }
 
   return (
     <>
@@ -142,7 +148,7 @@ const ParticipationScreen: React.FC = () => {
             loading={isSubmitting}
             onPress={handleEndSession}
             style={styles.finalizeButton}
-            icon={<FontAwesome5 name="plus" size={16} color="white" />}
+            icon={<FontAwesome5 name="plus" size={16} color={$whiteColor} />}
           />
         </View>
 
@@ -153,7 +159,7 @@ const ParticipationScreen: React.FC = () => {
           <FlatList
             data={students}
             renderItem={renderStudentItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             style={styles.list}
             contentContainerStyle={styles.listContent}
           />
@@ -163,8 +169,8 @@ const ParticipationScreen: React.FC = () => {
       <ConfirmationModal
         isVisible={showConfirmationModal}
         onConfirm={() => {
-          setShowConfirmationModal(false);
-          setShowHomeworkConfirmationModal(true);
+          setShowConfirmationModal(false)
+          setShowHomeworkConfirmationModal(true)
         }}
         onCancel={() => setShowConfirmationModal(false)}
         message="Êtes-vous sûr de vouloir terminer la session ?"
@@ -176,14 +182,14 @@ const ParticipationScreen: React.FC = () => {
       <ConfirmationModal
         isVisible={showHomeworkConfirmationModal}
         onConfirm={() => {
-          setShowHomeworkConfirmationModal(false);
-          bottomSheetRef.current?.expand();
+          setShowHomeworkConfirmationModal(false)
+          bottomSheetRef.current?.expand()
         }}
         onCancel={async () => {
-          setShowHomeworkConfirmationModal(false);
-          const success = await handleCloseSession({});
+          setShowHomeworkConfirmationModal(false)
+          const success = await handleCloseSession({})
           if (success) {
-            router.replace("/(auth)/qr-scan");
+            router.replace('/(auth)/qr-scan')
           }
         }}
         message="Avez-vous assigné un exercice de maison ?"
@@ -195,7 +201,7 @@ const ParticipationScreen: React.FC = () => {
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
-        snapPoints={["76%", "84%"]}
+        snapPoints={['76%', '84%']}
         enablePanDownToClose
         backgroundStyle={styles.bottomSheetBackground}
       >
@@ -209,17 +215,17 @@ const ParticipationScreen: React.FC = () => {
               const _homework: Homework = {
                 dueDate: dueDate.toISOString(),
                 isGraded,
-                teacherId: teacherId,
-                classId: classId,
+                teacherId,
+                classId,
                 subjectId: currentSchedule!.subjectId,
                 totalPoints,
-              };
+              }
 
-              bottomSheetRef.current?.close();
+              bottomSheetRef.current?.close()
 
-              const success = await handleCloseSession({ homework: _homework });
+              const success = await handleCloseSession({ homework: _homework })
               if (success) {
-                router.push("/(auth)/qr-scan");
+                router.push('/(auth)/qr-scan')
               }
             }}
             onCancel={() => bottomSheetRef.current?.close()}
@@ -230,8 +236,8 @@ const ParticipationScreen: React.FC = () => {
       <ConfirmationModal
         isVisible={showCommentModal}
         onConfirm={() => {
-          saveComment();
-          setShowCommentModal(false);
+          saveComment()
+          setShowCommentModal(false)
         }}
         onCancel={() => setShowCommentModal(false)}
         title="Ajouter un commentaire"
@@ -254,18 +260,18 @@ const ParticipationScreen: React.FC = () => {
         message="Veuillez sélectionner au moins 1 et au plus 5 élèves pour la participation."
       />
     </>
-  );
-};
+  )
+}
 
-const createStyles = (theme: any) =>
-  StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background,
     },
     body: {
       flex: 1,
-      flexDirection: "row",
+      flexDirection: 'row',
     },
     leftColumn: {
       flex: 1,
@@ -279,7 +285,7 @@ const createStyles = (theme: any) =>
     },
     sectionTitle: {
       marginBottom: spacing.md,
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     statsContainer: {
       marginBottom: spacing.md,
@@ -295,43 +301,43 @@ const createStyles = (theme: any) =>
       padding: spacing.sm,
     },
     studentInfo: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     commentButton: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       marginTop: spacing.xs,
     },
     commentButtonText: {
       marginLeft: spacing.xs,
-      color: "#4A90E2",
+      color: $blueColor,
     },
     comment: {
       marginTop: spacing.xs,
-      fontStyle: "italic",
+      fontStyle: 'italic',
     },
     finalizeButton: {
       marginTop: spacing.md,
-      color: "white",
+      color: $whiteColor,
     },
     modalOverlay: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: $blackColor,
     },
     modalContent: {
       backgroundColor: theme.card,
       borderRadius: borderRadius.medium,
       padding: spacing.lg,
-      width: "80%",
+      width: '80%',
       maxWidth: 400,
     },
     modalTitle: {
       marginBottom: spacing.md,
-      textAlign: "center",
+      textAlign: 'center',
     },
     commentInput: {
       borderWidth: 1,
@@ -340,15 +346,15 @@ const createStyles = (theme: any) =>
       padding: spacing.sm,
       marginBottom: spacing.md,
       minHeight: 100,
-      textAlignVertical: "top",
+      textAlignVertical: 'top',
     },
     modalButtons: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
     },
     bottomSheetBackground: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: $blackColor,
     },
     bottomSheetContent: {
       flex: 1,
@@ -357,6 +363,7 @@ const createStyles = (theme: any) =>
       borderTopLeftRadius: borderRadius.medium,
       borderTopRightRadius: borderRadius.medium,
     },
-  });
+  })
+}
 
-export default ParticipationScreen;
+export default ParticipationScreen

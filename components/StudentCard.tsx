@@ -1,28 +1,30 @@
-import React from "react";
-import { StyleSheet, View, TouchableOpacity } from "react-native";
-import { CsText } from "@/components/commons";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { Student, AttendanceStatus, AttendanceRecord } from "@/types";
-import { useThemedStyles } from "@/hooks";
-import { spacing, shadows, borderRadius } from "@/styles";
+import type { AttendanceRecord, AttendanceStatus, Student } from '@/types'
+import { FontAwesome5 } from '@expo/vector-icons'
+import React from 'react'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { borderRadius, shadows, spacing } from '@/styles'
 
-type StudentCardProps = {
-  student: Student;
-  attendanceRecord: AttendanceRecord;
-  onUpdateStatus: (studentId: string, status: AttendanceStatus) => void;
-  isFirstAttendanceCheck: boolean;
-};
+const $whiteColor = 'white'
+
+interface StudentCardProps {
+  student: Student
+  attendanceRecord: AttendanceRecord
+  onUpdateStatus: (studentId: string, status: AttendanceStatus) => void
+  isFirstAttendanceCheck: boolean
+}
 
 const statusConfig = {
-  present: { color: "#10B981", label: "Présent", icon: "user-check" },
-  absent: { color: "#EF4444", label: "Absent", icon: "user-times" },
-  late: { color: "#F59E0B", label: "Retard", icon: "user-clock" },
+  present: { color: '#10B981', label: 'Présent', icon: 'user-check' },
+  absent: { color: '#EF4444', label: 'Absent', icon: 'user-times' },
+  late: { color: '#F59E0B', label: 'Retard', icon: 'user-clock' },
   early_departure: {
-    color: "#6366F1",
-    label: "Départ anticipé",
-    icon: "sign-out-alt",
+    color: '#6366F1',
+    label: 'Départ anticipé',
+    icon: 'sign-out-alt',
   },
-};
+}
 
 const StudentCard: React.FC<StudentCardProps> = ({
   student,
@@ -30,24 +32,26 @@ const StudentCard: React.FC<StudentCardProps> = ({
   onUpdateStatus,
   isFirstAttendanceCheck,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
   const handleStatusChange = () => {
-    let nextStatus: AttendanceStatus;
+    let nextStatus: AttendanceStatus
 
     if (isFirstAttendanceCheck) {
       // Toggle between 'present' and 'absent' for the first check
-      nextStatus = attendanceRecord.status === "present" ? "absent" : "present";
-    } else {
-      if (attendanceRecord.status === "present") return;
+      nextStatus = attendanceRecord.status === 'present' ? 'absent' : 'present'
+    }
+    else {
+      if (attendanceRecord.status === 'present')
+        return
       // Toggle between 'absent' and 'late' for subsequent checks
-      nextStatus = attendanceRecord.status === "absent" ? "late" : "absent";
+      nextStatus = attendanceRecord.status === 'absent' ? 'late' : 'absent'
     }
 
-    onUpdateStatus(student.id, nextStatus);
-  };
+    onUpdateStatus(student.id, nextStatus)
+  }
 
-  const { color, label, icon } = statusConfig[attendanceRecord.status];
+  const { color, label, icon } = statusConfig[attendanceRecord.status]
 
   return (
     <View style={styles.card}>
@@ -59,7 +63,9 @@ const StudentCard: React.FC<StudentCardProps> = ({
           {student.fullName}
         </CsText>
         <CsText variant="caption" style={styles.idNumber}>
-          ID: {student.idNumber}
+          ID:
+          {' '}
+          {student.idNumber}
         </CsText>
       </View>
 
@@ -71,14 +77,14 @@ const StudentCard: React.FC<StudentCardProps> = ({
         <CsText style={styles.badgeText}>{label}</CsText>
       </TouchableOpacity>
     </View>
-  );
-};
+  )
+}
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     card: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: theme.card,
       borderRadius: borderRadius.medium,
       padding: spacing.sm,
@@ -89,20 +95,20 @@ const createStyles = (theme: Theme) =>
       width: 40,
       height: 40,
       borderRadius: 20,
-      justifyContent: "center",
-      alignItems: "center",
+      justifyContent: 'center',
+      alignItems: 'center',
       marginRight: spacing.sm,
     },
     avatar: {
-      color: "white",
+      color: $whiteColor,
       fontSize: 18,
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     infoContainer: {
       flex: 1,
     },
     name: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
       marginBottom: 2,
     },
     idNumber: {
@@ -110,19 +116,20 @@ const createStyles = (theme: Theme) =>
       fontSize: 12,
     },
     statusBadge: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       borderRadius: borderRadius.medium,
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
       ...shadows.small,
     },
     badgeText: {
-      color: "white",
+      color: $whiteColor,
       fontSize: 12,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       marginLeft: spacing.xs,
     },
-  });
+  })
+}
 
-export default StudentCard;
+export default StudentCard

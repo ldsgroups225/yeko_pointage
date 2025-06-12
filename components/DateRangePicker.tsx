@@ -1,14 +1,35 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { formatDate } from "@/utils/dateTime";
+import DateTimePicker from '@react-native-community/datetimepicker'
+import React, { useState } from 'react'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { formatDate } from '@/utils/dateTime'
 
-type DateRangePickerProps = {
-  startDate: Date;
-  endDate: Date;
-  onChangeStart: (date: Date) => void;
-  onChangeEnd: (date: Date) => void;
-};
+interface DateRangePickerProps {
+  startDate: Date
+  endDate: Date
+  onChangeStart: (date: Date) => void
+  onChangeEnd: (date: Date) => void
+}
+
+const $blueColor = '#4A90E2'
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  dateContainer: {
+    flex: 1,
+  },
+  label: {
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  dateText: {
+    fontSize: 16,
+    color: $blueColor,
+  },
+})
 
 export default function DateRangePicker({
   startDate,
@@ -16,22 +37,22 @@ export default function DateRangePicker({
   onChangeStart,
   onChangeEnd,
 }: DateRangePickerProps) {
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showStartPicker, setShowStartPicker] = useState(false)
+  const [showEndPicker, setShowEndPicker] = useState(false)
 
   const handleStartChange = (event: any, selectedDate?: Date) => {
-    setShowStartPicker(false);
+    setShowStartPicker(false)
     if (selectedDate) {
-      onChangeStart(selectedDate);
+      onChangeStart(selectedDate)
     }
-  };
+  }
 
   const handleEndChange = (event: any, selectedDate?: Date) => {
-    setShowEndPicker(false);
+    setShowEndPicker(false)
     if (selectedDate) {
-      onChangeEnd(selectedDate);
+      onChangeEnd(selectedDate)
     }
-  };
+  }
 
   return (
     <View style={styles.container}>
@@ -64,24 +85,5 @@ export default function DateRangePicker({
         />
       )}
     </View>
-  );
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 10,
-  },
-  dateContainer: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 5,
-  },
-  dateText: {
-    fontSize: 16,
-    color: "#007AFF",
-  },
-});

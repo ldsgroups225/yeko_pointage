@@ -1,35 +1,35 @@
-import { AttendanceStatus } from "@/types/attendance";
+import type { AttendanceStatus } from '@/types/attendance'
 
 export interface School {
-  id: string;
-  cycleId: string;
-  name: string;
-  code: string;
-  imageUrl: string;
+  id: string
+  cycleId: string
+  name: string
+  code: string
+  imageUrl: string
 }
 
 export interface Class {
-  id: string;
-  name: string;
-  grade: string;
-  schoolId: string;
+  id: string
+  name: string
+  grade: string
+  schoolId: string
 }
 
 export interface Student {
-  id: string; // UUID
-  parentId: string; // UUID
-  idNumber: string;
-  fullName: string;
-  firstName: string;
-  lastName: string;
-  status?: AttendanceStatus;
+  id: string // UUID
+  parentId: string // UUID
+  idNumber: string
+  fullName: string
+  firstName: string
+  lastName: string
+  status?: AttendanceStatus
 }
 
 export interface Teacher {
-  id: string;
-  fullName: string;
-  phone: string;
-  subjectId: string;
+  id: string
+  fullName: string
+  phone: string
+  subjectId: string
 }
 
 export interface Schedule {

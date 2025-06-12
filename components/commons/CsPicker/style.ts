@@ -1,8 +1,8 @@
-import { StyleSheet } from "react-native";
-import { spacing } from "@/styles";
+import { StyleSheet } from 'react-native'
+import { spacing } from '@/styles'
 
-export const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+export function createStyles(theme: Theme) {
+  return StyleSheet.create({
     container: {
       marginBottom: spacing.md,
     },
@@ -15,4 +15,5 @@ export const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderRadius: 4,
     },
-  });
+  })
+}

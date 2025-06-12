@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
-import { useAtom, useSetAtom } from "jotai";
+// Types
+import type { Class, Grade, School } from '@/types'
+import { useRouter } from 'expo-router'
+import { useAtom, useSetAtom } from 'jotai'
+import React, { useEffect, useState } from 'react'
 
+import { ScrollView, StyleSheet } from 'react-native'
 // Components
 import {
-  CsText,
   CsButton,
   CsCard,
-  CsPicker,
   CsChip,
-} from "@/components/commons";
-import { ConfirmationModal } from "@/components/ConfirmationModal";
+  CsPicker,
+  CsText,
+} from '@/components/commons'
+
+import { ConfirmationModal } from '@/components/ConfirmationModal'
+
+import LoadingSpinner from '@/components/LoadingSpinner'
 
 // Hooks
-import { useAuth, useThemedStyles, useSchool, useClass } from "@/hooks";
-
-// Types
-import { Class, School, Grade } from "@/types";
+import { useAuth, useClass, useSchool, useThemedStyles } from '@/hooks'
 
 // Store
 import {
@@ -27,124 +29,126 @@ import {
   studentsListAtom,
   teachersListAtom,
   updateMetaDataAtom,
-} from "@/store/atoms";
-
+} from '@/store/atoms'
 // Styles
-import { spacing } from "@/styles";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import { spacing } from '@/styles'
 
-const ConfigureTablet = () => {
-  const styles = useThemedStyles(createStyles);
-  const router = useRouter();
+function ConfigureTablet() {
+  const styles = useThemedStyles(createStyles)
+  const router = useRouter()
 
   // Hooks
-  const { user, logout } = useAuth();
-  const { fetchClassDetails } = useClass();
-  const { fetchSchoolClasses, fetchGrades, getSchoolById } = useSchool();
+  const { user, logout } = useAuth()
+  const { fetchClassDetails } = useClass()
+  const { fetchSchoolClasses, fetchGrades, getSchoolById } = useSchool()
 
   // State
-  const [school, setSchool] = useState<School | null>(null);
-  const [grades, setGrades] = useState<Grade[]>([]);
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null);
-  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [school, setSchool] = useState<School | null>(null)
+  const [grades, setGrades] = useState<Grade[]>([])
+  const [classes, setClasses] = useState<Class[]>([])
+  const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null)
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Atoms
-  const [, updateMetaData] = useAtom(updateMetaDataAtom);
-  const setCurrentClass = useSetAtom(currentClassAtom);
-  const setCurrentSchool = useSetAtom(currentSchoolAtom);
-  const setStudentsList = useSetAtom(studentsListAtom);
-  const setTeachersList = useSetAtom(teachersListAtom);
-  const setClassScheduleList = useSetAtom(classScheduleAtom);
-
-  // Effects
-  useEffect(() => {
-    if (user?.schoolId) {
-      loadSchoolData(user.schoolId).then((r) => r);
-    }
-  }, [user]);
+  const [, updateMetaData] = useAtom(updateMetaDataAtom)
+  const setCurrentClass = useSetAtom(currentClassAtom)
+  const setCurrentSchool = useSetAtom(currentSchoolAtom)
+  const setStudentsList = useSetAtom(studentsListAtom)
+  const setTeachersList = useSetAtom(teachersListAtom)
+  const setClassScheduleList = useSetAtom(classScheduleAtom)
 
   // Methods
   const loadSchoolData = async (schoolId: string) => {
-    setError(null);
+    setError(null)
     try {
       const [schoolData, schoolClasses] = await Promise.all([
         getSchoolById(schoolId),
         fetchSchoolClasses(schoolId),
-      ]);
+      ])
 
-      setSchool(schoolData);
-      setClasses(schoolClasses);
+      setSchool(schoolData)
+      setClasses(schoolClasses)
 
       if (schoolData?.cycleId) {
-        const schoolGrades = await fetchGrades(schoolData.cycleId);
-        setGrades(schoolGrades);
+        const schoolGrades = await fetchGrades(schoolData.cycleId)
+        setGrades(schoolGrades)
       }
-    } catch (err) {
-      setError("Failed to load school data. Please try again later.");
-      console.error("[E_CONFIG_SCHOOL_DATA]:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+    catch (err) {
+      setError('Failed to load school data. Please try again later.')
+      console.error('[E_CONFIG_SCHOOL_DATA]:', err)
+    }
+    finally {
+      setLoading(false)
+    }
+  }
+
+  // Effects
+  useEffect(() => {
+    if (user?.schoolId) {
+      loadSchoolData(user.schoolId).then(r => r)
+    }
+  }, [user])
 
   const handleGradeSelection = (gradeId: string) => {
-    const selected = grades.find((g) => g.id === gradeId);
-    setSelectedGrade(selected || null);
-    setSelectedClass(null);
-  };
+    const selected = grades.find(g => g.id === gradeId)
+    setSelectedGrade(selected || null)
+    setSelectedClass(null)
+  }
 
   const handleClassSelection = (classId: string) => {
-    const selected = classes.find((c) => c.id === classId);
-    setSelectedClass(selected || null);
-  };
+    const selected = classes.find(c => c.id === classId)
+    setSelectedClass(selected || null)
+  }
 
   const filteredClasses = selectedGrade
-    ? classes.filter((c) => c.gradeId === selectedGrade.id)
-    : classes;
+    ? classes.filter(c => c.gradeId === selectedGrade.id)
+    : classes
 
   const handleSaveConfig = async () => {
     if (!selectedClass) {
-      setError("Please select a class.");
-      return;
+      setError('Please select a class.')
+      return
     }
 
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     try {
-      const classDetails = await fetchClassDetails(selectedClass.id);
+      const classDetails = await fetchClassDetails(selectedClass.id)
 
       if (school && classDetails) {
-        setCurrentClass(classDetails.class);
-        setCurrentSchool(school);
-        setStudentsList(classDetails.students);
-        setTeachersList(classDetails.teachers);
-        setClassScheduleList(classDetails.schedules);
+        setCurrentClass(classDetails.class)
+        setCurrentSchool(school)
+        setStudentsList(classDetails.students)
+        setTeachersList(classDetails.teachers)
+        setClassScheduleList(classDetails.schedules)
 
         updateMetaData({
           schoolId: school.id,
           classId: classDetails.class.id,
-        });
+        })
       }
 
-      setShowConfirmation(true);
-    } catch (err) {
-      setError("Failed to save configuration. Please try again later.");
-      console.error("[E_CONFIG_SAVE_CONF]:", err);
-    } finally {
-      setLoading(false);
+      setShowConfirmation(true)
     }
-  };
+    catch (err) {
+      setError('Failed to save configuration. Please try again later.')
+      console.error('[E_CONFIG_SAVE_CONF]:', err)
+    }
+    finally {
+      setLoading(false)
+    }
+  }
 
   const handleConfirmation = async () => {
-    setShowConfirmation(false);
-    await logout();
-    router.replace("/");
-  };
+    setShowConfirmation(false)
+    await logout()
+    router.replace('/')
+  }
 
   // Components Rendering
   const renderGradeChips = () => (
@@ -153,7 +157,7 @@ const ConfigureTablet = () => {
       showsHorizontalScrollIndicator={false}
       style={styles.chipContainer}
     >
-      {grades.map((grade) => (
+      {grades.map(grade => (
         <CsChip
           key={grade.id}
           label={grade.name}
@@ -163,10 +167,10 @@ const ConfigureTablet = () => {
         />
       ))}
     </ScrollView>
-  );
+  )
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner />
   }
 
   return (
@@ -189,7 +193,7 @@ const ConfigureTablet = () => {
 
         <CsPicker
           label="Sélectionner la classe"
-          items={filteredClasses.map((c) => ({ label: c.name, value: c.id }))}
+          items={filteredClasses.map(c => ({ label: c.name, value: c.id }))}
           selectedValue={selectedClass?.id}
           onValueChange={handleClassSelection}
           style={styles.input}
@@ -219,20 +223,20 @@ const ConfigureTablet = () => {
         message="La configuration de la tablette a été enregistrée avec succès ! Vous allez être déconnecté maintenant."
       />
     </ScrollView>
-  );
-};
+  )
+}
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     container: {
       flexGrow: 1,
       padding: spacing.md,
-      justifyContent: "center",
+      justifyContent: 'center',
     },
     loadingContainer: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     loadingText: {
       marginTop: spacing.sm,
@@ -242,11 +246,11 @@ const createStyles = (theme: Theme) =>
     },
     title: {
       marginBottom: spacing.lg,
-      textAlign: "center",
+      textAlign: 'center',
     },
     error: {
       marginBottom: spacing.md,
-      textAlign: "center",
+      textAlign: 'center',
       color: theme.notification,
     },
     label: {
@@ -259,7 +263,7 @@ const createStyles = (theme: Theme) =>
       marginTop: spacing.md,
     },
     chipContainer: {
-      flexDirection: "row",
+      flexDirection: 'row',
       marginBottom: spacing.md,
     },
     chip: {
@@ -267,9 +271,10 @@ const createStyles = (theme: Theme) =>
     },
     noClassesMessage: {
       marginBottom: spacing.md,
-      textAlign: "center",
+      textAlign: 'center',
       color: theme.secondary,
     },
-  });
+  })
+}
 
-export default ConfigureTablet;
+export default ConfigureTablet

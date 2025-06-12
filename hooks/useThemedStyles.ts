@@ -1,4 +1,4 @@
-import useTheme from "./useTheme";
+import useTheme from './useTheme'
 
 /**
  * Custom hook that applies themed styles to a component.
@@ -7,11 +7,9 @@ import useTheme from "./useTheme";
  * @param {T} styles - A function that takes the theme and returns the styles.
  * @returns {ReturnType<T>} - The result of applying the styles function to the current theme.
  */
-const useThemedStyles = <T extends (theme: Theme) => any>(
-  styles: T,
-): ReturnType<T> => {
-  const theme = useTheme();
-  return styles(theme);
-};
+function useThemedStyles<T extends (theme: Theme) => any>(styles: T): ReturnType<T> {
+  const theme = useTheme()
+  return styles(theme)
+}
 
-export default useThemedStyles;
+export default useThemedStyles

@@ -1,16 +1,16 @@
-import React from "react";
-import { useThemedStyles } from "@/hooks";
-import { CsCard, CsText } from "@/components/commons";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { StyleSheet, View } from "react-native";
-import { shadows, spacing } from "@/styles";
+import { FontAwesome5 } from '@expo/vector-icons'
+import React from 'react'
+import { StyleSheet, View } from 'react-native'
+import { CsCard, CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { shadows, spacing } from '@/styles'
 
 interface StatCardProps {
-  icon: string;
-  title: string;
-  value: number | string;
-  color: string;
-  unit?: string;
+  icon: string
+  title: string
+  value: number | string
+  color: string
+  unit?: string
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -20,7 +20,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   color,
   unit,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
   return (
     <CsCard style={styles.statCard}>
       <FontAwesome5
@@ -39,17 +39,17 @@ export const StatCard: React.FC<StatCardProps> = ({
         </CsText>
       </View>
     </CsCard>
-  );
-};
+  )
+}
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     statsContainer: {
       marginBottom: spacing.md,
     },
     statCard: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       padding: spacing.sm,
       marginBottom: spacing.sm,
       ...shadows.small,
@@ -61,9 +61,10 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     statValue: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     statTitle: {
       color: theme.textLight,
     },
-  });
+  })
+}

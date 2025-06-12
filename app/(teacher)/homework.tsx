@@ -1,29 +1,29 @@
-import React, { useState } from "react";
+import { FontAwesome5 } from '@expo/vector-icons'
+import DateTimePicker from '@react-native-community/datetimepicker'
+import Slider from '@react-native-community/slider'
+import { useAtomValue } from 'jotai'
+import React, { useState } from 'react'
 import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Switch,
   Alert,
+  Dimensions,
   Platform,
   ScrollView,
-  Dimensions,
-} from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { CsText, CsButton, CsTextField, CsPicker } from "@/components/commons";
-import { useThemedStyles } from "@/hooks";
-import { spacing, colors, borderRadius } from "@/styles";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { formatDate } from "@/utils/dateTime";
-import { useAtomValue } from "jotai";
-import { metaDataAtom } from "@/store/atoms";
-import Slider from "@react-native-community/slider";
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { CsButton, CsPicker, CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { metaDataAtom } from '@/store/atoms'
+import { borderRadius, colors, spacing } from '@/styles'
+import { formatDate } from '@/utils/dateTime'
 
 interface HomeworkFormProps {
-  initialDueDate?: Date;
-  initialIsGraded?: boolean;
-  onSubmit: (dueDate: Date, isGraded: boolean, totalPoints: number) => void;
-  onCancel: () => void;
+  initialDueDate?: Date
+  initialIsGraded?: boolean
+  onSubmit: (dueDate: Date, isGraded: boolean, totalPoints: number) => void
+  onCancel: () => void
 }
 
 const HomeworkForm: React.FC<HomeworkFormProps> = ({
@@ -32,60 +32,58 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const styles = useThemedStyles(createStyles);
-  const metaData = useAtomValue(metaDataAtom);
+  const styles = useThemedStyles(createStyles)
+  const metaData = useAtomValue(metaDataAtom)
 
-  const isTablet = Dimensions.get("window").width >= 768;
+  const isTablet = Dimensions.get('window').width >= 768
 
-  const [totalPoints, setTotalPoints] = useState<number>(10);
+  const [totalPoints, setTotalPoints] = useState<number>(10)
   const [selectedSemester, setSelectedSemester] = useState<number | null>(
     metaData?.semesterId ?? null,
-  );
-  const [dueDate, setDueDate] = useState(initialDueDate);
-  const [isGraded, setIsGraded] = useState(initialIsGraded);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  )
+  const [dueDate, setDueDate] = useState(initialDueDate)
+  const [isGraded, setIsGraded] = useState(initialIsGraded)
+  const [showDatePicker, setShowDatePicker] = useState(false)
 
   const handleSubmit = () => {
     if (dueDate < new Date()) {
       Alert.alert(
-        "Date d'échéance invalide",
-        "La date d'échéance doit être dans le futur.",
-        [{ text: "OK" }],
-      );
-      return;
+        'Date d\'échéance invalide',
+        'La date d\'échéance doit être dans le futur.',
+        [{ text: 'OK' }],
+      )
+      return
     }
 
     if (isGraded) {
       if (!totalPoints) {
         Alert.alert(
-          "Points manquants",
-          "Veuillez entrer le nombre de points pour ce devoir noté.",
-          [{ text: "OK" }],
-        );
-        return;
+          'Points manquants',
+          'Veuillez entrer le nombre de points pour ce devoir noté.',
+          [{ text: 'OK' }],
+        )
+        return
       }
       if (totalPoints < 1 || totalPoints > 40) {
         Alert.alert(
-          "Points invalides",
-          "Le total de points doit être entre 1 et 40 pour un devoir noté.",
-          [{ text: "OK" }],
-        );
-        return;
+          'Points invalides',
+          'Le total de points doit être entre 1 et 40 pour un devoir noté.',
+          [{ text: 'OK' }],
+        )
+        return
       }
     }
 
-    const finalPoints = isGraded ? totalPoints! : 20;
-    console.log("totalPoints", totalPoints);
-    console.log("finalPoints", finalPoints);
-    onSubmit(dueDate, isGraded, finalPoints);
-  };
+    const finalPoints = isGraded ? totalPoints! : 20
+    onSubmit(dueDate, isGraded, finalPoints)
+  }
 
   const handleDateChange = (event: any, selectedDate: Date | undefined) => {
-    setShowDatePicker(Platform.OS === "ios");
+    setShowDatePicker(Platform.OS === 'ios')
     if (selectedDate) {
-      setDueDate(selectedDate);
+      setDueDate(selectedDate)
     }
-  };
+  }
 
   // Render form parts as reusable pieces
   const renderSemesterPicker = (
@@ -93,17 +91,17 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
       <CsPicker
         label="Sélectionner le trimestre :"
         items={
-          metaData?.semesters.map((c) => ({
+          metaData?.semesters.map(c => ({
             label: c.name,
             value: c.id.toString(),
           })) ?? []
         }
         selectedValue={selectedSemester?.toString()}
-        onValueChange={(val) => setSelectedSemester(parseInt(val))}
+        onValueChange={val => setSelectedSemester(Number.parseInt(val))}
         style={styles.input}
       />
     </View>
-  );
+  )
 
   const renderDateInput = (
     <View style={styles.formGroup}>
@@ -125,12 +123,12 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
         <DateTimePicker
           value={dueDate}
           mode="date"
-          display={Platform.OS === "ios" ? "inline" : "default"}
+          display={Platform.OS === 'ios' ? 'inline' : 'default'}
           onChange={handleDateChange}
         />
       )}
     </View>
-  );
+  )
 
   const renderGradedSwitch = (
     <View style={styles.formGroup}>
@@ -141,14 +139,14 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
         value={isGraded}
         onValueChange={setIsGraded}
         trackColor={{
-          false: colors.textLight + "45",
+          false: `${colors.textLight}45`,
           true: colors.primary,
         }}
         thumbColor={isGraded ? colors.white : colors.textLight}
         style={styles.switch}
       />
     </View>
-  );
+  )
 
   const renderTotalPointsInput = isGraded && (
     <View>
@@ -157,7 +155,9 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
           Noté sur (points) :*
         </CsText>
         <CsText variant="body" style={styles.pointsValue}>
-          {totalPoints} points
+          {totalPoints}
+          {' '}
+          points
         </CsText>
       </View>
       <Slider
@@ -173,7 +173,7 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
         renderStepNumber
       />
     </View>
-  );
+  )
 
   const renderButtons = (
     <View style={isTablet ? styles.buttonColumn : styles.buttonContainer}>
@@ -185,7 +185,7 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
           styles.button,
           {
             flex: isTablet ? 0 : 1,
-            width: isTablet ? 170 : "100%",
+            width: isTablet ? 170 : '100%',
             marginBottom: 10,
           },
         ])}
@@ -195,11 +195,11 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
         onPress={handleSubmit}
         style={StyleSheet.flatten([
           styles.button,
-          { flex: isTablet ? 0 : 1, width: isTablet ? 170 : "100%" },
+          { flex: isTablet ? 0 : 1, width: isTablet ? 170 : '100%' },
         ])}
       />
     </View>
-  );
+  )
 
   return (
     <ScrollView
@@ -211,35 +211,37 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({
         Ajouter un devoir
       </CsText>
 
-      {isTablet ? (
-        <View style={styles.tabletRow}>
-          <View style={styles.formColumn}>
-            {renderSemesterPicker}
-            {renderDateInput}
-          </View>
-          <View style={styles.formColumn}>
-            {renderGradedSwitch}
-            {renderTotalPointsInput}
-          </View>
-          {renderButtons}
-        </View>
-      ) : (
-        <>
-          <View style={styles.formCard}>
-            {renderSemesterPicker}
-            {renderDateInput}
-            {renderGradedSwitch}
-            {renderTotalPointsInput}
-          </View>
-          {renderButtons}
-        </>
-      )}
+      {isTablet
+        ? (
+            <View style={styles.tabletRow}>
+              <View style={styles.formColumn}>
+                {renderSemesterPicker}
+                {renderDateInput}
+              </View>
+              <View style={styles.formColumn}>
+                {renderGradedSwitch}
+                {renderTotalPointsInput}
+              </View>
+              {renderButtons}
+            </View>
+          )
+        : (
+            <>
+              <View style={styles.formCard}>
+                {renderSemesterPicker}
+                {renderDateInput}
+                {renderGradedSwitch}
+                {renderTotalPointsInput}
+              </View>
+              {renderButtons}
+            </>
+          )}
     </ScrollView>
-  );
-};
+  )
+}
 
-const createStyles = (theme: any) =>
-  StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background,
@@ -247,9 +249,9 @@ const createStyles = (theme: any) =>
     },
     title: {
       fontSize: 24,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       marginBottom: spacing.lg,
-      textAlign: "center",
+      textAlign: 'center',
       color: colors.text,
     },
     formCard: {
@@ -267,8 +269,8 @@ const createStyles = (theme: any) =>
       color: colors.text,
     },
     dateInputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.textLight,
       borderRadius: borderRadius.small,
@@ -283,50 +285,50 @@ const createStyles = (theme: any) =>
       marginLeft: spacing.sm,
     },
     switch: {
-      marginLeft: "auto",
+      marginLeft: 'auto',
     },
     buttonContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
     },
     button: {
       marginHorizontal: spacing.xs,
       height: 50,
     },
     tabletRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
     },
     formColumn: {
       flex: 1,
       padding: spacing.sm,
     },
     buttonColumn: {
-      justifyContent: "center",
-      alignItems: "center",
+      justifyContent: 'center',
+      alignItems: 'center',
       padding: spacing.sm,
     },
     input: {
       // Additional styles for CsPicker input if needed
     },
     sliderContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     slider: {
-      width: "100%",
+      width: '100%',
       height: 52,
     },
     pointsValue: {
       fontSize: 16,
       color: colors.text,
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     stepLabelsContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingHorizontal: spacing.sm,
       marginTop: -spacing.sm,
     },
@@ -334,6 +336,7 @@ const createStyles = (theme: any) =>
       fontSize: 12,
       color: colors.textLight,
     },
-  });
+  })
+}
 
-export default HomeworkForm;
+export default HomeworkForm

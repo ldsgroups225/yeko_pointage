@@ -1,12 +1,12 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { ErrorBoundaryProps } from "expo-router";
-import { CsText, CsButton } from "@/components/commons";
-import { useThemedStyles } from "@/hooks";
-import { spacing } from "@/styles";
+import type { ErrorBoundaryProps } from 'expo-router'
+import React from 'react'
+import { StyleSheet, View } from 'react-native'
+import { CsButton, CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { spacing } from '@/styles'
 
 export default function ErrorScreen(props: ErrorBoundaryProps) {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
   return (
     <View style={styles.container}>
@@ -18,15 +18,15 @@ export default function ErrorScreen(props: ErrorBoundaryProps) {
       </CsText>
       <CsButton title="Try again" onPress={props.retry} style={styles.button} />
     </View>
-  );
+  )
 }
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     container: {
       flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
       padding: spacing.lg,
       backgroundColor: theme.background,
     },
@@ -35,9 +35,10 @@ const createStyles = (theme: Theme) =>
     },
     message: {
       marginBottom: spacing.lg,
-      textAlign: "center",
+      textAlign: 'center',
     },
     button: {
       minWidth: 200,
     },
-  });
+  })
+}

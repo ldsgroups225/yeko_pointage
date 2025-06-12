@@ -1,9 +1,9 @@
-import { typography } from "@/styles";
-import type { ITheme } from "@/styles/theme";
-import { StyleSheet } from "react-native";
+import type { ITheme } from '@/styles/theme'
+import { StyleSheet } from 'react-native'
+import { typography } from '@/styles'
 
-export const styles = (theme: ITheme) =>
-  StyleSheet.create({
+export function styles(theme: ITheme) {
+  return StyleSheet.create({
     base: {
       ...typography.body,
       color: theme.text,
@@ -38,4 +38,5 @@ export const styles = (theme: ITheme) =>
     light: {
       color: theme.textLight,
     },
-  });
+  })
+}

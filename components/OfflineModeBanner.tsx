@@ -1,13 +1,29 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useAtom } from "jotai";
-import { isOfflineModeAtom } from "@/store/atoms";
+import { useAtom } from 'jotai'
+import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
+import { isOfflineModeAtom } from '@/store/atoms'
+
+const $bannerColor = '#FFD60A'
+const $textColor = '#000'
+
+const styles = StyleSheet.create({
+  banner: {
+    backgroundColor: $bannerColor,
+    padding: 10,
+    alignItems: 'center',
+  },
+  text: {
+    color: $textColor,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+})
 
 export default function OfflineModeBanner() {
-  const [isOfflineMode] = useAtom(isOfflineModeAtom);
+  const [isOfflineMode] = useAtom(isOfflineModeAtom)
 
   if (!isOfflineMode) {
-    return null;
+    return null
   }
 
   return (
@@ -16,18 +32,5 @@ export default function OfflineModeBanner() {
         You are currently offline. Some features may be limited.
       </Text>
     </View>
-  );
+  )
 }
-
-const styles = StyleSheet.create({
-  banner: {
-    backgroundColor: "#FFD60A",
-    padding: 10,
-    alignItems: "center",
-  },
-  text: {
-    color: "#000",
-    fontSize: 14,
-    textAlign: "center",
-  },
-});

@@ -1,9 +1,9 @@
-import { borderRadius, shadows, spacing, typography } from "@/styles";
-import type { ITheme } from "@/styles/theme";
-import { StyleSheet } from "react-native";
+import type { ITheme } from '@/styles/theme'
+import { StyleSheet } from 'react-native'
+import { borderRadius, shadows, spacing, typography } from '@/styles'
 
-export const styles = (theme: ITheme) =>
-  StyleSheet.create({
+export function styles(theme: ITheme) {
+  return StyleSheet.create({
     container: {
       backgroundColor: theme.card,
       borderRadius: borderRadius.large,
@@ -23,4 +23,5 @@ export const styles = (theme: ITheme) =>
     footer: {
       marginTop: spacing.md,
     },
-  });
+  })
+}

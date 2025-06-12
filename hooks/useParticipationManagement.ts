@@ -1,128 +1,126 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Alert } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
-import {
-  studentsListAtom,
-  currentParticipationSessionAtom,
-  currentAttendanceSessionAtom,
-  currentScheduleAtom,
-} from "@/store/atoms";
-import {
-  Student,
+import type {
+  Homework,
   Participation,
   ParticipationSession,
-  Homework,
-} from "@/types";
-import { useAttendance, useParticipation, useHomework } from "@/hooks";
+  Student,
+} from '@/types'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Alert } from 'react-native'
+import { useAttendance, useHomework, useParticipation } from '@/hooks'
+import {
+  currentAttendanceSessionAtom,
+  currentParticipationSessionAtom,
+  currentScheduleAtom,
+  studentsListAtom,
+} from '@/store/atoms'
 
-export const useParticipationManagement = (
-  teacherId: string,
-  classId: string,
-) => {
-  const currentSchedule = useAtomValue(currentScheduleAtom);
-  const fullStudents = useAtomValue(studentsListAtom);
-  const currentAttendanceSession = useAtomValue(currentAttendanceSessionAtom);
+export function useParticipationManagement(teacherId: string, classId: string) {
+  const currentSchedule = useAtomValue(currentScheduleAtom)
+  const fullStudents = useAtomValue(studentsListAtom)
+  const currentAttendanceSession = useAtomValue(currentAttendanceSessionAtom)
   const setCurrentParticipationSession = useSetAtom(
     currentParticipationSessionAtom,
-  );
-  const setCurrentAttendanceSession = useSetAtom(currentAttendanceSessionAtom);
-  const setCurrentSchedule = useSetAtom(currentScheduleAtom);
+  )
+  const setCurrentAttendanceSession = useSetAtom(currentAttendanceSessionAtom)
+  const setCurrentSchedule = useSetAtom(currentScheduleAtom)
 
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [participations, setParticipations] = useState<Participation[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [participations, setParticipations] = useState<Participation[]>([])
+  const [students, setStudents] = useState<Student[]>([])
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
     null,
-  );
-  const [comment, setComment] = useState("");
+  )
+  const [comment, setComment] = useState('')
 
-  const { createAttendances } = useAttendance();
-  const { createParticipations } = useParticipation();
-  const { createHomework } = useHomework();
+  const { createAttendances } = useAttendance()
+  const { createParticipations } = useParticipation()
+  const { createHomework } = useHomework()
 
   useEffect(() => {
-    const notPresentStudentIds =
-      currentAttendanceSession?.records
-        .filter((c) => c.status === "absent")
-        .map((a) => a.studentId) ?? [];
+    const notPresentStudentIds
+      = currentAttendanceSession?.records
+        .filter(c => c.status === 'absent')
+        .map(a => a.studentId) ?? []
     setStudents(
-      fullStudents.filter((s) => !notPresentStudentIds.includes(s.id)),
-    );
-  }, [currentAttendanceSession, fullStudents]);
+      fullStudents.filter(s => !notPresentStudentIds.includes(s.id)),
+    )
+  }, [currentAttendanceSession, fullStudents])
 
   useEffect(() => {
-    setParticipations([]);
-  }, [students]);
+    setParticipations([])
+  }, [students])
 
   const toggleParticipation = useCallback((studentId: string) => {
     setParticipations((prevParticipations) => {
       const existingIndex = prevParticipations.findIndex(
-        (p) => p.studentId === studentId,
-      );
+        p => p.studentId === studentId,
+      )
       if (existingIndex !== -1) {
-        return prevParticipations.filter((_, index) => index !== existingIndex);
-      } else {
+        return prevParticipations.filter((_, index) => index !== existingIndex)
+      }
+      else {
         const newParticipation: Participation = {
           studentId,
-          sessionId: "",
+          sessionId: '',
           timestamp: new Date().toISOString(),
-        };
-        return [...prevParticipations, newParticipation];
+        }
+        return [...prevParticipations, newParticipation]
       }
-    });
-  }, []);
+    })
+  }, [])
 
   const openCommentModal = useCallback(
     (studentId: string) => {
-      setSelectedStudentId(studentId);
+      setSelectedStudentId(studentId)
       const existingParticipation = participations.find(
-        (p) => p.studentId === studentId,
-      );
-      setComment(existingParticipation?.comment || "");
+        p => p.studentId === studentId,
+      )
+      setComment(existingParticipation?.comment || '')
     },
     [participations],
-  );
+  )
 
   const saveComment = useCallback(() => {
-    setParticipations((prevParticipations) =>
-      prevParticipations.map((p) =>
+    setParticipations(prevParticipations =>
+      prevParticipations.map(p =>
         p.studentId === selectedStudentId ? { ...p, comment } : p,
       ),
-    );
-    setSelectedStudentId(null);
-    setComment("");
-  }, [selectedStudentId, comment]);
+    )
+    setSelectedStudentId(null)
+    setComment('')
+  }, [selectedStudentId, comment])
 
   const isParticipationRangeValid = useCallback(() => {
-    return participations.length >= 1 && participations.length <= 5;
-  }, [participations]);
+    return participations.length >= 1 && participations.length <= 5
+  }, [participations])
 
   const handleCloseSession = useCallback(
     async ({ homework }: { homework?: Homework }) => {
       if (!isParticipationRangeValid()) {
         Alert.alert(
-          "Nombre de participations invalide",
-          "Veuillez sélectionner au moins 1 et au plus 5 élèves pour la participation.",
-        );
-        return;
+          'Nombre de participations invalide',
+          'Veuillez sélectionner au moins 1 et au plus 5 élèves pour la participation.',
+        )
+        return
       }
 
-      setIsSubmitting(true);
+      setIsSubmitting(true)
       const participationSession: ParticipationSession = {
         classId,
         subjectId: currentSchedule!.subjectId,
         date: new Date().toISOString(),
         participations,
-      };
-      setCurrentParticipationSession(participationSession);
+      }
+      setCurrentParticipationSession(participationSession)
 
       try {
         await Promise.all([
-          currentAttendanceSession &&
-            createAttendances(currentAttendanceSession.records),
+          currentAttendanceSession
+          && createAttendances(currentAttendanceSession.records),
           participations.length && createParticipations(participations),
           homework && createHomework(homework),
-        ]);
+        ])
 
         // if (currentAttendanceSession) {
         //   await createAttendances(currentAttendanceSession.records);
@@ -135,17 +133,19 @@ export const useParticipationManagement = (
         // }
 
         // Clear atoms
-        setCurrentAttendanceSession(null);
-        setCurrentParticipationSession(null);
-        setCurrentSchedule(null);
-        return true;
-      } catch (e) {
-        console.error("Error submitting session data:", e);
-        Alert.alert("Erreur.", "Erreur lors de la soumission des données.");
-      } finally {
-        setIsSubmitting(false);
+        setCurrentAttendanceSession(null)
+        setCurrentParticipationSession(null)
+        setCurrentSchedule(null)
+        return true
       }
-      return false;
+      catch (e) {
+        console.error('Error submitting session data:', e)
+        Alert.alert('Erreur.', 'Erreur lors de la soumission des données.')
+      }
+      finally {
+        setIsSubmitting(false)
+      }
+      return false
     },
     [
       isParticipationRangeValid,
@@ -158,20 +158,20 @@ export const useParticipationManagement = (
       setCurrentAttendanceSession,
       setCurrentSchedule,
     ],
-  );
+  )
 
   const participationStats = useMemo(() => {
-    const totalStudents = students.length;
-    const participatedCount = participations.length;
-    const participationRate =
-      totalStudents === 0 ? 0 : (participatedCount / totalStudents) * 100;
+    const totalStudents = students.length
+    const participatedCount = participations.length
+    const participationRate
+      = totalStudents === 0 ? 0 : (participatedCount / totalStudents) * 100
 
     return {
       totalStudents,
       participatedCount,
       participationRate: participationRate.toFixed(1),
-    };
-  }, [students, participations]);
+    }
+  }, [students, participations])
 
   return {
     students,
@@ -186,5 +186,5 @@ export const useParticipationManagement = (
     setComment,
     handleCloseSession,
     isParticipationRangeValid,
-  };
-};
+  }
+}

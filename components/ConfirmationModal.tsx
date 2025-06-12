@@ -1,28 +1,30 @@
-import React from "react";
+import type {
+  ImageSourcePropType,
+} from 'react-native'
+import type { SvgProps } from 'react-native-svg'
+import React from 'react'
 import {
+  Image,
   Modal,
   StyleSheet,
   View,
-  Image,
-  ImageSourcePropType,
-} from "react-native";
-import { CsButton, CsText } from "@/components/commons";
-import { useThemedStyles } from "@/hooks";
-import { borderRadius, spacing } from "@/styles";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { SvgProps } from "react-native-svg";
+} from 'react-native'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { CsButton, CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { borderRadius, spacing } from '@/styles'
 
 interface ConfirmationModalProps {
-  isVisible: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-  message?: string;
-  title?: string;
-  confirmText?: string;
-  cancelText?: string;
-  image?: ImageSourcePropType;
-  SvgComponent?: React.FC<SvgProps>;
-  children?: React.ReactNode;
+  isVisible: boolean
+  onConfirm: () => void
+  onCancel: () => void
+  message?: string
+  title?: string
+  confirmText?: string
+  cancelText?: string
+  image?: ImageSourcePropType
+  SvgComponent?: React.FC<SvgProps>
+  children?: React.ReactNode
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -30,16 +32,17 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   onCancel,
   message,
-  title = "Confirmation",
-  confirmText = "Oui",
-  cancelText = "Non",
+  title = 'Confirmation',
+  confirmText = 'Oui',
+  cancelText = 'Non',
   image,
   SvgComponent,
   children,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
-  if (!isVisible) return null;
+  if (!isVisible)
+    return null
 
   return (
     <Modal
@@ -85,25 +88,28 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         </Animated.View>
       </View>
     </Modal>
-  );
-};
+  )
+}
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+const $modalOverlayColor = 'rgba(0, 0, 0, 0.5)'
+const $shadowColor = '#000'
+
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: $modalOverlayColor,
     },
     modalContent: {
       backgroundColor: theme.card,
       borderRadius: borderRadius.medium,
       padding: spacing.lg,
-      width: "80%",
+      width: '80%',
       maxWidth: 400,
-      alignItems: "center",
-      shadowColor: "#000",
+      alignItems: 'center',
+      shadowColor: $shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
@@ -111,16 +117,16 @@ const createStyles = (theme: Theme) =>
     },
     modalTitle: {
       marginBottom: spacing.md,
-      textAlign: "center",
+      textAlign: 'center',
     },
     modalMessage: {
       marginBottom: spacing.lg,
-      textAlign: "center",
+      textAlign: 'center',
     },
     buttonContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      width: "100%",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
     },
     button: {
       flex: 1,
@@ -130,8 +136,9 @@ const createStyles = (theme: Theme) =>
       width: 100,
       height: 100,
       marginBottom: spacing.md,
-      resizeMode: "contain",
+      resizeMode: 'contain',
     },
-  });
+  })
+}
 
-export default ConfirmationModal;
+export default ConfirmationModal

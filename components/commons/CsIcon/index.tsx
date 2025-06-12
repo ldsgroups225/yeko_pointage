@@ -1,20 +1,20 @@
-import React from "react";
-import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
-import { CsIconProps } from "./type";
+import type { CsIconProps } from './type'
+import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons'
+import React from 'react'
 
 export const CsIcon: React.FC<CsIconProps> = ({
-  type = "fontawesome5",
+  type = 'fontawesome5',
   name,
   size = 24,
-  color = "black",
+  color = 'black',
   style,
 }) => {
   switch (type) {
-    case "ionicons":
+    case 'ionicons':
       return (
         <Ionicons name={name as any} size={size} color={color} style={style} />
-      );
-    case "material":
+      )
+    case 'material':
       return (
         <MaterialIcons
           name={name as any}
@@ -22,8 +22,8 @@ export const CsIcon: React.FC<CsIconProps> = ({
           color={color}
           style={style}
         />
-      );
-    case "fontawesome5":
+      )
+    case 'fontawesome5':
     default:
       return (
         <FontAwesome5
@@ -32,8 +32,8 @@ export const CsIcon: React.FC<CsIconProps> = ({
           color={color}
           style={style}
         />
-      );
+      )
   }
-};
+}
 
-export default CsIcon;
+export default CsIcon

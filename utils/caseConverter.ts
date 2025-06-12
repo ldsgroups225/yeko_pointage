@@ -1,13 +1,13 @@
 /**
  * Supported case types for conversion.
  */
-export type CaseType =
-  | "camelCase"
-  | "snakeCase"
-  | "kebabCase"
-  | "pascalCase"
-  | "screamingSnakeCase"
-  | "dotCase";
+export type CaseType
+  = | 'camelCase'
+    | 'snakeCase'
+    | 'kebabCase'
+    | 'pascalCase'
+    | 'screamingSnakeCase'
+    | 'dotCase'
 
 /**
  * Options for case conversion.
@@ -16,51 +16,52 @@ export type CaseType =
  * @property {string[]} [preserveSpecificKeys=[]] - Array of keys to exclude from case conversion.
  */
 export interface ConvertCaseOptions {
-  preserveConsecutiveUppercase?: boolean;
-  preserveSpecificKeys?: string[];
+  preserveConsecutiveUppercase?: boolean
+  preserveSpecificKeys?: string[]
 }
 
 const defaultConverters: Record<CaseType, (str: string) => string> = {
-  camelCase: (str) => str.replace(/[-_.](\w)/g, (_, c) => c.toUpperCase()),
-  snakeCase: (str) =>
+  camelCase: str => str.replace(/[-_.](\w)/g, (_, c) => c.toUpperCase()),
+  snakeCase: str =>
     str
-      .replace(/([A-Z])/g, "_$1")
+      .replace(/([A-Z])/g, '_$1')
       .toLowerCase()
-      .replace(/^_/, "")
-      .replace(/[-.]/, "_"),
-  kebabCase: (str) =>
+      .replace(/^_/, '')
+      .replace(/[-.]/, '_'),
+  kebabCase: str =>
     str
-      .replace(/([A-Z])/g, "-$1")
+      .replace(/([A-Z])/g, '-$1')
       .toLowerCase()
-      .replace(/^-/, "")
-      .replace(/[_.]/, "-"),
-  pascalCase: (str) =>
+      .replace(/^-/, '')
+      .replace(/[_.]/, '-'),
+  pascalCase: str =>
     str
       .split(/[-_.]/)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(""),
-  screamingSnakeCase: (str) =>
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(''),
+  screamingSnakeCase: str =>
     str
-      .replace(/([A-Z])/g, "_$1")
+      .replace(/([A-Z])/g, '_$1')
       .toUpperCase()
-      .replace(/^_/, "")
-      .replace(/[-.]/, "_"),
-  dotCase: (str) =>
+      .replace(/^_/, '')
+      .replace(/[-.]/, '_'),
+  dotCase: str =>
     str
-      .replace(/([A-Z])/g, ".$1")
+      .replace(/([A-Z])/g, '.$1')
       .toLowerCase()
-      .replace(/^\./, "")
-      .replace(/[-_]/, "."),
-};
+      .replace(/^\./, '')
+      .replace(/[-_]/, '.'),
+}
 
-const isObject = (val: unknown): val is Record<string, unknown> =>
-  typeof val === "object" && val !== null && !Array.isArray(val);
+function isObject(val: unknown): val is Record<string, unknown> {
+  return typeof val === 'object' && val !== null && !Array.isArray(val)
+}
 
 /**
  * Class for performing case conversion on objects.
  */
 class CaseConverter {
-  private readonly options: Required<ConvertCaseOptions>;
+  private readonly options: Required<ConvertCaseOptions>
 
   /**
    * Creates an instance of CaseConverter.
@@ -76,7 +77,7 @@ class CaseConverter {
       preserveConsecutiveUppercase: false,
       preserveSpecificKeys: [],
       ...options,
-    };
+    }
   }
 
   /**
@@ -89,10 +90,10 @@ class CaseConverter {
   private convert(str: string): string {
     if (this.options.preserveConsecutiveUppercase) {
       str = str
-        .replace(/([A-Z]+)/g, (match) => `_${match.toLowerCase()}_`)
-        .replace(/^_|_$/g, "");
+        .replace(/([A-Z]+)/g, match => `_${match.toLowerCase()}_`)
+        .replace(/^_|_$/g, '')
     }
-    return defaultConverters[this.toCaseType](str);
+    return defaultConverters[this.toCaseType](str)
   }
 
   /**
@@ -110,7 +111,7 @@ class CaseConverter {
           : this.convert(key),
         isObject(value) ? this.convertObject(value) : value,
       ]),
-    );
+    )
   }
 
   /**
@@ -122,10 +123,10 @@ class CaseConverter {
    */
   public execute(data: object): Record<string, unknown> {
     if (!isObject(data)) {
-      throw new Error("Input must be an object");
+      throw new Error('Input must be an object')
     }
 
-    return this.convertObject(data);
+    return this.convertObject(data)
   }
 }
 
@@ -142,8 +143,8 @@ export function convertCase(
   toCaseType: CaseType,
   options: ConvertCaseOptions = {},
 ): Record<string, unknown> {
-  const converter = new CaseConverter(toCaseType, options);
-  return converter.execute(data);
+  const converter = new CaseConverter(toCaseType, options)
+  return converter.execute(data)
 }
 
 /**
@@ -160,15 +161,15 @@ export function benchmark(
   toCaseType: CaseType,
   options: ConvertCaseOptions = {},
   iterations: number = 1000,
-): { averageTime: number; totalTime: number } {
-  const start = Date.now();
+): { averageTime: number, totalTime: number } {
+  const start = Date.now()
   for (let i = 0; i < iterations; i++) {
-    convertCase(data, toCaseType, options);
+    convertCase(data, toCaseType, options)
   }
-  const end = Date.now();
-  const totalTime = end - start;
+  const end = Date.now()
+  const totalTime = end - start
   return {
     averageTime: totalTime / iterations,
     totalTime,
-  };
+  }
 }

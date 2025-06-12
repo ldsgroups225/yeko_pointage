@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, StatusBar, Image } from "react-native";
-import { Stack } from "expo-router";
-import { CsText } from "@/components/commons";
-import { useThemedStyles } from "@/hooks";
-import { spacing, borderRadius } from "@/styles";
-import { getCurrentTimeString, formatDate } from "@/utils/dateTime";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { useAtomValue } from "jotai/index";
-import { currentClassAtom, currentSchoolAtom } from "@/store/atoms";
+import { FontAwesome5 } from '@expo/vector-icons'
+import { Stack } from 'expo-router'
+import { useAtomValue } from 'jotai/index'
+import React, { useEffect, useState } from 'react'
+import { Image, StatusBar, StyleSheet, View } from 'react-native'
+import { CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { currentClassAtom, currentSchoolAtom } from '@/store/atoms'
+import { borderRadius, spacing } from '@/styles'
+import { formatDate, getCurrentTimeString } from '@/utils/dateTime'
 
 export default function TeacherLayout() {
-  const styles = useThemedStyles(createStyles);
-  const [currentTime, setCurrentTime] = useState(getCurrentTimeString());
-  const [sessionStartTime] = useState(getCurrentTimeString());
-  const school = useAtomValue(currentSchoolAtom);
-  const classroom = useAtomValue(currentClassAtom);
+  const styles = useThemedStyles(createStyles)
+  const [currentTime, setCurrentTime] = useState(getCurrentTimeString())
+  const [sessionStartTime] = useState(getCurrentTimeString())
+  const school = useAtomValue(currentSchoolAtom)
+  const classroom = useAtomValue(currentClassAtom)
 
   useEffect(() => {
-    StatusBar.setHidden(true);
+    StatusBar.setHidden(true)
 
     const timer = setInterval(() => {
-      setCurrentTime(getCurrentTimeString());
-    }, 60000); // Update every minute
+      setCurrentTime(getCurrentTimeString())
+    }, 60000) // Update every minute
 
     // Set the initial time immediately
-    setCurrentTime(getCurrentTimeString());
+    setCurrentTime(getCurrentTimeString())
 
     return () => {
-      clearInterval(timer);
-      StatusBar.setHidden(false);
-    };
-  }, []);
+      clearInterval(timer)
+      StatusBar.setHidden(false)
+    }
+  }, [])
 
   const HeaderComponent = ({ title }: { title: string }) => (
     <View style={styles.header}>
@@ -40,7 +40,11 @@ export default function TeacherLayout() {
         )}
         <View>
           <CsText variant="h3" style={styles.schoolName}>
-            {school?.name || "École"} ({classroom?.name || "Classe"})
+            {school?.name || 'École'}
+            {' '}
+            (
+            {classroom?.name || 'Classe'}
+            )
           </CsText>
           <CsText variant="h2" style={styles.title}>
             {title}
@@ -63,12 +67,14 @@ export default function TeacherLayout() {
         <View style={styles.dateTimeContainer}>
           <FontAwesome5 name="play-circle" size={16} color="#4A90E2" />
           <CsText variant="body" style={styles.dateTime}>
-            Débuté : {sessionStartTime}
+            Débuté :
+            {' '}
+            {sessionStartTime}
           </CsText>
         </View>
       </View>
     </View>
-  );
+  )
 
   return (
     <>
@@ -89,15 +95,15 @@ export default function TeacherLayout() {
         {/* Add other screens as needed */}
       </Stack>
     </>
-  );
+  )
 }
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       padding: spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
@@ -105,11 +111,11 @@ const createStyles = (theme: Theme) =>
     },
     headerLeft: {
       flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     headerRight: {
-      alignItems: "flex-end",
+      alignItems: 'flex-end',
     },
     schoolLogo: {
       width: 50,
@@ -122,11 +128,11 @@ const createStyles = (theme: Theme) =>
       marginBottom: spacing.xs,
     },
     title: {
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     dateTimeContainer: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       marginBottom: spacing.xs,
     },
     dateTime: {
@@ -134,6 +140,7 @@ const createStyles = (theme: Theme) =>
     },
     currentTime: {
       marginLeft: spacing.xs,
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
-  });
+  })
+}

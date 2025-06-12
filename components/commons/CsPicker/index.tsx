@@ -1,10 +1,10 @@
-import React from "react";
-import { View } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { useThemedStyles } from "@/hooks";
-import CsText from "../CsText";
-import { CsPickerProps } from "./type";
-import { createStyles } from "./style";
+import type { CsPickerProps } from './type'
+import { Picker } from '@react-native-picker/picker'
+import React from 'react'
+import { View } from 'react-native'
+import { useThemedStyles } from '@/hooks'
+import CsText from '../CsText'
+import { createStyles } from './style'
 
 export const CsPicker: React.FC<CsPickerProps> = ({
   label,
@@ -12,9 +12,9 @@ export const CsPicker: React.FC<CsPickerProps> = ({
   selectedValue,
   onValueChange,
   style,
-  placeholder = "",
+  placeholder = '',
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
   return (
     <View style={[styles.container, style]}>
@@ -35,10 +35,10 @@ export const CsPicker: React.FC<CsPickerProps> = ({
             style={styles.placeholder}
           />
         )}
-        {items.map((item) => (
+        {items.map(item => (
           <Picker.Item key={item.value} label={item.label} value={item.value} />
         ))}
       </Picker>
     </View>
-  );
-};
+  )
+}

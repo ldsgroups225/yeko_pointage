@@ -1,39 +1,44 @@
-import React from "react";
+import type {
+  ImageSourcePropType,
+} from 'react-native'
+import type { SvgProps } from 'react-native-svg'
+import React from 'react'
 import {
+  Image,
   Modal,
   StyleSheet,
   View,
-  Image,
-  ImageSourcePropType,
-} from "react-native";
-import { CsButton, CsText } from "@/components/commons";
-import { useThemedStyles } from "@/hooks";
-import { borderRadius, spacing } from "@/styles";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { SvgProps } from "react-native-svg";
+} from 'react-native'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { CsButton, CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { borderRadius, spacing } from '@/styles'
+
+const $black05 = 'rgba(0, 0, 0, 0.5)'
 
 interface AlertModalProps {
-  isVisible: boolean;
-  onClose: () => void;
-  message: string;
-  title?: string;
-  buttonText?: string;
-  image?: ImageSourcePropType;
-  SvgComponent?: React.FC<SvgProps>;
+  isVisible: boolean
+  onClose: () => void
+  message: string
+  title?: string
+  buttonText?: string
+  image?: ImageSourcePropType
+  SvgComponent?: React.FC<SvgProps>
 }
 
 export const AlertModal: React.FC<AlertModalProps> = ({
   isVisible,
   onClose,
   message,
-  title = "Alert",
-  buttonText = "OK",
+  title = 'Alert',
+  buttonText = 'OK',
   image,
   SvgComponent,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
-  if (!isVisible) return null;
+  if (!isVisible)
+    return null
 
   return (
     <Modal transparent visible={isVisible} animationType="fade">
@@ -63,35 +68,35 @@ export const AlertModal: React.FC<AlertModalProps> = ({
         </Animated.View>
       </View>
     </Modal>
-  );
-};
+  )
+}
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: $black05,
     },
     modalContent: {
       backgroundColor: theme.card,
       borderRadius: borderRadius.medium,
       padding: spacing.lg,
-      width: "80%",
+      width: '80%',
       maxWidth: 400,
-      alignItems: "center",
+      alignItems: 'center',
     },
     modalTitle: {
       marginBottom: spacing.md,
-      textAlign: "center",
+      textAlign: 'center',
     },
     modalMessage: {
       marginBottom: spacing.lg,
-      textAlign: "center",
+      textAlign: 'center',
     },
     buttonContainer: {
-      alignItems: "center",
+      alignItems: 'center',
     },
     button: {
       minWidth: 100,
@@ -101,4 +106,5 @@ const createStyles = (theme: Theme) =>
       height: 100,
       marginBottom: spacing.md,
     },
-  });
+  })
+}

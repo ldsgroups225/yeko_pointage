@@ -1,18 +1,18 @@
-import { useTheme, useThemedStyles } from "@/hooks";
-import React from "react";
-import { Pressable, Text, View } from "react-native";
+import type { CsListTileProps } from './type'
+import React from 'react'
+import { Pressable, Text, View } from 'react-native'
 import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-} from "react-native-reanimated";
-import { styles } from "./style";
-import type { CsListTileProps } from "./type";
+} from 'react-native-reanimated'
+import { useTheme, useThemedStyles } from '@/hooks'
+import { styles } from './style'
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
-const testID = "csListTile";
+const testID = 'csListTile'
 
 const CsListTile: React.FC<CsListTileProps> = ({
   title,
@@ -25,42 +25,42 @@ const CsListTile: React.FC<CsListTileProps> = ({
   titleStyle,
   subtitleStyle,
 }) => {
-  const theme = useTheme();
-  const themedStyles = useThemedStyles<typeof styles>(styles);
+  const theme = useTheme()
+  const themedStyles = useThemedStyles<typeof styles>(styles)
 
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
+  const scale = useSharedValue(1)
+  const opacity = useSharedValue(1)
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
-  }));
+  }))
 
   const handlePressIn = () => {
     if (onPress) {
-      scale.value = withSpring(0.97);
-      opacity.value = withSpring(0.8);
+      scale.value = withSpring(0.97)
+      opacity.value = withSpring(0.8)
     }
-  };
+  }
 
   const handlePressOut = () => {
     if (onPress) {
-      scale.value = withSpring(1);
-      opacity.value = withSpring(1);
+      scale.value = withSpring(1)
+      opacity.value = withSpring(1)
     }
-  };
+  }
 
   const handlePress = () => {
     if (onPress) {
-      runOnJS(onPress)();
+      runOnJS(onPress)()
     }
-  };
+  }
 
   const containerStyle = [
     themedStyles.container,
     dense && themedStyles.dense,
     style,
-  ];
+  ]
 
   const content = (
     <>
@@ -73,7 +73,7 @@ const CsListTile: React.FC<CsListTileProps> = ({
       </View>
       {trailing && <View style={themedStyles.trailing}>{trailing}</View>}
     </>
-  );
+  )
 
   if (onPress) {
     return (
@@ -87,14 +87,14 @@ const CsListTile: React.FC<CsListTileProps> = ({
       >
         {content}
       </AnimatedPressable>
-    );
+    )
   }
 
   return (
     <View testID={`${testID}-container`} style={containerStyle}>
       {content}
     </View>
-  );
-};
+  )
+}
 
-export default CsListTile;
+export default CsListTile

@@ -1,8 +1,8 @@
-import React from "react";
-import { Text, TouchableOpacity } from "react-native";
-import { useThemedStyles } from "@/hooks";
-import { CsChipProps } from "./type";
-import { createStyles } from "./style";
+import type { CsChipProps } from './type'
+import React from 'react'
+import { Text, TouchableOpacity } from 'react-native'
+import { useThemedStyles } from '@/hooks'
+import { createStyles } from './style'
 
 export const CsChip: React.FC<CsChipProps> = ({
   label,
@@ -11,7 +11,7 @@ export const CsChip: React.FC<CsChipProps> = ({
   style,
   textStyle,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
   return (
     <TouchableOpacity
@@ -25,5 +25,5 @@ export const CsChip: React.FC<CsChipProps> = ({
         {label}
       </Text>
     </TouchableOpacity>
-  );
-};
+  )
+}

@@ -1,12 +1,12 @@
-import { borderRadius, spacing, typography } from "@/styles";
-import type { ITheme } from "@/styles/theme";
-import { StyleSheet } from "react-native";
+import type { ITheme } from '@/styles/theme'
+import { StyleSheet } from 'react-native'
+import { borderRadius, spacing, typography } from '@/styles'
 
-export const styles = (theme: ITheme) =>
-  StyleSheet.create({
+export function styles(theme: ITheme) {
+  return StyleSheet.create({
     container: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.lg,
       backgroundColor: theme.card,
@@ -34,4 +34,5 @@ export const styles = (theme: ITheme) =>
     pressable: {
       opacity: 0.7,
     },
-  });
+  })
+}

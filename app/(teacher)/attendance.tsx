@@ -1,30 +1,30 @@
-import React, { useMemo, useCallback, useState } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useAtomValue } from "jotai";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { CsText, CsButton } from "@/components/commons";
-import { ConfirmationModal } from "@/components/ConfirmationModal";
-import StudentCard from "@/components/StudentCard";
-import { useThemedStyles } from "@/hooks";
-import { spacing } from "@/styles";
-import { Student } from "@/types";
-import { studentsListAtom, currentScheduleAtom } from "@/store/atoms";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { StatCard } from "@/components/StatCard";
-import { useAttendanceRecords } from "@/hooks/useAttendanceRecords";
-import { ScrollView } from "react-native-gesture-handler";
+import type { Student } from '@/types'
+import { FontAwesome5 } from '@expo/vector-icons'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useAtomValue } from 'jotai'
+import React, { useMemo, useState } from 'react'
+import { FlatList, StyleSheet, View } from 'react-native'
+import { ScrollView } from 'react-native-gesture-handler'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { CsButton, CsText } from '@/components/commons'
+import { ConfirmationModal } from '@/components/ConfirmationModal'
+import { StatCard } from '@/components/StatCard'
+import StudentCard from '@/components/StudentCard'
+import { useThemedStyles } from '@/hooks'
+import { useAttendanceRecords } from '@/hooks/useAttendanceRecords'
+import { currentScheduleAtom, studentsListAtom } from '@/store/atoms'
+import { spacing } from '@/styles'
 
 const AttendanceScreen: React.FC = () => {
-  const styles = useThemedStyles(createStyles);
-  const router = useRouter();
+  const styles = useThemedStyles(createStyles)
+  const router = useRouter()
   const { teacherId, classId, scheduleId } = useLocalSearchParams<{
-    teacherId: string;
-    classId: string;
-    scheduleId: string;
-  }>();
-  const students = useAtomValue(studentsListAtom);
-  const currentSchedule = useAtomValue(currentScheduleAtom);
+    teacherId: string
+    classId: string
+    scheduleId: string
+  }>()
+  const students = useAtomValue(studentsListAtom)
+  const currentSchedule = useAtomValue(currentScheduleAtom)
 
   const {
     attendanceRecords,
@@ -32,41 +32,43 @@ const AttendanceScreen: React.FC = () => {
     isFirstAttendanceFinished,
     setIsFirstAttendanceFinished,
     finalizeAttendance,
-  } = useAttendanceRecords(students, teacherId, classId, currentSchedule);
+  } = useAttendanceRecords(students, teacherId, classId, currentSchedule)
 
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
 
   // Simplified finalize handler: if the first attendance check is complete, finalize and show modal; otherwise, mark as complete.
   const handleFinalizeAttendance = () => {
     if (isFirstAttendanceFinished) {
-      finalizeAttendance();
-      setShowConfirmationModal(true);
-    } else {
-      setIsFirstAttendanceFinished(true);
+      finalizeAttendance()
+      setShowConfirmationModal(true)
     }
-  };
+    else {
+      setIsFirstAttendanceFinished(true)
+    }
+  }
 
   // When the modal confirms, navigate to participation.
   const confirmProceedToParticipation = () => {
-    setShowConfirmationModal(false);
+    setShowConfirmationModal(false)
     router.push({
-      pathname: "/participation",
+      pathname: '/participation',
       params: { teacherId, classId, scheduleId },
-    });
-  };
+    })
+  }
 
   // Precompute a lookup map for attendance records by student ID.
   const recordsMap = useMemo(() => {
     return attendanceRecords.reduce<Record<string, any>>((map, record) => {
-      map[record.studentId] = record;
-      return map;
-    }, {});
-  }, [attendanceRecords]);
+      map[record.studentId] = record
+      return map
+    }, {})
+  }, [attendanceRecords])
 
   // Render a student item using the precomputed lookup.
   const renderStudentItem = ({ item: student }: { item: Student }) => {
-    const record = recordsMap[student.id];
-    if (!record) return null;
+    const record = recordsMap[student.id]
+    if (!record)
+      return null
     return (
       <StudentCard
         student={student}
@@ -74,8 +76,8 @@ const AttendanceScreen: React.FC = () => {
         onUpdateStatus={updateAttendanceStatus}
         isFirstAttendanceCheck={!isFirstAttendanceFinished}
       />
-    );
-  };
+    )
+  }
 
   // Optimize attendance stats calculation in one iteration.
   const attendanceStats = useMemo(() => {
@@ -84,33 +86,33 @@ const AttendanceScreen: React.FC = () => {
       absentCount: 0,
       lateCount: 0,
       earlyDepartureCount: 0,
-    };
+    }
     attendanceRecords.forEach((record) => {
       switch (record.status) {
-        case "present":
-          stats.presentCount++;
-          break;
-        case "absent":
-          stats.absentCount++;
-          break;
-        case "late":
-          stats.lateCount++;
-          break;
-        case "early_departure":
-          stats.earlyDepartureCount++;
-          break;
+        case 'present':
+          stats.presentCount++
+          break
+        case 'absent':
+          stats.absentCount++
+          break
+        case 'late':
+          stats.lateCount++
+          break
+        case 'early_departure':
+          stats.earlyDepartureCount++
+          break
         default:
-          break;
+          break
       }
-    });
+    })
     return {
       totalStudents: students.length,
       ...stats,
-    };
-  }, [students.length, attendanceRecords]);
+    }
+  }, [students.length, attendanceRecords])
 
   return (
-    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.body}>
         <ScrollView
           style={styles.leftColumn}
@@ -155,17 +157,19 @@ const AttendanceScreen: React.FC = () => {
           <CsButton
             title={
               isFirstAttendanceFinished
-                ? "Attribuer participations"
-                : "Terminer l'appel"
+                ? 'Attribuer participations'
+                : 'Terminer l\'appel'
             }
             onPress={handleFinalizeAttendance}
             style={styles.finalizeButton}
             icon={
-              isFirstAttendanceFinished ? (
-                <FontAwesome5 name="arrow-right" size={16} color="white" />
-              ) : (
-                <FontAwesome5 name="check" size={16} color="white" />
-              )
+              isFirstAttendanceFinished
+                ? (
+                    <FontAwesome5 name="arrow-right" size={16} color="white" />
+                  )
+                : (
+                    <FontAwesome5 name="check" size={16} color="white" />
+                  )
             }
           />
 
@@ -187,25 +191,25 @@ const AttendanceScreen: React.FC = () => {
           <FlatList
             data={students}
             renderItem={renderStudentItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             style={styles.list}
             contentContainerStyle={styles.listContent}
           />
         </View>
       </View>
     </SafeAreaView>
-  );
-};
+  )
+}
 
-const createStyles = (theme: any) =>
-  StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background,
     },
     body: {
       flex: 1,
-      flexDirection: "row",
+      flexDirection: 'row',
     },
     leftColumn: {
       flex: 1,
@@ -219,7 +223,7 @@ const createStyles = (theme: any) =>
     },
     sectionTitle: {
       marginBottom: spacing.md,
-      fontWeight: "bold",
+      fontWeight: 'bold',
     },
     list: {
       flex: 1,
@@ -231,6 +235,7 @@ const createStyles = (theme: any) =>
       marginTop: spacing.md,
       marginBottom: spacing.lg,
     },
-  });
+  })
+}
 
-export default AttendanceScreen;
+export default AttendanceScreen

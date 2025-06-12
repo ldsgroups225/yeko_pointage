@@ -1,13 +1,13 @@
-import { manipulateColor } from "@/utils/manipulateColor";
-import { borderRadius, spacing } from "@/styles";
-import type { ITheme } from "@/styles/theme";
-import { StyleSheet } from "react-native";
+import type { ITheme } from '@/styles/theme'
+import { StyleSheet } from 'react-native'
+import { borderRadius, spacing } from '@/styles'
+import { manipulateColor } from '@/utils/manipulateColor'
 
-export const styles = (theme: ITheme) =>
-  StyleSheet.create({
+export function styles(theme: ITheme) {
+  return StyleSheet.create({
     inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       borderWidth: 1,
       borderColor: theme.border,
       borderRadius: borderRadius.medium,
@@ -30,7 +30,7 @@ export const styles = (theme: ITheme) =>
       color: theme.text,
     },
     label: {
-      position: "absolute",
+      position: 'absolute',
       left: 12,
       top: 14,
       color: manipulateColor(theme.text, 0.2),
@@ -56,4 +56,5 @@ export const styles = (theme: ITheme) =>
       fontSize: 18,
       color: theme.text,
     },
-  });
+  })
+}

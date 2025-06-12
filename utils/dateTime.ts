@@ -1,15 +1,15 @@
-import { DATE_FORMAT, TIME_FORMAT } from "@/config/constants";
 import {
-  format,
-  parse,
-  isValid,
   differenceInMinutes,
-  parseISO,
+  format,
   isAfter,
   isBefore,
   isEqual,
-} from "date-fns";
-import { fr } from "date-fns/locale";
+  isValid,
+  parse,
+  parseISO,
+} from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { DATE_FORMAT, TIME_FORMAT } from '@/config/constants'
 
 /**
  * Formats a Date object or a date string to a localized date string.
@@ -18,8 +18,8 @@ import { fr } from "date-fns/locale";
  * @returns {string} The formatted date string.
  */
 export function formatDate(date: Date | string): string {
-  const parsedDate = typeof date === "string" ? new Date(date) : date;
-  return format(parsedDate, DATE_FORMAT, { locale: fr });
+  const parsedDate = typeof date === 'string' ? new Date(date) : date
+  return format(parsedDate, DATE_FORMAT, { locale: fr })
 }
 
 /**
@@ -29,12 +29,13 @@ export function formatDate(date: Date | string): string {
  * @returns {string} The formatted time string.
  */
 export function formatTime(date: Date | string): string {
-  if (typeof date === "string" && date.length === 5) return date;
-  if (typeof date === "string" && date.length === 8)
-    return date.substring(0, 5);
+  if (typeof date === 'string' && date.length === 5)
+    return date
+  if (typeof date === 'string' && date.length === 8)
+    return date.substring(0, 5)
 
-  const parsedDate = typeof date === "string" ? new Date(date) : date;
-  return format(parsedDate, TIME_FORMAT);
+  const parsedDate = typeof date === 'string' ? new Date(date) : date
+  return format(parsedDate, TIME_FORMAT)
 }
 
 /**
@@ -44,8 +45,8 @@ export function formatTime(date: Date | string): string {
  * @returns {Date | null} The parsed Date object, or null if the parsing fails.
  */
 export function parseDate(dateString: string): Date | null {
-  const parsedDate = parse(dateString, DATE_FORMAT, new Date());
-  return isValid(parsedDate) ? parsedDate : null;
+  const parsedDate = parse(dateString, DATE_FORMAT, new Date())
+  return isValid(parsedDate) ? parsedDate : null
 }
 
 /**
@@ -55,8 +56,8 @@ export function parseDate(dateString: string): Date | null {
  * @returns {Date | null} The parsed Date object, or null if the parsing fails.
  */
 export function parseTime(timeString: string): Date | null {
-  const parsedTime = parse(timeString, TIME_FORMAT, new Date());
-  return isValid(parsedTime) ? parsedTime : null;
+  const parsedTime = parse(timeString, TIME_FORMAT, new Date())
+  return isValid(parsedTime) ? parsedTime : null
 }
 
 /**
@@ -70,7 +71,7 @@ export function calculateLateDuration(
   startTime: Date,
   arrivalTime: Date,
 ): number {
-  return Math.max(0, differenceInMinutes(arrivalTime, startTime));
+  return Math.max(0, differenceInMinutes(arrivalTime, startTime))
 }
 
 /**
@@ -79,7 +80,7 @@ export function calculateLateDuration(
  * @returns {number} The current day of the week.
  */
 export function getCurrentDayOfWeek(): number {
-  return new Date().getDay();
+  return new Date().getDay()
 }
 
 /**
@@ -88,8 +89,8 @@ export function getCurrentDayOfWeek(): number {
  * @returns {string} The current time in HH:mm format.
  */
 export function getCurrentTimeString(): string {
-  const now = new Date();
-  return now.toTimeString().slice(0, 5);
+  const now = new Date()
+  return now.toTimeString().slice(0, 5)
 }
 
 /**
@@ -99,7 +100,7 @@ export function getCurrentTimeString(): string {
  * @returns {string} The formatted time string in HH:mm format.
  */
 export function formatTimeString(date: Date): string {
-  return date.toTimeString().slice(0, 5);
+  return date.toTimeString().slice(0, 5)
 }
 
 /**
@@ -109,10 +110,10 @@ export function formatTimeString(date: Date): string {
  * @returns {Date} The parsed Date object.
  */
 export function parseTimeString(timeString: string): Date {
-  const [hours, minutes] = timeString.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
+  const [hours, minutes] = timeString.split(':').map(Number)
+  const date = new Date()
+  date.setHours(hours, minutes, 0, 0)
+  return date
 }
 
 /**
@@ -123,9 +124,9 @@ export function parseTimeString(timeString: string): Date {
  * @returns {number} A negative number if time1 is before time2, 0 if they are equal, and a positive number if time1 is after time2.
  */
 export function compareTimeStrings(time1: string, time2: string): number {
-  const date1 = parseTimeString(time1);
-  const date2 = parseTimeString(time2);
-  return date1.getTime() - date2.getTime();
+  const date1 = parseTimeString(time1)
+  const date2 = parseTimeString(time2)
+  return date1.getTime() - date2.getTime()
 }
 
 /**
@@ -135,9 +136,10 @@ export function compareTimeStrings(time1: string, time2: string): number {
  * @returns {string} The extracted hour and minute in the format "HH:mm".
  */
 export function extractHourAndMinute(dateString: string): string {
-  if (dateString.length === 8) return dateString.substring(0, 5);
-  const date = parseISO(dateString);
-  return format(date, "HH:mm");
+  if (dateString.length === 8)
+    return dateString.substring(0, 5)
+  const date = parseISO(dateString)
+  return format(date, 'HH:mm')
 }
 
 /**
@@ -151,42 +153,42 @@ export function extractHourAndMinute(dateString: string): string {
  */
 export function checkScheduledClass<
   T extends {
-    teacherId: string;
-    dayOfWeek: number;
-    startTime: string;
-    endTime: string;
+    teacherId: string
+    dayOfWeek: number
+    startTime: string
+    endTime: string
   },
 >(userId: string, schedules: T[], customMessage?: string): T | null {
   const schedule = schedules.find((s) => {
     const startTime = parse(
       extractHourAndMinute(s.startTime),
-      "HH:mm",
+      'HH:mm',
       new Date(),
-    );
-    const currentDayOfWeek = getCurrentDayOfWeek();
-    const currentTime = getCurrentTimeString();
-    const endTime = parse(extractHourAndMinute(s.endTime), "HH:mm", new Date());
-    const currentTimeParsed = parse(currentTime, "HH:mm", new Date());
+    )
+    const currentDayOfWeek = getCurrentDayOfWeek()
+    const currentTime = getCurrentTimeString()
+    const endTime = parse(extractHourAndMinute(s.endTime), 'HH:mm', new Date())
+    const currentTimeParsed = parse(currentTime, 'HH:mm', new Date())
 
     return (
-      s.teacherId === userId &&
-      s.dayOfWeek === currentDayOfWeek &&
-      (isEqual(currentTimeParsed, startTime) ||
-        isAfter(currentTimeParsed, startTime)) &&
-      (isEqual(currentTimeParsed, endTime) ||
-        isBefore(currentTimeParsed, endTime))
-    );
-  });
+      s.teacherId === userId
+      && s.dayOfWeek === currentDayOfWeek
+      && (isEqual(currentTimeParsed, startTime)
+        || isAfter(currentTimeParsed, startTime))
+      && (isEqual(currentTimeParsed, endTime)
+        || isBefore(currentTimeParsed, endTime))
+    )
+  })
 
   if (!schedule) {
-    const message =
-      customMessage ||
-      "Vous n'avez pas de cours prévu avec cette classe pour le moment.";
-    console.log(message);
-    return null;
+    const message
+      = customMessage
+        || 'Vous n\'avez pas de cours prévu avec cette classe pour le moment.'
+    console.warn(message)
+    return null
   }
 
-  return schedule;
+  return schedule
 }
 
 /**
@@ -198,13 +200,13 @@ export function checkScheduledClass<
  * @returns {string} The ISO 8601 timestamp representing the current date and the given time.
  */
 export function convertToIsoTime(timeString: string): string {
-  const [hours, minutes] = timeString.split(":").map(Number);
+  const [hours, minutes] = timeString.split(':').map(Number)
 
-  const now = new Date();
-  now.setHours(hours);
-  now.setMinutes(minutes);
-  now.setSeconds(0);
-  now.setMilliseconds(0);
+  const now = new Date()
+  now.setHours(hours)
+  now.setMinutes(minutes)
+  now.setSeconds(0)
+  now.setMilliseconds(0)
 
-  return now.toISOString();
+  return now.toISOString()
 }

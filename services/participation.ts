@@ -1,9 +1,9 @@
-import { IMetaDataDTO, INoteDTO, Participation } from "@/types";
-import { NOTE_DETAILS_TABLE_ID, NOTE_TABLE_ID, supabase } from "@/lib/supabase";
-import { Database } from "@/lib/supabase/types";
+import type { Database } from '@/lib/supabase/types'
+import type { IMetaDataDTO, INoteDTO, Participation } from '@/types'
+import { NOTE_DETAILS_TABLE_ID, NOTE_TABLE_ID, supabase } from '@/lib/supabase'
 
-type NoteInsert = Database["public"]["Tables"]["notes"]["Insert"];
-type NoteDetailInsert = Database["public"]["Tables"]["note_details"]["Insert"];
+type NoteInsert = Database['public']['Tables']['notes']['Insert']
+type NoteDetailInsert = Database['public']['Tables']['note_details']['Insert']
 
 export const participation = {
   async createParticipations(
@@ -11,13 +11,13 @@ export const participation = {
     metaData: IMetaDataDTO,
   ): Promise<void> {
     try {
-      const currentDate = new Date();
+      const currentDate = new Date()
       const noteData: INoteDTO = {
         classId: metaData.classId!,
         teacherId: metaData.teacherId!,
         subjectId: metaData.subjectId!,
         dueDate: currentDate,
-        noteType: "PARTICIPATION",
+        noteType: 'PARTICIPATION',
         isGraded: false,
         totalPoints: 1,
         isActive: true,
@@ -27,7 +27,7 @@ export const participation = {
         semesterId: metaData.semesterId!,
         schoolYearId: metaData.schoolYearId!,
         weight: 1, // Pondération conditionnelle
-      };
+      }
 
       const insertData: NoteInsert = {
         class_id: noteData.classId,
@@ -45,37 +45,38 @@ export const participation = {
         total_points: noteData.totalPoints,
         weight: noteData.weight,
         created_at: currentDate.toISOString(),
-      };
+      }
 
       const { data, error } = await supabase
         .from(NOTE_TABLE_ID)
         .insert(insertData)
-        .select("id")
-        .single();
+        .select('id')
+        .single()
 
       if (error) {
-        throw error;
+        throw error
       }
 
       const noteDetailsData: NoteDetailInsert[] = participationDataArray.map(
-        (participation) => ({
+        participation => ({
           student_id: participation.studentId,
           note_id: data.id,
           note: 1,
           created_at: currentDate.toISOString(),
         }),
-      );
+      )
 
       const { error: detailsError } = await supabase
         .from(NOTE_DETAILS_TABLE_ID)
-        .insert(noteDetailsData);
+        .insert(noteDetailsData)
 
       if (detailsError) {
-        throw detailsError;
+        throw detailsError
       }
-    } catch (error) {
-      console.error("Error creating participation records:", error);
-      throw error;
+    }
+    catch (error) {
+      console.error('Error creating participation records:', error)
+      throw error
     }
   },
-};
+}

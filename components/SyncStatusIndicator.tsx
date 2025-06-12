@@ -1,46 +1,11 @@
-import React from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useOfflineSync } from "@/hooks/useOfflineSync";
-
-export default function SyncStatusIndicator() {
-  const { syncStatus } = useOfflineSync();
-
-  const getStatusColor = () => {
-    switch (syncStatus) {
-      case "idle":
-        return "#34C759";
-      case "syncing":
-        return "#007AFF";
-      case "error":
-        return "#FF3B30";
-      default:
-        return "#8E8E93";
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      {syncStatus === "syncing" && (
-        <ActivityIndicator
-          size="small"
-          color="#007AFF"
-          style={styles.spinner}
-        />
-      )}
-      <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
-      <Text style={styles.statusText}>
-        {syncStatus === "idle" && "Synced"}
-        {syncStatus === "syncing" && "Syncing..."}
-        {syncStatus === "error" && "Sync Error"}
-      </Text>
-    </View>
-  );
-}
+import React from 'react'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
   },
   spinner: {
@@ -55,4 +20,39 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
   },
-});
+})
+
+export default function SyncStatusIndicator() {
+  const { syncStatus } = useOfflineSync()
+
+  const getStatusColor = () => {
+    switch (syncStatus) {
+      case 'idle':
+        return '#34C759'
+      case 'syncing':
+        return '#007AFF'
+      case 'error':
+        return '#FF3B30'
+      default:
+        return '#8E8E93'
+    }
+  }
+
+  return (
+    <View style={styles.container}>
+      {syncStatus === 'syncing' && (
+        <ActivityIndicator
+          size="small"
+          color="#007AFF"
+          style={styles.spinner}
+        />
+      )}
+      <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
+      <Text style={styles.statusText}>
+        {syncStatus === 'idle' && 'Synced'}
+        {syncStatus === 'syncing' && 'Syncing...'}
+        {syncStatus === 'error' && 'Sync Error'}
+      </Text>
+    </View>
+  )
+}

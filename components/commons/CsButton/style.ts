@@ -1,15 +1,17 @@
-import borderRadius from "@/styles/borderRadius";
-import { spacing } from "@/styles/spacing";
-import type { ITheme } from "@/styles/theme";
-import { typography } from "@/styles/typography";
-import { StyleSheet } from "react-native";
+import type { ITheme } from '@/styles/theme'
+import { StyleSheet } from 'react-native'
+import borderRadius from '@/styles/borderRadius'
+import { spacing } from '@/styles/spacing'
+import { typography } from '@/styles/typography'
 
-export const styles = (theme: ITheme) =>
-  StyleSheet.create({
+const $transparentColor = 'transparent'
+
+export function styles(theme: ITheme) {
+  return StyleSheet.create({
     button: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
       borderRadius: borderRadius.medium,
       paddingVertical: 12,
       paddingHorizontal: 24,
@@ -23,11 +25,11 @@ export const styles = (theme: ITheme) =>
       borderColor: theme.primary,
     },
     buttontext: {
-      backgroundColor: "transparent",
+      backgroundColor: $transparentColor,
     },
     // Added outline variant styles
     buttonoutline: {
-      backgroundColor: "transparent",
+      backgroundColor: $transparentColor,
       borderWidth: 1,
       borderColor: theme.primary,
     },
@@ -48,7 +50,7 @@ export const styles = (theme: ITheme) =>
     },
     buttonText: {
       ...typography.button,
-      textAlign: "center",
+      textAlign: 'center',
       color: theme.textLight,
     },
     textprimary: {
@@ -77,4 +79,5 @@ export const styles = (theme: ITheme) =>
     icon: {
       marginRight: 8,
     },
-  });
+  })
+}

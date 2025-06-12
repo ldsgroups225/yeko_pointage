@@ -1,8 +1,10 @@
-import { StyleSheet } from "react-native";
-import { borderRadius, spacing } from "@/styles";
+import { StyleSheet } from 'react-native'
+import { borderRadius, spacing } from '@/styles'
 
-export const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+const $whiteColor = 'white'
+
+export function createStyles(theme: Theme) {
+  return StyleSheet.create({
     chip: {
       backgroundColor: theme.background,
       borderRadius: borderRadius.round,
@@ -22,6 +24,7 @@ export const createStyles = (theme: Theme) =>
       fontSize: 14,
     },
     selectedLabel: {
-      color: "white",
+      color: $whiteColor,
     },
-  });
+  })
+}

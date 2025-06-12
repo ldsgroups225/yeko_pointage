@@ -1,23 +1,23 @@
-import React from "react";
+import type { ClassSchedule, Teacher } from '@/types'
+import React from 'react'
 import {
   Modal,
-  StyleSheet,
   Pressable,
-  TouchableWithoutFeedback,
   SafeAreaView,
-} from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { CsCard, CsText, CsButton } from "@/components/commons";
-import { useThemedStyles } from "@/hooks";
-import { borderRadius, spacing } from "@/styles";
-import { extractHourAndMinute } from "@/utils/dateTime";
-import { ClassSchedule, Teacher } from "@/types";
+  StyleSheet,
+  TouchableWithoutFeedback,
+} from 'react-native'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { CsButton, CsCard, CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { borderRadius, spacing } from '@/styles'
+import { extractHourAndMinute } from '@/utils/dateTime'
 
 interface WelcomeModalProps {
-  isVisible: boolean;
-  teacher: Teacher;
-  schedule: ClassSchedule;
-  onContinue: () => void;
+  isVisible: boolean
+  teacher: Teacher
+  schedule: ClassSchedule
+  onContinue: () => void
 }
 
 const WelcomeModal: React.FC<WelcomeModalProps> = ({
@@ -26,9 +26,10 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   schedule,
   onContinue,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
-  if (!isVisible) return null;
+  if (!isVisible)
+    return null
 
   return (
     <Modal
@@ -51,12 +52,20 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             <SafeAreaView>
               <CsCard style={styles.card}>
                 <CsText variant="h3" style={styles.modalTitle}>
-                  Bienvenue, {teacher.fullName}!
+                  Bienvenue,
+                  {' '}
+                  {teacher.fullName}
+                  !
                 </CsText>
                 <CsText variant="body" style={styles.modalText}>
-                  Votre cours ici commence à{" "}
-                  {extractHourAndMinute(schedule.startTime)} et se termine à{" "}
-                  {extractHourAndMinute(schedule.endTime)}.
+                  Votre cours ici commence à
+                  {' '}
+                  {extractHourAndMinute(schedule.startTime)}
+                  {' '}
+                  et se termine à
+                  {' '}
+                  {extractHourAndMinute(schedule.endTime)}
+                  .
                 </CsText>
                 <CsButton
                   title="Continuer"
@@ -69,26 +78,29 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
         </TouchableWithoutFeedback>
       </Pressable>
     </Modal>
-  );
-};
+  )
+}
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+const $modalOverlayColor = 'rgba(0, 0, 0, 0.5)'
+const $shadowColor = '#000'
+
+function createStyles(theme: Theme) {
+  return StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "center",
-      alignItems: "center",
+      backgroundColor: $modalOverlayColor,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     modalContent: {
-      width: "80%",
+      width: '80%',
       maxWidth: 400,
     },
     card: {
       borderRadius: borderRadius.medium,
       padding: spacing.lg,
       backgroundColor: theme.card,
-      shadowColor: "#000",
+      shadowColor: $shadowColor,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
@@ -96,15 +108,16 @@ const createStyles = (theme: Theme) =>
     },
     modalTitle: {
       marginBottom: spacing.md,
-      textAlign: "center",
+      textAlign: 'center',
     },
     modalText: {
       marginBottom: spacing.lg,
-      textAlign: "center",
+      textAlign: 'center',
     },
     modalButton: {
       marginTop: spacing.md,
     },
-  });
+  })
+}
 
-export default WelcomeModal;
+export default WelcomeModal

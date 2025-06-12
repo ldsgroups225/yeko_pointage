@@ -1,16 +1,16 @@
-import { supabase } from "@/lib/supabase";
-import {
+import type {
+  AuthError,
   AuthResponse,
   AuthTokenResponsePassword,
   Session,
-  AuthError,
-} from "@supabase/auth-js";
+} from '@supabase/auth-js'
+import { supabase } from '@/lib/supabase'
 
 interface IGetSession {
   data: {
-    session: Session | null;
-  };
-  error: AuthError | null;
+    session: Session | null
+  }
+  error: AuthError | null
 }
 
 export const auth = {
@@ -24,10 +24,11 @@ export const auth = {
         email,
         password,
         options: { data: { name } },
-      });
-    } catch (error) {
-      console.error("Error creating account:", error);
-      throw error;
+      })
+    }
+    catch (error) {
+      console.error('Error creating account:', error)
+      throw error
     }
   },
 
@@ -36,28 +37,31 @@ export const auth = {
     password: string,
   ): Promise<AuthTokenResponsePassword> {
     try {
-      return await supabase.auth.signInWithPassword({ email, password });
-    } catch (error) {
-      console.error("Error creating session:", error);
-      throw error;
+      return await supabase.auth.signInWithPassword({ email, password })
+    }
+    catch (error) {
+      console.error('Error creating session:', error)
+      throw error
     }
   },
 
   async getAccount(): Promise<IGetSession> {
     try {
-      return await supabase.auth.getSession();
-    } catch (error) {
-      console.error("Error getting account information:", error);
-      throw error;
+      return await supabase.auth.getSession()
+    }
+    catch (error) {
+      console.error('Error getting account information:', error)
+      throw error
     }
   },
 
   async deleteSession(): Promise<{ error: AuthError | null }> {
     try {
-      return await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Error deleting session:", error);
-      throw error;
+      return await supabase.auth.signOut()
+    }
+    catch (error) {
+      console.error('Error deleting session:', error)
+      throw error
     }
   },
-};
+}

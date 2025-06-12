@@ -1,26 +1,28 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, SafeAreaView, Modal } from "react-native";
-import {
+import type {
   BarcodeScanningResult,
   CameraType,
+} from 'expo-camera'
+import type { ITheme } from '@/styles/theme'
+import { Ionicons } from '@expo/vector-icons'
+import {
   CameraView,
   useCameraPermissions,
-} from "expo-camera";
-import { Ionicons } from "@expo/vector-icons";
-import { QR_CODE_PREFIX } from "@/config/constants";
-import { useThemedStyles } from "@/hooks";
-import { spacing } from "@/styles";
-import { CsButton, CsText } from "@/components/commons";
-import type { ITheme } from "@/styles/theme";
-import ConfirmationModal from "./ConfirmationModal";
+} from 'expo-camera'
+import React, { useEffect, useState } from 'react'
+import { Modal, SafeAreaView, StyleSheet, View } from 'react-native'
+import { CsButton, CsText } from '@/components/commons'
+import { QR_CODE_PREFIX } from '@/config/constants'
+import { useThemedStyles } from '@/hooks'
+import { spacing } from '@/styles'
+import ConfirmationModal from './ConfirmationModal'
 
 interface QRScannerProps {
-  isVisible: boolean;
-  onScan: (data: string) => void;
-  onClose: () => void;
-  showErrorModal: boolean;
-  errorMessage: string | null;
-  setShowErrorModal: (value: boolean) => void;
+  isVisible: boolean
+  onScan: (data: string) => void
+  onClose: () => void
+  showErrorModal: boolean
+  errorMessage: string | null
+  setShowErrorModal: (value: boolean) => void
 }
 
 export const QRScanner: React.FC<QRScannerProps> = ({
@@ -31,33 +33,34 @@ export const QRScanner: React.FC<QRScannerProps> = ({
   setShowErrorModal,
   errorMessage,
 }) => {
-  const themedStyles = useThemedStyles<typeof styles>(styles);
+  const themedStyles = useThemedStyles<typeof styles>(styles)
 
-  const [scanned, setScanned] = useState(false);
-  const facing: CameraType = "back";
-  const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false)
+  const facing: CameraType = 'back'
+  const [permission, requestPermission] = useCameraPermissions()
 
   useEffect(() => {
-    requestPermission().then((r) => r);
-  }, []);
+    requestPermission().then(r => r)
+  }, [])
 
   const handleBarCodeScanned = ({ data }: BarcodeScanningResult) => {
-    setScanned(true);
+    setScanned(true)
     if (data.startsWith(QR_CODE_PREFIX)) {
-      const scanResult = data.slice(QR_CODE_PREFIX.length);
-      onScan(scanResult);
-    } else {
-      setShowErrorModal(true);
+      const scanResult = data.slice(QR_CODE_PREFIX.length)
+      onScan(scanResult)
     }
-  };
+    else {
+      setShowErrorModal(true)
+    }
+  }
 
   const handleRescan = () => {
-    setScanned(false);
-    setShowErrorModal(false);
-  };
+    setScanned(false)
+    setShowErrorModal(false)
+  }
 
   if (!permission) {
-    return <View />;
+    return <View />
   }
 
   if (!permission.granted) {
@@ -68,7 +71,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({
         </CsText>
         <CsButton onPress={requestPermission} title="Accorder l'autorisation" />
       </View>
-    );
+    )
   }
 
   return (
@@ -82,13 +85,13 @@ export const QRScanner: React.FC<QRScannerProps> = ({
             onPress={onClose}
             title=""
             style={themedStyles.closeButton}
-            icon={
+            icon={(
               <Ionicons
                 name="close"
                 size={24}
                 color={themedStyles.closeButton.color}
               />
-            }
+            )}
           />
         </View>
         <View style={themedStyles.cameraContainer}>
@@ -96,7 +99,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({
             style={themedStyles.camera}
             facing={facing}
             barcodeScannerSettings={{
-              barcodeTypes: ["qr"],
+              barcodeTypes: ['qr'],
             }}
             onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
           >
@@ -115,38 +118,41 @@ export const QRScanner: React.FC<QRScannerProps> = ({
           isVisible={showErrorModal}
           onConfirm={handleRescan}
           onCancel={handleRescan}
-          message={errorMessage || "Code QR invalide"}
+          message={errorMessage || 'Code QR invalide'}
           title="Erreur"
           confirmText="Scanner à nouveau"
           cancelText="Fermer"
         />
       </SafeAreaView>
     </Modal>
-  );
-};
+  )
+}
 
-const styles = (theme: ITheme) =>
-  StyleSheet.create({
+const $transparentColor = 'transparent'
+const $overlayColor = 'rgba(0,0,0,0.5)'
+
+function styles(theme: ITheme) {
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background,
     },
     header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       padding: spacing.md,
     },
     title: {
       color: theme.text,
     },
     closeButton: {
-      backgroundColor: "transparent",
+      backgroundColor: $transparentColor,
       color: theme.text,
     },
     cameraContainer: {
       flex: 1,
-      overflow: "hidden",
+      overflow: 'hidden',
       borderRadius: 16,
       margin: spacing.md,
     },
@@ -155,23 +161,24 @@ const styles = (theme: ITheme) =>
     },
     scanOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
-      justifyContent: "center",
-      alignItems: "center",
+      backgroundColor: $overlayColor,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     scanFrame: {
       width: 250,
       height: 250,
       borderWidth: 2,
       borderColor: theme.primary,
-      backgroundColor: "transparent",
+      backgroundColor: $transparentColor,
     },
     footer: {
       padding: spacing.md,
-      alignItems: "center",
+      alignItems: 'center',
     },
     footerText: {
       color: theme.text,
-      textAlign: "center",
+      textAlign: 'center',
     },
-  });
+  })
+}

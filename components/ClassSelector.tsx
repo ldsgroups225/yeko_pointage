@@ -1,14 +1,14 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
-import { CsListTile, CsText } from "@/components/commons";
-import { useThemedStyles } from "@/hooks";
-import { spacing } from "@/styles";
-import { Class } from "@/types";
+import type { Class } from '@/types'
+import React from 'react'
+import { StyleSheet, View } from 'react-native'
+import { CsListTile, CsText } from '@/components/commons'
+import { useThemedStyles } from '@/hooks'
+import { spacing } from '@/styles'
 
 interface ClassSelectorProps {
-  classes: Class[];
-  selectedClass: Class | null;
-  onSelectClass: (classItem: Class) => void;
+  classes: Class[]
+  selectedClass: Class | null
+  onSelectClass: (classItem: Class) => void
 }
 
 export const ClassSelector: React.FC<ClassSelectorProps> = ({
@@ -16,28 +16,28 @@ export const ClassSelector: React.FC<ClassSelectorProps> = ({
   selectedClass,
   onSelectClass,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const styles = useThemedStyles(createStyles)
 
   return (
     <View style={styles.container}>
       <CsText variant="h3" style={styles.title}>
         Select Class
       </CsText>
-      {classes.map((classItem) => (
+      {classes.map(classItem => (
         <CsListTile
           key={classItem.id}
           title={classItem.name}
           onPress={() => onSelectClass(classItem)}
-          trailing={selectedClass?.id === classItem.id ? "✓" : undefined}
+          trailing={selectedClass?.id === classItem.id ? '✓' : undefined}
           style={styles.listTile}
         />
       ))}
     </View>
-  );
-};
+  )
+}
 
-const createStyles = () =>
-  StyleSheet.create({
+function createStyles() {
+  return StyleSheet.create({
     container: {
       marginVertical: spacing.md,
     },
@@ -47,4 +47,5 @@ const createStyles = () =>
     listTile: {
       marginBottom: spacing.xs,
     },
-  });
+  })
+}

@@ -1,6 +1,6 @@
 export enum UserRoleText {
-  DIRECTOR = "director",
-  TEACHER = "teacher",
+  DIRECTOR = 'director',
+  TEACHER = 'teacher',
 }
 
 export enum ERole {

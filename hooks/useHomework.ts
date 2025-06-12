@@ -1,41 +1,43 @@
-import { useState } from "react";
-import { homework } from "@/services/homework";
-import { Homework } from "@/types";
-import { useAtomValue } from "jotai";
-import { metaDataAtom } from "@/store/atoms";
+import type { Homework } from '@/types'
+import { useAtomValue } from 'jotai'
+import { useState } from 'react'
+import { homework } from '@/services/homework'
+import { metaDataAtom } from '@/store/atoms'
 
 interface UseHomeworkReturn {
-  loading: boolean;
-  error: string | null;
-  createHomework: (homeworkData: Homework) => Promise<void>;
+  loading: boolean
+  error: string | null
+  createHomework: (homeworkData: Homework) => Promise<void>
 }
 
-export const useHomework = (): UseHomeworkReturn => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function useHomework(): UseHomeworkReturn {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const metaData = useAtomValue(metaDataAtom);
+  const metaData = useAtomValue(metaDataAtom)
 
   const createHomework = async (homeworkData: Homework): Promise<void> => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
       if (!metaData) {
-        throw new Error("No metaData found");
+        throw new Error('No metaData found')
       }
-      await homework.createHomework(homeworkData, metaData);
-    } catch (err) {
-      console.error("[E_CREATE_HOMEWORK]:", err);
-      setError("Failed to create homework record.");
-      throw err;
-    } finally {
-      setLoading(false);
+      await homework.createHomework(homeworkData, metaData)
     }
-  };
+    catch (err) {
+      console.error('[E_CREATE_HOMEWORK]:', err)
+      setError('Failed to create homework record.')
+      throw err
+    }
+    finally {
+      setLoading(false)
+    }
+  }
 
   return {
     createHomework,
     loading,
     error,
-  };
-};
+  }
+}

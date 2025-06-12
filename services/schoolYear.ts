@@ -1,11 +1,11 @@
-"use server";
+'use server'
 
+import type { ISchoolYear, ISemester } from '@/types'
 import {
   SCHOOL_YEAR_TABLE_ID,
   SEMESTER_TABLE_ID,
   supabase,
-} from "@/lib/supabase";
-import type { ISchoolYear, ISemester } from "@/types";
+} from '@/lib/supabase'
 
 export const schoolYear = {
   /**
@@ -20,25 +20,26 @@ export const schoolYear = {
     try {
       const { data, error } = await supabase
         .from(SCHOOL_YEAR_TABLE_ID)
-        .select("id, name:academic_year_name")
-        .order("end_year", { ascending: false })
+        .select('id, name:academic_year_name')
+        .order('end_year', { ascending: false })
         .limit(1)
-        .throwOnError();
+        .throwOnError()
 
       if (error) {
-        console.error("Error fetching school year:", error);
-        throw error;
+        console.error('Error fetching school year:', error)
+        throw error
       }
 
       if (!data.length) {
-        console.error("No school year found");
-        throw new Error("No school year found");
+        console.error('No school year found')
+        throw new Error('No school year found')
       }
 
-      return data[0];
-    } catch (error) {
-      console.error("Error fetching school details:", error);
-      throw error;
+      return data[0]
+    }
+    catch (error) {
+      console.error('Error fetching school details:', error)
+      throw error
     }
   },
 
@@ -55,27 +56,28 @@ export const schoolYear = {
     try {
       const { data, error } = await supabase
         .from(SEMESTER_TABLE_ID)
-        .select("id, semester_name, start_date, is_current")
-        .eq("school_year_id", schoolYearId)
-        .order("start_date", { ascending: true })
-        .throwOnError();
+        .select('id, semester_name, start_date, is_current')
+        .eq('school_year_id', schoolYearId)
+        .order('start_date', { ascending: true })
+        .throwOnError()
 
       if (error) {
-        console.error("Error fetching semesters:", error);
-        throw error;
+        console.error('Error fetching semesters:', error)
+        throw error
       }
 
       return (
-        data.map((semester) => ({
+        data.map(semester => ({
           id: semester.id,
           name: semester.semester_name,
           startDate: semester.start_date,
           isCurrent: semester.is_current,
         })) ?? []
-      );
-    } catch (error) {
-      console.error("Error fetching semesters:", error);
-      throw error;
+      )
+    }
+    catch (error) {
+      console.error('Error fetching semesters:', error)
+      throw error
     }
   },
-};
+}

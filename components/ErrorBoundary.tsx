@@ -1,27 +1,59 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import type { ErrorInfo, ReactNode } from 'react'
+import React, { Component } from 'react'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 interface Props {
-  children: ReactNode;
+  children: ReactNode
 }
 
 interface State {
-  hasError: boolean;
-  error: Error | null;
+  hasError: boolean
+  error: Error | null
 }
+
+const $blueColor = '#4A90E2'
+const $whiteColor = '#FFFFFF'
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  message: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: $blueColor,
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: $whiteColor,
+    fontSize: 16,
+  },
+})
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
-  };
+  }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error('Uncaught error:', error, errorInfo)
   }
 
   render() {
@@ -37,39 +69,11 @@ class ErrorBoundary extends Component<Props, State> {
             <Text style={styles.buttonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  message: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-  },
-});
-
-export default ErrorBoundary;
+export default ErrorBoundary

@@ -6,7 +6,7 @@
  * @returns {string} The full name in the format "FirstName LastName".
  */
 export function formatFullName(firstName: string, lastName: string): string {
-  return `${firstName} ${lastName}`;
+  return `${firstName} ${lastName}`
 }
 
 /**
@@ -18,11 +18,13 @@ export function formatFullName(firstName: string, lastName: string): string {
  */
 export function formatInitials(firstName: string, lastName?: string): string {
   if (firstName && lastName) {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
   }
-  if (firstName) return `${firstName.charAt(0)}`.toUpperCase();
-  if (lastName) return `${lastName.charAt(0)}`.toUpperCase();
-  return "";
+  if (firstName)
+    return `${firstName.charAt(0)}`.toUpperCase()
+  if (lastName)
+    return `${lastName.charAt(0)}`.toUpperCase()
+  return ''
 }
 
 /**
@@ -32,12 +34,12 @@ export function formatInitials(firstName: string, lastName?: string): string {
  * @returns {string} The formatted phone number. If the input cannot be formatted, returns the original phone number.
  */
 export function formatPhoneNumber(phoneNumber: string): string {
-  const cleaned = ("" + phoneNumber).replace(/\D/g, "");
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  const cleaned = (`${phoneNumber}`).replace(/\D/g, '')
+  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
   if (match) {
-    return `(${match[1]}) ${match[2]}-${match[3]}`;
+    return `(${match[1]}) ${match[2]}-${match[3]}`
   }
-  return phoneNumber;
+  return phoneNumber
 }
 
 /**
@@ -48,6 +50,7 @@ export function formatPhoneNumber(phoneNumber: string): string {
  * @returns {string} The truncated text, ending with "..." if it exceeds the maximum length. If the text is within the maximum length, returns the text unchanged.
  */
 export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength - 3) + "...";
+  if (text.length <= maxLength)
+    return text
+  return `${text.slice(0, maxLength - 3)}...`
 }

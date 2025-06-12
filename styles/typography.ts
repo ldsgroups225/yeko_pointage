@@ -1,5 +1,5 @@
-import { TextStyle } from "react-native";
-import { fonts } from "./fonts";
+import type { TextStyle } from 'react-native'
+import { fonts } from './fonts'
 
 /**
  * Defines the typography styles for the application.
@@ -60,16 +60,16 @@ export const typography: { [key: string]: TextStyle } = {
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: 1.25,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
   overline: {
     fontFamily: fonts.regular,
     fontSize: 10,
     lineHeight: 16,
     letterSpacing: 1.5,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
-};
+}
 
 /**
  * Helper function to create a new text style with modified properties.
@@ -77,12 +77,9 @@ export const typography: { [key: string]: TextStyle } = {
  * @param modifications - An object containing the properties to change or add.
  * @returns A new TextStyle object with the applied modifications.
  */
-export const createTextStyle = (
-  baseStyle: TextStyle,
-  modifications: Partial<TextStyle>,
-): TextStyle => {
-  return { ...baseStyle, ...modifications };
-};
+export function createTextStyle(baseStyle: TextStyle, modifications: Partial<TextStyle>): TextStyle {
+  return { ...baseStyle, ...modifications }
+}
 
 /**
  * Examples of using the createTextStyle function to create variants:
@@ -94,4 +91,4 @@ export const typographyVariants = {
     fontFamily: fonts.medium,
   }),
   // Add more variants as needed
-};
+}
