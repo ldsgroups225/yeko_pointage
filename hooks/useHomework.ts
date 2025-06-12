@@ -20,9 +20,16 @@ export function useHomework(): UseHomeworkReturn {
     setLoading(true)
     setError(null)
     try {
-      if (!metaData) {
-        throw new Error('No metaData found')
+      if (
+        !metaData?.schoolId
+        || !metaData.semesterId
+        || !metaData.schoolYearId
+      ) {
+        throw new Error(
+          'Metadata is incomplete for creating participation note.',
+        )
       }
+
       await homework.createHomework(homeworkData, metaData)
     }
     catch (err) {

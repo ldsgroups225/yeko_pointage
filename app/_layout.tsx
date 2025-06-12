@@ -6,8 +6,9 @@ import { StyleSheet } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider } from '@/providers/AuthProvider'
 import ThemeProvider from '@/providers/ThemeProvider'
-
 import { userColorSchemeAtom } from '@/store/atoms'
+
+import 'react-native-url-polyfill/auto'
 
 const styles = StyleSheet.create({
   flex1: {

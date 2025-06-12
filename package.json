@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "dev": "expo run:android",
     "ios": "expo run:ios",
+    "typecheck": "tsc --noEmit",
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "eslint .",

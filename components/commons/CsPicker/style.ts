@@ -15,5 +15,8 @@ export function createStyles(theme: Theme) {
       borderWidth: 1,
       borderRadius: 4,
     },
+    placeholder: {
+      color: theme.textLight,
+    },
   })
 }

@@ -11,11 +11,27 @@ export const participation = {
     metaData: IMetaDataDTO,
   ): Promise<void> {
     try {
+      if (
+        !metaData?.classId
+        || !metaData.teacherId
+        || !metaData.subjectId
+        || !metaData.schoolId
+        || !metaData.semesterId
+        || !metaData.schoolYearId
+      ) {
+        throw new Error(
+          'Metadata is incomplete for creating participation note.',
+        )
+      }
+
       const currentDate = new Date()
       const noteData: INoteDTO = {
-        classId: metaData.classId!,
-        teacherId: metaData.teacherId!,
-        subjectId: metaData.subjectId!,
+        classId: metaData.classId,
+        schoolId: metaData.schoolId,
+        teacherId: metaData.teacherId,
+        subjectId: metaData.subjectId,
+        semesterId: metaData.semesterId,
+        schoolYearId: metaData.schoolYearId,
         dueDate: currentDate,
         noteType: 'PARTICIPATION',
         isGraded: false,
@@ -23,9 +39,6 @@ export const participation = {
         isActive: true,
         isPublished: true,
         publishedAt: currentDate,
-        schoolId: metaData.schoolId!,
-        semesterId: metaData.semesterId!,
-        schoolYearId: metaData.schoolYearId!,
         weight: 1, // Pondération conditionnelle
       }
 
