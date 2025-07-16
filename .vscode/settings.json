@@ -73,9 +73,16 @@
     "ios"
   ],
   "cSpell.language": "en, fr",
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "headerClassName"
+  ],
   "cSpell.words": [
-    "MMKV",
-    "notée",
-    "participations"
+    "ldsgroup",
+    "ldsgroups",
+    "roninoss",
+    "yeko",
+    "Yeko"
   ]
 }

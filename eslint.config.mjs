@@ -23,6 +23,8 @@ export default antfu(
       'build/',
       '*.config.js',
       '.eas/',
+      'android/',
+      'ios/',
     ],
   },
 

@@ -36,6 +36,7 @@ local.properties
 node_modules/
 npm-debug.log
 yarn-error.log
+bun-debug.log
 
 # BUCK
 buck-out/
@@ -93,6 +94,7 @@ web-build/
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+bun-debug.*
 
 # macOS
 .DS_Store

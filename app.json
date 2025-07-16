@@ -3,12 +3,13 @@
     "name": "Yeko Pointage",
     "slug": "yeko-pointage",
     "version": "1.0.0",
+    "scheme": "yekopointage",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -21,6 +22,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "edgeToEdgeEnabled": true,
       "package": "io.ldsgroup.yeko_pointage",
       "permissions": [
         "android.permission.CAMERA",
@@ -28,25 +30,19 @@
       ]
     },
     "web": {
-      "bundler": "metro",
+      "favicon": "./assets/images/favicon.png",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "experiments": {
-      "typedRoutes": true
+      "bundler": "metro"
     },
     "plugins": [
-      "expo-router",
-      "expo-camera",
-      "expo-font"
+      "expo-router"
     ],
     "extra": {
-      "router": {
-        "origin": false
-      },
+      "router": {},
       "eas": {
         "projectId": "ab681a19-85d8-4808-905a-849369ea71ef"
       }
-    }
+    },
+    "owner": "ldsgroups225"
   }
 }
