@@ -80,6 +80,20 @@ export default function TeacherLayout() {
       <Stack.Screen name="attendance" />
       <Stack.Screen name="participation" />
       <Stack.Screen name="lesson-progress" />
+      <Stack.Screen
+        name="confirmation-modal"
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="homework-modal"
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
+      />
     </Stack>
   )
 }

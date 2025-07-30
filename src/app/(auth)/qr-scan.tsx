@@ -2,11 +2,10 @@ import { Icon } from '@roninoss/icons'
 import * as Haptics from 'expo-haptics'
 import { useRouter } from 'expo-router'
 import { useAtomValue, useSetAtom } from 'jotai'
-import React, { useEffect, useState, useTransition } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Animated, Easing, Image, View } from 'react-native'
 import { Button, Text, ThemeToggle } from '@/components/nativeui'
 import { QRScanner } from '@/components/QRScanner'
-import { WelcomeModal } from '@/components/WelcomeModal'
 
 import { useClass, useLessonProgress, useSchool } from '@/hooks'
 import { useSchoolYear } from '@/hooks/useSchoolYear'
@@ -37,7 +36,6 @@ export default function QRScanScreen() {
   const { colors } = useColorScheme()
   const [showScanner, setShowScanner] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const [networkTestPassed, setNetworkTestPassed] = useState<boolean | null>(null)
   const [networkTesting, setNetworkTesting] = useState(false)
 
@@ -45,8 +43,6 @@ export default function QRScanScreen() {
   const schedules = useAtomValue(classScheduleAtom)
   const currentClass = useAtomValue(currentClassAtom)
   const currentTeacher = useAtomValue(currentTeacherAtom)
-  const currentSchedule = useAtomValue(currentScheduleAtom)
-  const lessonProgress = useAtomValue(lessonProgressAtom)
   const updateMetaData = useSetAtom(updateMetaDataAtom)
   const setLessonProgress = useSetAtom(lessonProgressAtom)
   const setCurrentTeacher = useSetAtom(currentTeacherAtom)
@@ -144,7 +140,24 @@ export default function QRScanScreen() {
     }
 
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    setShowWelcomeModal(true)
+
+    // Navigate to welcome modal
+    if (currentTeacher) {
+      router.push({
+        pathname: '/(auth)/welcome-modal',
+        params: {
+          teacher: JSON.stringify(currentTeacher),
+          schedule: JSON.stringify(schedule),
+          lessonProgress: lessonProgress ? JSON.stringify(lessonProgress) : undefined,
+          onContinuePath: '/(teacher)/attendance',
+          onContinueParams: JSON.stringify({
+            teacherId: currentTeacher.id,
+            classId: currentClass!.id,
+            scheduleId: schedule.id,
+          }),
+        },
+      })
+    }
   }
 
   const handleQRScan = async (data: string) => {
@@ -164,20 +177,6 @@ export default function QRScanScreen() {
     }
     else {
       handleError(setError, 'Ce QrCode n\'est pas valide')
-    }
-  }
-
-  const handleContinue = () => {
-    setShowWelcomeModal(false)
-    if (currentTeacher && currentSchedule && currentClass) {
-      router.replace({
-        pathname: '/(teacher)/attendance',
-        params: {
-          teacherId: currentTeacher.id,
-          classId: currentClass.id,
-          scheduleId: currentSchedule.id,
-        },
-      })
     }
   }
 
@@ -299,15 +298,6 @@ export default function QRScanScreen() {
         </Animated.View>
       )}
 
-      {currentTeacher && currentSchedule && (
-        <WelcomeModal
-          teacher={currentTeacher}
-          schedule={currentSchedule}
-          isVisible={showWelcomeModal}
-          lessonProgress={lessonProgress}
-          onContinue={handleContinue}
-        />
-      )}
     </View>
   )
 }

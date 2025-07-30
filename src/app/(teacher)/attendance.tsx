@@ -1,11 +1,10 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { useAtomValue } from 'jotai'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { FlatList, StyleSheet, View } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatCard, StudentCard } from '@/components/attendance'
-import { ConfirmationModal } from '@/components/ConfirmationModal'
 import { Button, Text } from '@/components/nativeui'
 import { useAttendanceRecords } from '@/hooks/useAttendanceRecords'
 import { useColorScheme } from '@/lib/useColorScheme'
@@ -37,26 +36,26 @@ export default function AttendanceScreen() {
     finalizeAttendance,
   } = useAttendanceRecords(students, teacherId, classId, currentSchedule)
 
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-
   const handleFinalize = () => {
     if (isLaterStep) {
       finalizeAttendance()
-      // This will navigate to the next screen after confirmation
-      setShowConfirmationModal(true)
+      // Navigate to confirmation modal
+      router.push({
+        pathname: '/(teacher)/confirmation-modal',
+        params: {
+          title: 'Finaliser l\'appel',
+          message: 'L\'appel est terminé. Voulez-vous maintenant passer à l\'attribution des points de participation ?',
+          confirmText: 'Continuer',
+          cancelText: 'Annuler',
+          onConfirmPath: '/(teacher)/participation',
+          onConfirmParams: JSON.stringify({ teacherId, classId }),
+        },
+      })
     }
     else {
       // This just marks the end of the initial roll call
       setIsFirstAttendanceFinished(true)
     }
-  }
-
-  const confirmAndProceed = () => {
-    setShowConfirmationModal(false)
-    router.push({
-      pathname: '/(teacher)/participation',
-      params: { teacherId, classId },
-    })
   }
 
   const getTitle = () => isLaterStep ? TITLE2 : TITLE1
@@ -157,15 +156,6 @@ export default function AttendanceScreen() {
           </View>
         </View>
 
-        <ConfirmationModal
-          isVisible={showConfirmationModal}
-          onConfirm={confirmAndProceed}
-          onCancel={() => setShowConfirmationModal(false)}
-          title="Finaliser l'appel"
-          message="L'appel est terminé. Voulez-vous maintenant passer à l'attribution des points de participation ?"
-          confirmText="Continuer"
-          cancelText="Annuler"
-        />
       </SafeAreaView>
     </>
   )

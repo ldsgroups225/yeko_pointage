@@ -10,6 +10,13 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="qr-scan" />
       <Stack.Screen name="login" />
+      <Stack.Screen
+        name="welcome-modal"
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
+      />
     </Stack>
   )
 }
