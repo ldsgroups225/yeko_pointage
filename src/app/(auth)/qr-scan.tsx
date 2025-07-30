@@ -39,7 +39,7 @@ export default function QRScanScreen() {
   const [error, setError] = useState<string | null>(null)
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const [networkTestPassed, setNetworkTestPassed] = useState<boolean | null>(null)
-  const [networkTesting, startTransition] = useTransition()
+  const [networkTesting, setNetworkTesting] = useState(false)
 
   const teachers = useAtomValue(teachersListAtom)
   const schedules = useAtomValue(classScheduleAtom)
@@ -181,16 +181,16 @@ export default function QRScanScreen() {
     }
   }
 
-  const handleNetworkTest = () => startTransition(
-    async () => {
-      setNetworkTestPassed(null)
-      const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
-      if (error) {
-        setNetworkTestPassed(false)
-      }
-      else { setNetworkTestPassed(true) }
-    },
-  )
+  const handleNetworkTest = async () => {
+    setNetworkTesting(true)
+    setNetworkTestPassed(null)
+    const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
+    if (error) {
+      setNetworkTestPassed(false)
+    }
+    else { setNetworkTestPassed(true) }
+    setNetworkTesting(false)
+  }
 
   const toggleScanner = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
