@@ -1,14 +1,12 @@
-import type { Homework, ParticipationSession, Student } from '@/types'
+import type { ParticipationSession, Student } from '@/types'
 import { Icon } from '@roninoss/icons'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { useAtomValue, useSetAtom } from 'jotai'
-import React, { useMemo, useState } from 'react'
-import { FlatList, Modal, Pressable, StyleSheet, View } from 'react-native'
+import React, { useMemo } from 'react'
+import { FlatList, StyleSheet, View } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ConfirmationModal } from '@/components/ConfirmationModal'
-import { HomeworkForm } from '@/components/homework/HomeworkForm'
-import { Button, Text, TextField } from '@/components/nativeui'
+import { Button, Text } from '@/components/nativeui'
 import { StudentParticipationCard } from '@/components/participation'
 import { StatCard } from '@/components/StatCard'
 import { useParticipationManagement } from '@/hooks/useParticipationManagement'
@@ -33,12 +31,9 @@ export default function ParticipationScreen() {
   const {
     students,
     participations,
-    comment,
     participationStats,
     toggleParticipation,
     openCommentModal,
-    saveComment,
-    setComment,
     isParticipationRangeValid,
   } = useParticipationManagement()
 
@@ -46,12 +41,6 @@ export default function ParticipationScreen() {
   const setCurrentParticipationSession = useSetAtom(
     currentParticipationSessionAtom,
   )
-
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-  const [showHomeworkConfirm, setShowHomeworkConfirm] = useState(false)
-  const [showCommentModal, setShowCommentModal] = useState(false)
-  const [showInvalidRangeAlert, setShowInvalidRangeAlert] = useState(false)
-  const [showHomeworkSheet, setShowHomeworkSheet] = useState(false)
 
   const participationMap = useMemo(() => {
     return participations.reduce<Record<string, any>>((map, p) => {
@@ -69,53 +58,61 @@ export default function ParticipationScreen() {
         participations,
       }
       setCurrentParticipationSession(session)
-      setShowConfirmationModal(true)
-    }
-    else {
-      setShowInvalidRangeAlert(true)
-    }
-  }
 
-  const onHomeworkConfirmation = (hasHomework: boolean) => {
-    setShowHomeworkConfirm(false)
-    if (hasHomework) {
-      setShowHomeworkSheet(true)
+      // Navigate to confirmation modal
+      router.push({
+        pathname: '/(teacher)/confirmation-modal',
+        params: {
+          title: 'Terminer la session',
+          message: 'Vous avez terminé l\'attribution des participations. Voulez-vous continuer ?',
+          confirmText: 'Continuer',
+          cancelText: 'Annuler',
+          onConfirmPath: '/(teacher)/confirmation-modal',
+          onConfirmParams: JSON.stringify({
+            title: 'Devoirs de maison',
+            message: 'Avez-vous assigné un exercice de maison pour ce cours ?',
+            confirmText: 'Oui',
+            cancelText: 'Non',
+            onConfirmPath: '/(teacher)/homework-modal',
+            onConfirmParams: JSON.stringify({ teacherId, classId }),
+            onCancelPath: '/(teacher)/lesson-progress',
+            onCancelParams: JSON.stringify({ teacherId, classId }),
+          }),
+          onCancelPath: '/(teacher)/participation',
+          onCancelParams: JSON.stringify({ teacherId, classId }),
+        },
+      })
     }
     else {
-      router.replace({
-        pathname: '/(teacher)/lesson-progress',
-        params: { teacherId, classId },
+      // Show invalid range alert
+      router.push({
+        pathname: '/(teacher)/confirmation-modal',
+        params: {
+          title: 'Nombre de participations invalide',
+          message: 'Veuillez sélectionner entre 1 et 5 élèves ayant participé.',
+          confirmText: 'OK',
+          onConfirmPath: '/(teacher)/participation',
+          onConfirmParams: JSON.stringify({ teacherId, classId }),
+        },
       })
     }
   }
 
-  const onHomeworkSubmit = (
-    data: Omit<
-      Homework,
-      'id' | 'classId' | 'teacherId' | 'subjectId' | 'semesterId'
-    >,
-  ) => {
-    const homework: Homework = {
-      ...data,
-      teacherId,
-      classId,
-      subjectId: currentSchedule!.subjectId,
-    }
-    setShowHomeworkSheet(false)
-    router.replace({
-      pathname: '/(teacher)/lesson-progress',
-      params: { homework: JSON.stringify(homework), teacherId, classId },
-    })
-  }
-
   const handleOpenCommentModal = (studentId: string) => {
     openCommentModal(studentId)
-    setShowCommentModal(true)
-  }
-
-  const handleSaveComment = () => {
-    saveComment()
-    setShowCommentModal(false)
+    // Navigate to comment modal
+    router.push({
+      pathname: '/(teacher)/confirmation-modal',
+      params: {
+        title: 'Ajouter un commentaire',
+        confirmText: 'Enregistrer',
+        cancelText: 'Annuler',
+        onConfirmPath: '/(teacher)/participation',
+        onConfirmParams: JSON.stringify({ teacherId, classId }),
+        onCancelPath: '/(teacher)/participation',
+        onCancelParams: JSON.stringify({ teacherId, classId }),
+      },
+    })
   }
 
   return (
@@ -184,69 +181,6 @@ export default function ParticipationScreen() {
           </View>
         </View>
 
-        {/* Modals */}
-        <ConfirmationModal
-          isVisible={showConfirmationModal}
-          onConfirm={() => {
-            setShowConfirmationModal(false)
-            setShowHomeworkConfirm(true)
-          }}
-          onCancel={() => setShowConfirmationModal(false)}
-          title="Terminer la session"
-          message="Vous avez terminé l'attribution des participations. Voulez-vous continuer ?"
-        />
-
-        <ConfirmationModal
-          isVisible={showHomeworkConfirm}
-          onConfirm={() => onHomeworkConfirmation(true)}
-          onCancel={() => onHomeworkConfirmation(false)}
-          title="Devoirs de maison"
-          message="Avez-vous assigné un exercice de maison pour ce cours ?"
-        />
-
-        <ConfirmationModal
-          isVisible={showCommentModal}
-          onConfirm={handleSaveComment}
-          onCancel={() => setShowCommentModal(false)}
-          title="Ajouter un commentaire"
-          confirmText="Enregistrer"
-        >
-          <TextField
-            value={comment}
-            onChangeText={setComment}
-            placeholder="Ajouter une observation..."
-            multiline
-            numberOfLines={4}
-            containerClassName="w-full mb-4"
-            className="h-24 items-start"
-          />
-        </ConfirmationModal>
-
-        <ConfirmationModal
-          isVisible={showInvalidRangeAlert}
-          onConfirm={() => setShowInvalidRangeAlert(false)}
-          title="Nombre de participations invalide"
-          confirmText="OK"
-          message="Veuillez sélectionner entre 1 et 5 élèves ayant participé."
-        />
-
-        <Modal
-          visible={showHomeworkSheet}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowHomeworkSheet(false)}
-        >
-          <View className="flex-1 justify-end bg-black/50">
-            <Pressable
-              className="flex-1"
-              onPress={() => setShowHomeworkSheet(false)}
-            />
-            <HomeworkForm
-              onSubmit={onHomeworkSubmit}
-              onCancel={() => setShowHomeworkSheet(false)}
-            />
-          </View>
-        </Modal>
       </SafeAreaView>
     </>
   )

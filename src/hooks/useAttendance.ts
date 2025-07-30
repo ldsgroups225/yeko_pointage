@@ -1,9 +1,11 @@
 import type { AttendanceRecord } from '@/types'
+import { useAtomValue } from 'jotai'
 import { useState } from 'react'
 import { attendance } from '@/services/attendance'
+import { metaDataAtom } from '@/store/atoms'
 
 interface UseAttendanceReturn {
-  createAttendance: (attendanceData: AttendanceRecord) => Promise<void>
+  // createAttendance: (attendanceData: AttendanceRecord) => Promise<void>
   createAttendances: (attendanceDataArray: AttendanceRecord[]) => Promise<void>
   loading: boolean
   error: string | null
@@ -13,23 +15,25 @@ export function useAttendance(): UseAttendanceReturn {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createAttendance = async (
-    attendanceData: AttendanceRecord,
-  ): Promise<void> => {
-    setLoading(true)
-    setError(null)
-    try {
-      await attendance.createAttendance(attendanceData)
-    }
-    catch (err) {
-      console.error('[E_CREATE_ATTENDANCE]:', err)
-      setError('Failed to create attendance record.')
-      throw err
-    }
-    finally {
-      setLoading(false)
-    }
-  }
+  const metaData = useAtomValue(metaDataAtom)
+
+  // const createAttendance = async (
+  //   attendanceData: AttendanceRecord,
+  // ): Promise<void> => {
+  //   setLoading(true)
+  //   setError(null)
+  //   try {
+  //     await attendance.createAttendance(attendanceData)
+  //   }
+  //   catch (err) {
+  //     console.error('[E_CREATE_ATTENDANCE]:', err)
+  //     setError('Failed to create attendance record.')
+  //     throw err
+  //   }
+  //   finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   const createAttendances = async (
     attendanceDataArray: AttendanceRecord[],
@@ -37,7 +41,7 @@ export function useAttendance(): UseAttendanceReturn {
     setLoading(true)
     setError(null)
     try {
-      await attendance.createAttendances(attendanceDataArray)
+      await attendance.createAttendances(attendanceDataArray, metaData!)
     }
     catch (err) {
       console.error('[E_CREATE_ATTENDANCES]:', err)
@@ -50,7 +54,7 @@ export function useAttendance(): UseAttendanceReturn {
   }
 
   return {
-    createAttendance,
+    // createAttendance,
     createAttendances,
     loading,
     error,

@@ -5,6 +5,7 @@ import {
   useAttendance,
   useHomework,
   useLessonProgress,
+  useMetadataValidation,
   useParticipation,
 } from '@/hooks'
 import {
@@ -39,6 +40,9 @@ export function useSessionFinalization() {
   const setCurrentSchedule = useSetAtom(currentScheduleAtom)
   const setLessonProgress = useSetAtom(lessonProgressAtom)
 
+  // Metadata validation hook
+  const { validate, validationResult } = useMetadataValidation()
+
   // Hooks that provide submission services
   const { createAttendances } = useAttendance()
   const { createParticipations } = useParticipation()
@@ -53,14 +57,16 @@ export function useSessionFinalization() {
     setError(null)
 
     try {
-      // --- 1. Data Validation ---
+      // --- 1. Enhanced Data Validation ---
       if (!currentAttendanceSession)
         throw new Error('Les données sur les présences sont manquantes.')
 
       if (!currentParticipationSession)
         throw new Error('Les données sur les participations sont manquantes.')
 
-      if (!metaData?.classId || !metaData?.subjectId) {
+      // Enhanced metadata validation with detailed error message
+      const { isValid, missingFields: _missingFields } = validate()
+      if (!isValid) {
         throw new Error(
           'Certains paramètres de la session sont manquants. Veuillez recommencer le processus.',
         )
@@ -70,6 +76,7 @@ export function useSessionFinalization() {
       const mutationPromises: Promise<any>[] = []
 
       // Attendance Promise (only submits students who were not present)
+      console.warn('currentAttendanceSession', JSON.stringify(currentAttendanceSession, null, 2))
       if (currentAttendanceSession.records.length > 0) {
         mutationPromises.push(
           createAttendances(currentAttendanceSession.records),
@@ -91,8 +98,8 @@ export function useSessionFinalization() {
       if (lessonSessionCompleted) {
         mutationPromises.push(
           updateLessonProgress({
-            classId: metaData.classId,
-            subjectId: metaData.subjectId,
+            classId: metaData!.classId!,
+            subjectId: metaData!.subjectId!,
             sessionsToAdd: 1,
             isForceCompleted: false, // The UI for forcing completion was removed
           }),
@@ -133,5 +140,7 @@ export function useSessionFinalization() {
     finalize,
     isSubmitting,
     error,
+    isMetadataValid: validationResult.isValid,
+    missingFields: validationResult.missingFields,
   }
 }

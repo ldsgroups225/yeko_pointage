@@ -22,7 +22,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "package": "io.ldsgroup.yeko_pointage",
       "permissions": [
         "android.permission.CAMERA",

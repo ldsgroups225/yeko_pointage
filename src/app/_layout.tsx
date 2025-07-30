@@ -26,7 +26,7 @@ export default function RootLayout() {
 
       <NavThemeProvider value={NAV_THEME[colorScheme]}>
         <Stack>
-          <Stack.Screen name="index" />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(director)" options={{ headerShown: false }} />

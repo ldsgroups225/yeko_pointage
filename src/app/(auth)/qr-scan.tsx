@@ -1,19 +1,25 @@
+import { Icon } from '@roninoss/icons'
+import * as Haptics from 'expo-haptics'
 import { useRouter } from 'expo-router'
 import { useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
 import { Animated, Easing, Image, View } from 'react-native'
 import { Button, Text, ThemeToggle } from '@/components/nativeui'
 import { QRScanner } from '@/components/QRScanner'
-import { WelcomeModal } from '@/components/WelcomeModal'
 
-import { useLessonProgress } from '@/hooks'
-import { useSchoolYear } from '@/hooks/useSchoolYear'
+import { useClass, useLessonProgress, useMetadataValidation, useSchool } from '@/hooks'
+import { cn } from '@/lib/cn'
+import { supabase } from '@/lib/supabase'
+import { useColorScheme } from '@/lib/useColorScheme'
 import {
   classScheduleAtom,
   currentClassAtom,
   currentScheduleAtom,
+  currentSchoolAtom,
   currentTeacherAtom,
   lessonProgressAtom,
+  metaDataAtom,
+  studentsListAtom,
   teachersListAtom,
   updateMetaDataAtom,
 } from '@/store/atoms'
@@ -22,44 +28,45 @@ import { checkScheduledClass } from '@/utils/dateTime'
 
 function handleError(setError: (message: string) => void, message: string) {
   setError(message)
-  // Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error) // Commented out - unused
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
 }
 
 export default function QRScanScreen() {
   const router = useRouter()
-  // const { colors } = useColorScheme() // Commented out - unused
+  const { colors } = useColorScheme()
   const [showScanner, setShowScanner] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
-  // const [networkTestPassed, setNetworkTestPassed] = useState<boolean | null>(null) // Commented out - unused
-  // const [networkTesting, startTransition] = useTransition() // Commented out - unused
+  const [networkTestPassed, setNetworkTestPassed] = useState<boolean | null>(null)
+  const [networkTesting, setNetworkTesting] = useState(false)
 
   const teachers = useAtomValue(teachersListAtom)
   const schedules = useAtomValue(classScheduleAtom)
+  const currentSchool = useAtomValue(currentSchoolAtom)
   const currentClass = useAtomValue(currentClassAtom)
   const currentTeacher = useAtomValue(currentTeacherAtom)
-  const currentSchedule = useAtomValue(currentScheduleAtom)
-  const lessonProgress = useAtomValue(lessonProgressAtom)
   const updateMetaData = useSetAtom(updateMetaDataAtom)
   const setLessonProgress = useSetAtom(lessonProgressAtom)
   const setCurrentTeacher = useSetAtom(currentTeacherAtom)
   const setCurrentSchedule = useSetAtom(currentScheduleAtom)
+  const metaData = useAtomValue(metaDataAtom)
 
-  const { fetchSchoolYearAndSemester } = useSchoolYear()
+  // const { fetchSchoolYearAndSemester } = useSchoolYear()
+  const { validate, validationResult: _validationResult } = useMetadataValidation()
 
   const [scanAnimation] = useState(new Animated.Value(0))
   const [fadeAnimation] = useState(new Animated.Value(1))
+  const [citationAnimation] = useState(new Animated.Value(0))
 
-  // ! TODO: Remove - Simulation variables commented out
-  // const [isSimulatingClassAssignment, setIsSimulatingClassAssignment] = useState(false)
-  // const [isSimulatingScan, setIsSimulatingScan] = useState(false)
-  // const setCurrentClass = useSetAtom(currentClassAtom) // Commented out - unused
-  // const setCurrentSchool = useSetAtom(currentSchoolAtom) // Commented out - unused
-  // const setStudentsList = useSetAtom(studentsListAtom) // Commented out - unused
-  // const setTeachersList = useSetAtom(teachersListAtom) // Commented out - unused
-  // const setClassScheduleList = useSetAtom(classScheduleAtom) // Commented out - unused
-  // const { getSchoolById } = useSchool() // Commented out - unused
-  // const { fetchClassDetails } = useClass() // Commented out - unused
+  // ! TODO: Remove
+  const [isSimulatingClassAssignment, setIsSimulatingClassAssignment] = useState(false)
+  const [isSimulatingScan, setIsSimulatingScan] = useState(false)
+  const setCurrentClass = useSetAtom(currentClassAtom)
+  const setCurrentSchool = useSetAtom(currentSchoolAtom)
+  const setStudentsList = useSetAtom(studentsListAtom)
+  const setTeachersList = useSetAtom(teachersListAtom)
+  const setClassScheduleList = useSetAtom(classScheduleAtom)
+  const { getSchoolById } = useSchool()
+  const { fetchClassDetails } = useClass()
   const { getLessonProgress } = useLessonProgress()
 
   useEffect(() => {
@@ -69,36 +76,44 @@ export default function QRScanScreen() {
         Animated.timing(scanAnimation, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ]),
     ).start()
-  }, [scanAnimation])
 
-  // ! TODO: Remove - Simulation function commented out
-  // const handleSaveConfig = async () => {
-  //   // setIsSimulatingClassAssignment(true) // Commented out - unused
-  //   setError(null)
-  //   try {
-  //     const school = await getSchoolById('ed85f4e4-5133-4270-b52d-795c6e65c0f0')
-  //     const classDetails = await fetchClassDetails('c1d2e3f4-a5b6-4f7c-8d9e-0f1a2b3c4d5e')
+    // Entrance animation for citation
+    Animated.timing(citationAnimation, {
+      toValue: 1,
+      duration: 800,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start()
+  }, [scanAnimation, citationAnimation])
 
-  //     if (school && classDetails) {
-  //       setCurrentClass(classDetails.class)
-  //       setCurrentSchool(school)
-  //       setStudentsList(classDetails.students)
-  //       setTeachersList(classDetails.teachers)
-  //       setClassScheduleList(classDetails.schedules)
-  //       updateMetaData({ schoolId: school.id, classId: classDetails.class.id })
-  //       await fetchSchoolYearAndSemester()
-  //     }
-  //     else {
-  //       throw new Error('Erreur lors de l\'assignation de la classe')
-  //     }
-  //   }
-  //   catch {
-  //     handleError(setError, 'Erreur lors de l\'assignation de la classe')
-  //   }
-  //   finally {
-  //     // setIsSimulatingClassAssignment(false) // Commented out - unused
-  //   }
-  // }
+  // ! TODO: Remove
+  const handleSaveConfig = async () => {
+    setIsSimulatingClassAssignment(true)
+    setError(null)
+    try {
+      const school = await getSchoolById('ed85f4e4-5133-4270-b52d-795c6e65c0f0')
+      const classDetails = await fetchClassDetails('c1d2e3f4-a5b6-4f7c-8d9e-0f1a2b3c4d5e')
+
+      if (school && classDetails) {
+        setCurrentClass(classDetails.class)
+        setCurrentSchool(school)
+        setStudentsList(classDetails.students)
+        setTeachersList(classDetails.teachers)
+        setClassScheduleList(classDetails.schedules)
+        updateMetaData({ schoolId: school.id, classId: classDetails.class.id })
+        // await fetchSchoolYearAndSemester()
+      }
+      else {
+        throw new Error('Erreur lors de l\'assignation de la classe')
+      }
+    }
+    catch {
+      handleError(setError, 'Erreur lors de l\'assignation de la classe')
+    }
+    finally {
+      setIsSimulatingClassAssignment(false)
+    }
+  }
 
   const validateQRCodeData = (data: string): [string, string, string?] | null => {
     const parts = data.split('|---|')
@@ -106,7 +121,7 @@ export default function QRScanScreen() {
   }
 
   const handleDirectorScan = async (schoolId: string) => {
-    // await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) // Commented out - unused
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     router.navigate({
       pathname: '/(auth)/login',
       params: { role: UserRoleText.DIRECTOR, schoolId },
@@ -128,16 +143,53 @@ export default function QRScanScreen() {
 
     setCurrentTeacher(teacher)
     setCurrentSchedule(schedule)
-    await fetchSchoolYearAndSemester()
-    updateMetaData({ teacherId: teacher.id, subjectId: schedule.subjectId })
-
-    const lessonProgress = await getLessonProgress(currentClass!.id, schedule.subjectId)
+    // await fetchSchoolYearAndSemester()
+    const lessonProgress = await getLessonProgress(currentClass!.id, schedule.subjectId, currentSchool!.id, metaData!.schoolYearId!)
     if (lessonProgress) {
       setLessonProgress(lessonProgress)
     }
 
-    // await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) // Commented out - unused
-    setShowWelcomeModal(true)
+    updateMetaData({ teacherId: teacher.id, subjectId: schedule.subjectId })
+
+    // Enhanced validation after metadata update
+    const { isValid, missingFields, errorMessage } = validate(undefined, true)
+
+    if (!isValid) {
+      console.error('[SECURITY_CHECK] Metadata validation failed:', {
+        missingFields,
+        errorMessage,
+        teacherId: teacher.id,
+        subjectId: schedule.subjectId,
+        classId: currentClass?.id,
+      })
+      return handleError(
+        setError,
+        'Veuillez scanner un nouveau QR Code ou contacter l\'administration',
+      )
+    }
+
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+
+    // Navigate to welcome modal only if metadata is valid
+    if (currentTeacher && isValid) {
+      router.push({
+        pathname: '/(auth)/welcome-modal',
+        params: {
+          teacher: JSON.stringify(currentTeacher),
+          schedule: JSON.stringify(schedule),
+          lessonProgress: lessonProgress ? JSON.stringify(lessonProgress) : undefined,
+          onContinuePath: '/(teacher)/attendance',
+          onContinueParams: JSON.stringify({
+            teacherId: currentTeacher.id,
+            classId: currentClass!.id,
+            scheduleId: schedule.id,
+          }),
+        },
+      })
+    }
+    else {
+      handleError(setError, 'Erreur de validation des métadonnées. Veuillez réessayer.')
+    }
   }
 
   const handleQRScan = async (data: string) => {
@@ -160,35 +212,20 @@ export default function QRScanScreen() {
     }
   }
 
-  const handleContinue = () => {
-    setShowWelcomeModal(false)
-    if (currentTeacher && currentSchedule && currentClass) {
-      router.replace({
-        pathname: '/(teacher)/attendance',
-        params: {
-          teacherId: currentTeacher.id,
-          classId: currentClass.id,
-          scheduleId: currentSchedule.id,
-        },
-      })
+  const handleNetworkTest = async () => {
+    setNetworkTesting(true)
+    setNetworkTestPassed(null)
+    const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
+    if (error) {
+      console.error('[E_ATTENDANCE_CREATE]:', error)
+      setNetworkTestPassed(false)
     }
+    else { setNetworkTestPassed(true) }
+    setNetworkTesting(false)
   }
 
-  // const handleNetworkTest = () => { // Commented out - unused
-  //   // startTransition( // Commented out - unused
-  //   //   async () => {
-  //   //     setNetworkTestPassed(null)
-  //   //     const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
-  //   //     if (error) {
-  //   //       setNetworkTestPassed(false)
-  //   //     }
-  //   //     else { setNetworkTestPassed(true) }
-  //   //   },
-  //   // )
-  // }
-
   const toggleScanner = () => {
-    // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) // Commented out - unused
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     Animated.timing(fadeAnimation, {
       toValue: showScanner ? 1 : 0,
       duration: 300,
@@ -218,19 +255,19 @@ export default function QRScanScreen() {
             <Text>{showScanner ? 'Retour' : 'Appuyer pour scanner'}</Text>
           </Button>
 
-          {/* TODO: Remove later - Test and Simulation buttons commented out
+          {/* TODO: Remove later */}
           <View className="mt-10">
             <Button
               size="lg"
               variant="tonal"
               onPress={async () => {
-                // setIsSimulatingScan(true) // Commented out - unused
+                setIsSimulatingScan(true)
                 await handleQRScan(
                   'teacher|---|ed85f4e4-5133-4270-b52d-795c6e65c0f0|---|46cf18f8-1608-4fac-859b-f6ffb9e2f4ce',
                 )
-                // setIsSimulatingScan(false) // Commented out - unused
+                setIsSimulatingScan(false)
               }}
-              // disabled={isSimulatingScan} // Commented out - unused
+              disabled={isSimulatingScan}
             >
               <View className="flex flex-row gap-x-2 items-center">
                 <Icon name="scanner" size={20} color={colors.foreground} />
@@ -241,7 +278,7 @@ export default function QRScanScreen() {
               size="lg"
               variant="tonal"
               onPress={async () => await handleSaveConfig()}
-              // disabled={isSimulatingClassAssignment} // Commented out - unused
+              disabled={isSimulatingClassAssignment}
               className="mt-2"
             >
               <View className="flex flex-row gap-x-2 items-center">
@@ -255,13 +292,13 @@ export default function QRScanScreen() {
               onPress={handleNetworkTest}
               className={cn(
                 'mt-10',
-                // networkTestPassed === null // Commented out - unused
-                //   ? ''
-                //   : networkTestPassed === true
-                //     ? 'bg-emerald-600'
-                //     : 'bg-red-600',
+                networkTestPassed === null
+                  ? ''
+                  : networkTestPassed === true
+                    ? 'bg-emerald-600'
+                    : 'bg-red-600',
               )}
-              // disabled={networkTesting} // Commented out - unused
+              disabled={networkTesting}
             >
               <View className="flex flex-row gap-x-2 items-center">
                 <Icon name="medal" size={20} color={colors.foreground} />
@@ -269,41 +306,65 @@ export default function QRScanScreen() {
               </View>
             </Button>
           </View>
-          */}
 
           <View className="mt-4" />
 
           <ThemeToggle />
         </View>
+
+        {showScanner && (
+          <Animated.View
+            className="absolute inset-0"
+            style={{
+              transform: [{
+                scale: scanAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] }),
+              }],
+            }}
+          >
+            <QRScanner
+              isVisible={showScanner}
+              onScan={handleQRScan}
+              onClose={toggleScanner}
+              errorMessage={error}
+            />
+          </Animated.View>
+        )}
+
       </Animated.View>
 
-      {showScanner && (
-        <Animated.View
-          className="absolute inset-0"
-          style={{
-            transform: [{
-              scale: scanAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] }),
-            }],
-          }}
-        >
-          <QRScanner
-            isVisible={showScanner}
-            onScan={handleQRScan}
-            onClose={toggleScanner}
-            errorMessage={error}
-          />
-        </Animated.View>
-      )}
-
-      {currentTeacher && currentSchedule && (
-        <WelcomeModal
-          teacher={currentTeacher}
-          schedule={currentSchedule}
-          isVisible={showWelcomeModal}
-          lessonProgress={lessonProgress}
-          onContinue={handleContinue}
-        />
-      )}
+      {/* Enhanced citation-style display with refined design */}
+      <Animated.View
+        className="absolute bottom-0 left-0 right-0 p-6"
+        style={{
+          opacity: citationAnimation,
+          transform: [{
+            translateY: citationAnimation.interpolate({
+              inputRange: [0, 1],
+              outputRange: [20, 0],
+            }),
+          }],
+        }}
+      >
+        <View className="bg-card/90 backdrop-blur-md rounded-3xl p-5 border border-border/30 shadow-2xl">
+          <View className="flex-row items-center justify-center">
+            <View className="flex-row items-center bg-primary/10 rounded-full px-3 py-1.5 mr-3">
+              <Icon name="home" size={14} color={colors.primary} />
+            </View>
+            <View className="flex-1">
+              <Text variant="footnote" color="muted" className="text-center font-medium">
+                {(currentSchool && currentClass?.name)
+                  ? `Tablette de la classe "${currentClass.name}"`
+                  : 'Cette tablette doit être assignée à une classe'}
+              </Text>
+              {(currentSchool && currentClass?.name) && (
+                <Text variant="caption2" color="muted" className="text-center mt-0.5 opacity-70">
+                  Prête pour l'utilisation
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </Animated.View>
     </View>
   )
 }

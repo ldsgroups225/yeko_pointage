@@ -14,9 +14,11 @@ export const lessonProgressService = {
  *
  * @param {string} classId - The ID of the class.
  * @param {string} subjectId - The ID of the subject.
+ * @param {string} schoolId - The ID of the school.
+ * @param {string} schoolYearId - The ID of the school year.
  * @returns {Promise<LessonProgress | null>} The lesson progress for the class/subject.
  */
-  async getLessonProgress(classId: string, subjectId: string): Promise<LessonProgress | null> {
+  async getLessonProgress(classId: string, subjectId: string, schoolId: string, schoolYearId: number): Promise<LessonProgress | null> {
     const { data, error } = await supabase
       .from('lessons_progress_reports')
       .select(`
@@ -24,11 +26,16 @@ export const lessonProgressService = {
       config:lessons_progress_reports_config!inner (
         id,
         lesson,
-        sessions_count
+        subject_id,
+        sessions_count,
+        school_id,
+        school_year_id
       )
     `)
-      .eq('class_id', classId)
+      .eq('config.school_id', schoolId)
+      .eq('config.school_year_id', schoolYearId)
       .eq('config.subject_id', subjectId)
+      .eq('class_id', classId)
       .eq('is_completed', false)
       .order('lesson_order', { referencedTable: 'config' })
       .limit(1)
