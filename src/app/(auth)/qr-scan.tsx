@@ -7,8 +7,7 @@ import { Animated, Easing, Image, View } from 'react-native'
 import { Button, Text, ThemeToggle } from '@/components/nativeui'
 import { QRScanner } from '@/components/QRScanner'
 
-import { useClass, useLessonProgress, useSchool } from '@/hooks'
-import { useSchoolYear } from '@/hooks/useSchoolYear'
+import { useClass, useLessonProgress, useMetadataValidation, useSchool } from '@/hooks'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useColorScheme } from '@/lib/useColorScheme'
@@ -19,6 +18,7 @@ import {
   currentSchoolAtom,
   currentTeacherAtom,
   lessonProgressAtom,
+  metaDataAtom,
   studentsListAtom,
   teachersListAtom,
   updateMetaDataAtom,
@@ -41,17 +41,21 @@ export default function QRScanScreen() {
 
   const teachers = useAtomValue(teachersListAtom)
   const schedules = useAtomValue(classScheduleAtom)
+  const currentSchool = useAtomValue(currentSchoolAtom)
   const currentClass = useAtomValue(currentClassAtom)
   const currentTeacher = useAtomValue(currentTeacherAtom)
   const updateMetaData = useSetAtom(updateMetaDataAtom)
   const setLessonProgress = useSetAtom(lessonProgressAtom)
   const setCurrentTeacher = useSetAtom(currentTeacherAtom)
   const setCurrentSchedule = useSetAtom(currentScheduleAtom)
+  const metaData = useAtomValue(metaDataAtom)
 
-  const { fetchSchoolYearAndSemester } = useSchoolYear()
+  // const { fetchSchoolYearAndSemester } = useSchoolYear()
+  const { validate, validationResult: _validationResult } = useMetadataValidation()
 
   const [scanAnimation] = useState(new Animated.Value(0))
   const [fadeAnimation] = useState(new Animated.Value(1))
+  const [citationAnimation] = useState(new Animated.Value(0))
 
   // ! TODO: Remove
   const [isSimulatingClassAssignment, setIsSimulatingClassAssignment] = useState(false)
@@ -72,7 +76,15 @@ export default function QRScanScreen() {
         Animated.timing(scanAnimation, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ]),
     ).start()
-  }, [scanAnimation])
+
+    // Entrance animation for citation
+    Animated.timing(citationAnimation, {
+      toValue: 1,
+      duration: 800,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start()
+  }, [scanAnimation, citationAnimation])
 
   // ! TODO: Remove
   const handleSaveConfig = async () => {
@@ -89,7 +101,7 @@ export default function QRScanScreen() {
         setTeachersList(classDetails.teachers)
         setClassScheduleList(classDetails.schedules)
         updateMetaData({ schoolId: school.id, classId: classDetails.class.id })
-        await fetchSchoolYearAndSemester()
+        // await fetchSchoolYearAndSemester()
       }
       else {
         throw new Error('Erreur lors de l\'assignation de la classe')
@@ -131,18 +143,35 @@ export default function QRScanScreen() {
 
     setCurrentTeacher(teacher)
     setCurrentSchedule(schedule)
-    await fetchSchoolYearAndSemester()
-    updateMetaData({ teacherId: teacher.id, subjectId: schedule.subjectId })
-
-    const lessonProgress = await getLessonProgress(currentClass!.id, schedule.subjectId)
+    // await fetchSchoolYearAndSemester()
+    const lessonProgress = await getLessonProgress(currentClass!.id, schedule.subjectId, currentSchool!.id, metaData!.schoolYearId!)
     if (lessonProgress) {
       setLessonProgress(lessonProgress)
     }
 
+    updateMetaData({ teacherId: teacher.id, subjectId: schedule.subjectId })
+
+    // Enhanced validation after metadata update
+    const { isValid, missingFields, errorMessage } = validate(undefined, true)
+
+    if (!isValid) {
+      console.error('[SECURITY_CHECK] Metadata validation failed:', {
+        missingFields,
+        errorMessage,
+        teacherId: teacher.id,
+        subjectId: schedule.subjectId,
+        classId: currentClass?.id,
+      })
+      return handleError(
+        setError,
+        'Veuillez scanner un nouveau QR Code ou contacter l\'administration',
+      )
+    }
+
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
 
-    // Navigate to welcome modal
-    if (currentTeacher) {
+    // Navigate to welcome modal only if metadata is valid
+    if (currentTeacher && isValid) {
       router.push({
         pathname: '/(auth)/welcome-modal',
         params: {
@@ -157,6 +186,9 @@ export default function QRScanScreen() {
           }),
         },
       })
+    }
+    else {
+      handleError(setError, 'Erreur de validation des métadonnées. Veuillez réessayer.')
     }
   }
 
@@ -185,6 +217,7 @@ export default function QRScanScreen() {
     setNetworkTestPassed(null)
     const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
     if (error) {
+      console.error('[E_ATTENDANCE_CREATE]:', error)
       setNetworkTestPassed(false)
     }
     else { setNetworkTestPassed(true) }
@@ -278,26 +311,60 @@ export default function QRScanScreen() {
 
           <ThemeToggle />
         </View>
+
+        {showScanner && (
+          <Animated.View
+            className="absolute inset-0"
+            style={{
+              transform: [{
+                scale: scanAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] }),
+              }],
+            }}
+          >
+            <QRScanner
+              isVisible={showScanner}
+              onScan={handleQRScan}
+              onClose={toggleScanner}
+              errorMessage={error}
+            />
+          </Animated.View>
+        )}
+
       </Animated.View>
 
-      {showScanner && (
-        <Animated.View
-          className="absolute inset-0"
-          style={{
-            transform: [{
-              scale: scanAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] }),
-            }],
-          }}
-        >
-          <QRScanner
-            isVisible={showScanner}
-            onScan={handleQRScan}
-            onClose={toggleScanner}
-            errorMessage={error}
-          />
-        </Animated.View>
-      )}
-
+      {/* Enhanced citation-style display with refined design */}
+      <Animated.View
+        className="absolute bottom-0 left-0 right-0 p-6"
+        style={{
+          opacity: citationAnimation,
+          transform: [{
+            translateY: citationAnimation.interpolate({
+              inputRange: [0, 1],
+              outputRange: [20, 0],
+            }),
+          }],
+        }}
+      >
+        <View className="bg-card/90 backdrop-blur-md rounded-3xl p-5 border border-border/30 shadow-2xl">
+          <View className="flex-row items-center justify-center">
+            <View className="flex-row items-center bg-primary/10 rounded-full px-3 py-1.5 mr-3">
+              <Icon name="home" size={14} color={colors.primary} />
+            </View>
+            <View className="flex-1">
+              <Text variant="footnote" color="muted" className="text-center font-medium">
+                {(currentSchool && currentClass?.name)
+                  ? `Tablette de la classe "${currentClass.name}"`
+                  : 'Cette tablette doit être assignée à une classe'}
+              </Text>
+              {(currentSchool && currentClass?.name) && (
+                <Text variant="caption2" color="muted" className="text-center mt-0.5 opacity-70">
+                  Prête pour l'utilisation
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </Animated.View>
     </View>
   )
 }

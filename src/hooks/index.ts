@@ -10,10 +10,12 @@ import { useHomework } from './useHomework'
 
 import { useLessonProgress } from './useLessonProgress'
 
+import { useMetadataValidation } from './useMetadataValidation'
 // Offline Synchronization Hook
 import { useOfflineSync } from './useOfflineSync'
 import { useParticipation } from './useParticipation'
 import { useSchool } from './useSchool'
+import { useSchoolYear } from './useSchoolYear'
 
 // Exporting All Hooks
 export {
@@ -22,7 +24,9 @@ export {
   useClass,
   useHomework,
   useLessonProgress,
+  useMetadataValidation,
   useOfflineSync,
   useParticipation,
   useSchool,
+  useSchoolYear,
 }

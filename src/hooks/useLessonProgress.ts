@@ -10,7 +10,7 @@ interface UpdateProgressParams {
 }
 
 interface UseLessonProgressReturn {
-  getLessonProgress: (classId: string, subjectId: string) => Promise<LessonProgress | null>
+  getLessonProgress: (classId: string, subjectId: string, schoolId: string, schoolYearId: number) => Promise<LessonProgress | null>
   updateProgress: (params: UpdateProgressParams) => Promise<any>
   loading: boolean
   error: string | null
@@ -20,10 +20,10 @@ export function useLessonProgress(): UseLessonProgressReturn {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const getLessonProgress = async (classId: string, subjectId: string) => {
+  const getLessonProgress = async (classId: string, subjectId: string, schoolId: string, schoolYearId: number) => {
     setLoading(true)
     setError(null)
-    const result = await lessonProgressService.getLessonProgress(classId, subjectId)
+    const result = await lessonProgressService.getLessonProgress(classId, subjectId, schoolId, schoolYearId)
     setLoading(false)
     return result
   }

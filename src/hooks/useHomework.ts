@@ -20,21 +20,11 @@ export function useHomework(): UseHomeworkReturn {
     setLoading(true)
     setError(null)
     try {
-      if (
-        !metaData?.schoolId
-        || !metaData.semesterId
-        || !metaData.schoolYearId
-      ) {
-        throw new Error(
-          'Metadata is incomplete for creating participation note.',
-        )
-      }
-
-      await homework.createHomework(homeworkData, metaData)
+      await homework.createHomework(homeworkData, metaData!)
     }
     catch (err) {
       console.error('[E_CREATE_HOMEWORK]:', err)
-      setError('Failed to create homework record.')
+      setError('Erreur lors de la création de l\'exercice de maison')
       throw err
     }
     finally {
