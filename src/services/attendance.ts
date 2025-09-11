@@ -33,13 +33,14 @@ export const attendance = {
     const formattedData = attendanceDataArray.map(a => ({
       school_years_id: metaData.schoolYearId!,
       semesters_id: metaData.semesterId!,
-      class_id: metaData.classId!,
       subject_id: metaData.subjectId!,
+      school_id: metaData.schoolId!,
+      class_id: metaData.classId!,
       student_id: a.studentId,
       starts_at: a.startTime,
-      ends_at: getEndTime(a.startTime, a.endTime, a.status),
-      status: a.status,
       is_excused: false,
+      status: a.status,
+      ends_at: getEndTime(a.startTime, a.endTime, a.status),
     } satisfies AttendanceInsert))
 
     try {
