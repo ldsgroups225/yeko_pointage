@@ -76,7 +76,6 @@ export function useSessionFinalization() {
       const mutationPromises: Promise<any>[] = []
 
       // Attendance Promise (only submits students who were not present)
-      console.warn('currentAttendanceSession', JSON.stringify(currentAttendanceSession, null, 2))
       if (currentAttendanceSession.records.length > 0) {
         mutationPromises.push(
           createAttendances(currentAttendanceSession.records),

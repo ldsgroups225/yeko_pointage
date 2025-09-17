@@ -5,13 +5,13 @@ import { supabase, USERS_TABLE_ID } from '@/lib/supabase'
 import { auth } from '@/services/auth'
 import { currentSchoolAtom, metaDataAtom } from '@/store/atoms'
 import { ERole } from '@/types/enums'
-import { formatRoleInfo, validateRoleAssignment } from '@/utils/roleManagement'
 
 interface UseAuthReturn {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<User | null>
+  login: (email: string, password: string) => Promise<{ userId: string, schools: { id: string, name: string }[] }>
   logout: () => Promise<void>
+  selectSchool: (schoolId: string) => void
   invalidateRoleCache: () => void
   hasMultipleSchools: boolean
 }
@@ -36,7 +36,6 @@ export function useAuth(): UseAuthReturn {
 
   // Cache invalidation function
   const invalidateRoleCache = useCallback(() => {
-    console.warn('[AUTH] Manually invalidating role cache')
     setRoleCache(null)
   }, [])
 
@@ -45,54 +44,43 @@ export function useAuth(): UseAuthReturn {
     ? new Set(roleCache.roles.map(role => role.school_id || 'global')).size > 1
     : false
 
-  const getUserRole = useCallback(
-    (userRoles: { role_id: number, school_id: string | null }[]): 'director' | 'teacher' => {
+  const getUserRoleAndSchools = useCallback(
+    (userRoles: { role_id: number, school_id: string | null }[]) => {
       if (!userRoles || userRoles.length === 0) {
-        throw new Error('User roles not found')
+        throw new Error('Vous n\'êtes pas de la plateforme')
       }
 
-      // Enhanced multi-school support with detailed logging
-      const rolesBySchool = userRoles.reduce((acc, role) => {
-        const schoolId = role.school_id || 'global'
-        if (!acc[schoolId])
-          acc[schoolId] = []
-        acc[schoolId].push(role.role_id)
-        return acc
-      }, {} as Record<string, number[]>)
+      // Separate director and teacher roles
+      const directorRoles = userRoles.filter(role => role.role_id === ERole.DIRECTOR)
+      const teacherRoles = userRoles.filter(role => role.role_id === ERole.TEACHER)
 
-      console.warn('[AUTH] User roles by school:', rolesBySchool)
-      console.warn('[AUTH] Total roles found:', userRoles.length)
-      console.warn('[AUTH] Role summary:', formatRoleInfo(userRoles))
-
-      // Validate role assignment
-      const validation = validateRoleAssignment(userRoles)
-      if (!validation.isValid) {
-        console.error('[AUTH] Invalid role assignment:', validation.errors)
-        throw new Error(`Invalid role assignment: ${validation.errors.join(', ')}`)
+      // If user has director roles, prioritize them
+      if (directorRoles.length > 0) {
+        return {
+          role: 'director' as const,
+          schools: directorRoles
+            .filter(role => role.school_id !== null)
+            .map(role => ({
+              id: role.school_id!,
+              name: '', // We'll fetch the school name when needed
+            })),
+        }
       }
 
-      const rolesSet = new Set(userRoles.map(({ role_id }) => role_id))
-
-      // Priority: Director role takes precedence over Teacher role
-      if (rolesSet.has(ERole.DIRECTOR)) {
-        const directorSchools = userRoles
-          .filter(role => role.role_id === ERole.DIRECTOR)
-          .map(role => role.school_id || 'global')
-        console.warn('[AUTH] Director role found in schools:', directorSchools)
-        return 'director'
+      // Fall back to teacher role if no director roles found
+      if (teacherRoles.length > 0) {
+        return {
+          role: 'teacher' as const,
+          schools: teacherRoles
+            .filter(role => role.school_id !== null)
+            .map(role => ({
+              id: role.school_id!,
+              name: '',
+            })),
+        }
       }
 
-      if (rolesSet.has(ERole.TEACHER)) {
-        const teacherSchools = userRoles
-          .filter(role => role.role_id === ERole.TEACHER)
-          .map(role => role.school_id || 'global')
-        console.warn('[AUTH] Teacher role found in schools:', teacherSchools)
-        return 'teacher'
-      }
-
-      throw new Error(
-        'Unauthorized: User must have either a Director or Teacher role',
-      )
+      throw new Error('Vous n\'êtes pas autorisé à accéder à la plateforme')
     },
     [],
   )
@@ -117,11 +105,12 @@ export function useAuth(): UseAuthReturn {
         roleCache
         && roleCache.userId === session.user.id
         && (now - roleCache.timestamp) < CACHE_DURATION
-        && roleCache.schoolId === tabletSchoolId // Cache invalidated if school context changes
+        && roleCache.schoolId === tabletSchoolId
       ) {
-        console.warn('[AUTH] Using cached role data')
-        const userRole = getUserRole(roleCache.roles)
-        const schoolId = userRole === 'director' ? undefined : tabletSchoolId || roleCache.schoolId
+        const { role: userRole } = getUserRoleAndSchools(roleCache.roles)
+        const schoolId = userRole === 'director'
+          ? roleCache.roles.find(r => r.role_id === ERole.DIRECTOR)?.school_id || undefined
+          : tabletSchoolId || roleCache.schoolId
 
         const cachedUser: User = {
           id: session.user.id,
@@ -144,33 +133,35 @@ export function useAuth(): UseAuthReturn {
         throw new Error('User data or roles not found')
       }
 
-      // For directors, schoolId should be undefined (tablet assignment provides context)
-      // For teachers, prioritize school context from Jotai (tablet assignment) over database
-      const userRole = getUserRole(data.user_roles)
-      const getSchoolIdForRole = () => {
-        if (userRole === 'director') {
-          return undefined // Directors get school context via tablet assignment
-        }
+      // Get user role and associated schools
+      const { role: userRole, schools } = getUserRoleAndSchools(data.user_roles)
 
-        // For teachers: Tablet context (Jotai) takes priority over database roles
-        const tabletSchoolId = metaData?.schoolId || currentSchool?.id
-        if (tabletSchoolId) {
-          console.warn('[AUTH] Using tablet-assigned school context:', tabletSchoolId)
-          return tabletSchoolId
+      // For directors, handle school selection
+      let schoolId: string | undefined
+      if (userRole === 'director') {
+        if (schools.length === 1) {
+          // If only one school, automatically select it
+          schoolId = schools[0].id
         }
-
-        // Fallback to user_roles school_id from database
-        const dbSchoolId = data.user_roles.find(role => role.school_id)?.school_id
-        if (dbSchoolId) {
-          console.warn('[AUTH] Using database school context:', dbSchoolId)
-          return dbSchoolId
+        else if (schools.length > 1) {
+          // If multiple schools, we'll handle the selection in the UI
+          // Return a user object with role but no schoolId
+          const userWithoutSchool: User = {
+            id: data.id,
+            email: data.email,
+            role: userRole,
+            requiresSchoolSelection: true,
+            availableSchools: schools,
+          }
+          setUser(userWithoutSchool)
+          return userWithoutSchool
         }
-
-        console.warn('[AUTH] No school context found for teacher')
-        return undefined
       }
-
-      const schoolId = getSchoolIdForRole()
+      else {
+        // For teachers, use tablet context or first available school
+        const tabletSchoolId = metaData?.schoolId || currentSchool?.id
+        schoolId = tabletSchoolId || (schools.length > 0 ? schools[0].id : undefined)
+      }
 
       const newUser: User = {
         id: data.id,
@@ -187,8 +178,6 @@ export function useAuth(): UseAuthReturn {
         schoolId: tabletSchoolId,
       })
 
-      console.warn('[AUTH] Role cache updated for user:', data.id)
-
       setUser(newUser)
       return newUser
     }
@@ -197,32 +186,98 @@ export function useAuth(): UseAuthReturn {
       setUser(null)
       return null
     }
-    finally {
-      setLoading(false)
-    }
-  }, [getUserRole])
+  }, [getUserRoleAndSchools])
 
   useEffect(() => {
-    checkAuth().then(r => r)
-  }, [])
+    const initAuth = async () => {
+      try {
+        await checkAuth()
+      }
+      catch (error) {
+        console.error('Error during auth initialization:', error)
+        setUser(null)
+      }
+      finally {
+        setLoading(false)
+      }
+    }
+
+    initAuth()
+  }, [checkAuth])
 
   const login = useCallback(
     async (email: string, password: string) => {
+      setLoading(true)
       try {
-        await auth.loginWithEmailAndPassword(email, password)
-        return await checkAuth()
+        const userId = await auth.loginWithEmailAndPassword(email, password)
+
+        // Get user data with roles to determine available schools
+        const { data } = await supabase
+          .from(USERS_TABLE_ID)
+          .select('id, email, user_roles(role_id, school_id, schools(name))')
+          .eq('id', userId)
+          .single()
+
+        if (!data?.user_roles) {
+          throw new Error('No roles found for user')
+        }
+
+        // Process user roles and schools
+        const { role: userRole, schools: userSchools } = getUserRoleAndSchools(data.user_roles)
+
+        // If user is a director with exactly one school, automatically select it
+        if (userRole === 'director' && userSchools.length === 1) {
+          const newUser: User = {
+            id: data.id,
+            email: data.email,
+            role: 'director',
+            schoolId: userSchools[0].id,
+          }
+          setUser(newUser)
+          return { userId, schools: userSchools }
+        }
+
+        // If user is a director with multiple schools, return them for selection
+        if (userRole === 'director' && userSchools.length > 1) {
+          const userWithoutSchool: User = {
+            id: data.id,
+            email: data.email,
+            role: 'director',
+            requiresSchoolSelection: true,
+            availableSchools: userSchools,
+          }
+          setUser(userWithoutSchool)
+          return { userId, schools: userSchools }
+        }
+
+        // For teachers, use the first available school
+        if (userRole === 'teacher' && userSchools.length > 0) {
+          const newUser: User = {
+            id: data.id,
+            email: data.email,
+            role: 'teacher',
+            schoolId: userSchools[0].id,
+          }
+          setUser(newUser)
+          return { userId, schools: userSchools }
+        }
+
+        throw new Error('No valid school assignment found for user')
       }
       catch (error) {
         console.error('[E_LOGIN]:', error)
+        setUser(null)
         throw error
       }
+      finally {
+        setLoading(false)
+      }
     },
-    [checkAuth],
+    [],
   )
 
   const logout = useCallback(async () => {
     try {
-      console.warn('[AUTH] Logging out and clearing cache')
       await auth.deleteSession()
       setUser(null)
       setRoleCache(null) // Clear role cache on logout
@@ -233,11 +288,33 @@ export function useAuth(): UseAuthReturn {
     }
   }, [])
 
+  // Function to handle school selection for directors
+  const selectSchool = useCallback((schoolId: string) => {
+    if (!user)
+      return
+
+    setUser({
+      ...user,
+      schoolId,
+      requiresSchoolSelection: false,
+    })
+
+    // Update role cache with the selected school
+    if (roleCache) {
+      setRoleCache({
+        ...roleCache,
+        schoolId,
+        timestamp: Date.now(),
+      })
+    }
+  }, [user, roleCache])
+
   return {
     user,
     loading,
     login,
     logout,
+    selectSchool,
     invalidateRoleCache,
     hasMultipleSchools,
   }

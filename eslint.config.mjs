@@ -45,6 +45,7 @@ export default antfu(
     },
     rules: {
       'react-native/no-unused-styles': 'off',
+      'node/prefer-global/process': 'off',
       'react-native/no-inline-styles': 'warn',
       'react-native/no-color-literals': 'warn',
       'react/jsx-uses-vars': 'error',

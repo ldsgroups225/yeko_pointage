@@ -3,6 +3,11 @@ export interface User {
   email: string
   role: 'director' | 'teacher'
   schoolId?: string
+  requiresSchoolSelection?: boolean
+  availableSchools?: Array<{
+    id: string
+    name: string
+  }>
   createAt?: string
   updateAt?: string
 }

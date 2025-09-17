@@ -150,4 +150,19 @@ export const school = {
       return false
     }
   },
+
+  async getUserSchoolsAssignedAsDirector(userId: string): Promise<{ id: string, name: string }[]> {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('school_id, schools(id, name)')
+      .eq('user_id', userId)
+      .eq('role_id', ERole.DIRECTOR)
+
+    if (error) {
+      console.error('Error getting user schools assigned as director:', error)
+      return []
+    }
+
+    return data.map(({ school_id, schools }) => ({ id: school_id ?? '', name: schools?.name ?? '' }))
+  },
 }

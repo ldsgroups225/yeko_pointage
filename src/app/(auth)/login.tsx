@@ -1,27 +1,29 @@
-import type { UserRoleText } from '@/types'
+import type { School } from '@/types'
 import { Icon } from '@roninoss/icons'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import { useRouter } from 'expo-router'
+import React, { useCallback, useState } from 'react'
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native'
+import GoogleSignInButton from '@/components/GoogleSignInButton'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { Button, Form, FormItem, FormSection, Text, TextField } from '@/components/nativeui'
+import { SchoolSelectionModal } from '@/components/SchoolSelectionModal'
 import { useAuth, useSchool } from '@/hooks'
+import { useGoogleAuthSimple } from '@/hooks/useGoogleAuth'
 import { useColorScheme } from '@/lib/useColorScheme'
 
 export default function LoginScreen() {
   const { login, logout } = useAuth()
   const { verifyDirectorAccess } = useSchool()
+  const { googleSignIn } = useGoogleAuthSimple()
   const router = useRouter()
   const { colors } = useColorScheme()
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [credentials, setCredentials] = useState({ email: '', password: '' })
-
-  const { schoolId } = useLocalSearchParams<{
-    role: UserRoleText
-    schoolId: string
-  }>()
+  const [showSchoolModal, setShowSchoolModal] = useState(false)
+  const [availableSchools, setAvailableSchools] = useState<School[]>([])
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null)
 
   const styles = StyleSheet.create({
     keyboardAvoiding: {
@@ -38,13 +40,34 @@ export default function LoginScreen() {
     setIsLoading(true)
     setError(null)
     try {
-      const user = await login(credentials.email, credentials.password)
+      const { userId, schools } = await login(credentials.email, credentials.password)
 
-      if (!user || !user.id) {
+      if (!userId || !schools.length) {
         throw new Error('Échec d\'authentification')
       }
 
-      const isDirector = await verifyDirectorAccess(user.id, schoolId)
+      let isDirector = false
+      let selectedSchoolId = ''
+
+      if (schools.length === 1) {
+        selectedSchoolId = schools[0].id
+        isDirector = await verifyDirectorAccess(userId, selectedSchoolId)
+      }
+      else {
+        // Show school selection modal
+        // Map the schools to include required School type properties with default values
+        const mappedSchools = schools.map(school => ({
+          id: school.id,
+          name: school.name,
+          cycleId: '', // We'll fetch this when needed
+          code: '', // Default empty code
+          imageUrl: '', // Default empty image URL
+        }))
+        setAvailableSchools(mappedSchools)
+        setPendingUserId(userId)
+        setShowSchoolModal(true)
+        return // Exit early, will continue after school selection
+      }
 
       if (isDirector) {
         router.replace('/(director)/configure-tablet')
@@ -58,6 +81,87 @@ export default function LoginScreen() {
       await logout()
       console.error('[E_LOGIN]:', err)
       setError(err instanceof Error ? err.message : 'Email ou mot de passe incorrect.')
+    }
+    finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSchoolSelect = useCallback(async (schoolId: string) => {
+    try {
+      setShowSchoolModal(false)
+      setIsLoading(true)
+      setError(null)
+
+      if (!pendingUserId) {
+        throw new Error('User ID not found')
+      }
+
+      const isDirector = await verifyDirectorAccess(pendingUserId, schoolId)
+
+      if (isDirector) {
+        router.replace('/(director)/configure-tablet')
+      }
+      else {
+        await logout()
+        setError('Vous n\'avez pas la permission pour cette école.')
+      }
+    }
+    catch (err) {
+      console.error('[E_SCHOOL_SELECT]:', err)
+      setError('Erreur lors de la sélection de l\'école.')
+      await logout()
+    }
+    finally {
+      setIsLoading(false)
+      setPendingUserId(null)
+    }
+  }, [pendingUserId, router, verifyDirectorAccess, logout])
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const { userId, schools } = await googleSignIn()
+
+      if (!userId || !schools.length) {
+        throw new Error('Échec d\'authentification avec Google')
+      }
+
+      let isDirector = false
+      let selectedSchoolId = ''
+
+      if (schools.length === 1) {
+        selectedSchoolId = schools[0].id
+        isDirector = await verifyDirectorAccess(userId, selectedSchoolId)
+      }
+      else {
+        // Show school selection modal
+        const mappedSchools = schools.map(school => ({
+          id: school.id,
+          name: school.name,
+          cycleId: '',
+          code: '',
+          imageUrl: '',
+        }))
+        setAvailableSchools(mappedSchools)
+        setPendingUserId(userId)
+        setShowSchoolModal(true)
+        return // Exit early, will continue after school selection
+      }
+
+      if (isDirector) {
+        router.replace('/(director)/configure-tablet')
+      }
+      else {
+        await logout()
+        throw new Error('Vous n\'avez pas la permission')
+      }
+    }
+    catch (err) {
+      await logout()
+      console.error('[E_GOOGLE_LOGIN]:', err)
+      setError(err instanceof Error ? err.message : 'Erreur de connexion avec Google.')
     }
     finally {
       setIsLoading(false)
@@ -124,7 +228,31 @@ export default function LoginScreen() {
         <Button size="lg" className="mt-8" onPress={handleLogin}>
           <Text>Se connecter</Text>
         </Button>
+
+        <View className="my-6 flex-row items-center">
+          <View className="flex-1 h-px bg-gray-300 dark:bg-gray-600" />
+          <Text className="mx-4 text-gray-500 dark:text-gray-400">ou</Text>
+          <View className="flex-1 h-px bg-gray-300 dark:bg-gray-600" />
+        </View>
+
+        <GoogleSignInButton
+          mode="signin"
+          size="large"
+          onPress={handleGoogleLogin}
+          loading={isLoading}
+        />
       </ScrollView>
+
+      <SchoolSelectionModal
+        visible={showSchoolModal}
+        schools={availableSchools}
+        onSelectSchool={handleSchoolSelect}
+        onClose={() => {
+          setShowSchoolModal(false)
+          setPendingUserId(null)
+          void logout()
+        }}
+      />
     </KeyboardAvoidingView>
   )
 }

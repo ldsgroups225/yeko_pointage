@@ -1,3 +1,4 @@
+import type { ClassSchedule } from '@/types'
 import { Icon } from '@roninoss/icons'
 import * as Haptics from 'expo-haptics'
 import { useRouter } from 'expo-router'
@@ -5,8 +6,8 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
 import { Animated, Easing, Image, View } from 'react-native'
 import { Button, Text, ThemeToggle } from '@/components/nativeui'
-import { QRScanner } from '@/components/QRScanner'
 
+import { QRScanner } from '@/components/QRScanner'
 import { useClass, useLessonProgress, useMetadataValidation, useSchool } from '@/hooks'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
@@ -136,20 +137,20 @@ export default function QRScanScreen() {
 
     const defaultNoTeachingSchedule = 'Vous n\'avez pas de cours actuellement dans cette classe'
 
-    const schedule = checkScheduledClass(userId, schedules, defaultNoTeachingSchedule)
+    const schedule = checkScheduledClass(schedules, new Date(), userId, defaultNoTeachingSchedule)
     if (!schedule) {
       return handleError(setError, defaultNoTeachingSchedule)
     }
 
     setCurrentTeacher(teacher)
-    setCurrentSchedule(schedule)
+    setCurrentSchedule(schedule as ClassSchedule)
     // await fetchSchoolYearAndSemester()
-    const lessonProgress = await getLessonProgress(currentClass!.id, schedule.subjectId, currentSchool!.id, metaData!.schoolYearId!)
+    const lessonProgress = await getLessonProgress(currentClass!.id, (schedule as ClassSchedule).subjectId, currentSchool!.id, metaData!.schoolYearId!)
     if (lessonProgress) {
       setLessonProgress(lessonProgress)
     }
 
-    updateMetaData({ teacherId: teacher.id, subjectId: schedule.subjectId })
+    updateMetaData({ teacherId: teacher.id, subjectId: (schedule as ClassSchedule).subjectId })
 
     // Enhanced validation after metadata update
     const { isValid, missingFields, errorMessage } = validate(undefined, true)
@@ -159,7 +160,7 @@ export default function QRScanScreen() {
         missingFields,
         errorMessage,
         teacherId: teacher.id,
-        subjectId: schedule.subjectId,
+        subjectId: (schedule as ClassSchedule).subjectId,
         classId: currentClass?.id,
       })
       return handleError(
@@ -182,7 +183,7 @@ export default function QRScanScreen() {
           onContinueParams: JSON.stringify({
             teacherId: currentTeacher.id,
             classId: currentClass!.id,
-            scheduleId: schedule.id,
+            scheduleId: (schedule as ClassSchedule).id,
           }),
         },
       })

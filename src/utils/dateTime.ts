@@ -146,9 +146,10 @@ export function extractHourAndMinute(dateString: string): string {
  * Checks if the current time falls within a teacher's scheduled class.
  *
  * @template T - The type of the schedule object.
- * @param {string} userId - The ID of the teacher.
  * @param {Array<T>} schedules - The list of schedules to check against.
- * @param {string} [customMessage] - An optional custom message to display if no class is scheduled at the current time.
+ * @param {Date} currentTime - The current time.
+ * @param {string} userId - The ID of the teacher.
+ * @param {string} [_customMessage] - An optional custom message to display if no class is scheduled at the current time.
  * @returns {T|null} The schedule object if a class is scheduled at the current time, or null if no schedule is found, with a message if provided.
  */
 export function checkScheduledClass<
@@ -158,7 +159,7 @@ export function checkScheduledClass<
     startTime: string
     endTime: string
   },
->(userId: string, schedules: T[], customMessage?: string): T | null {
+>(schedules: T[], currentTime: Date, userId: string, _customMessage?: string): T | null {
   const schedule = schedules.find((s) => {
     const startTime = parse(
       extractHourAndMinute(s.startTime),
@@ -181,10 +182,7 @@ export function checkScheduledClass<
   })
 
   if (!schedule) {
-    const message
-      = customMessage
-        || 'Vous n\'avez pas de cours prévu avec cette classe pour le moment.'
-    console.warn(message)
+    // No schedule found for the current time
     return null
   }
 

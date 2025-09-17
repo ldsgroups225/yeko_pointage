@@ -1,7 +1,6 @@
 import type {
   AuthError,
   AuthResponse,
-  AuthTokenResponsePassword,
   Session,
 } from '@supabase/auth-js'
 import { supabase } from '@/lib/supabase'
@@ -35,9 +34,12 @@ export const auth = {
   async loginWithEmailAndPassword(
     email: string,
     password: string,
-  ): Promise<AuthTokenResponsePassword> {
+  ): Promise<string> {
     try {
-      return await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error)
+        throw error
+      return data.session?.user?.id ?? ''
     }
     catch (error) {
       console.error('Error creating session:', error)
