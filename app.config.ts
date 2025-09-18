@@ -43,6 +43,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         iosUrlScheme: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
       },
     ],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          usesCleartextTraffic: true,
+        },
+      },
+    ],
   ],
   extra: {
     router: {},

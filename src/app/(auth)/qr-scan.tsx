@@ -218,7 +218,7 @@ export default function QRScanScreen() {
     setNetworkTestPassed(null)
     const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
     if (error) {
-      console.error('[E_ATTENDANCE_CREATE]:', error)
+      console.error('[E_FETCH_USER]:', error)
       setNetworkTestPassed(false)
     }
     else { setNetworkTestPassed(true) }
