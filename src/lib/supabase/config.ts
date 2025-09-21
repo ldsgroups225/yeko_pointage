@@ -8,10 +8,6 @@ import 'react-native-url-polyfill/auto'
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_KEY || ''
 
-// Diagnostic log to ensure the keys are loaded correctly
-console.log('Supabase URL:', supabaseUrl ? `URL Loaded` + ` ${supabaseUrl}` : 'URL MISSING')
-console.log('Supabase supabaseAnonKey:', supabaseAnonKey ? `Key Loaded` + ` ${supabaseAnonKey}` : 'Key MISSING')
-
 // Better put your these secret keys in .env file
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {

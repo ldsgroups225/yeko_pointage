@@ -46,8 +46,6 @@ export const lessonProgressService = {
       .limit(1)
       .maybeSingle()
 
-    console.log({ data, error })
-
     if (error) {
       console.error('Error fetching lesson progress:', error)
       return null

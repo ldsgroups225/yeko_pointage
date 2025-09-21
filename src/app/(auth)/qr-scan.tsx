@@ -8,9 +8,10 @@ import { Animated, Easing, Image, View } from 'react-native'
 import { Button, Text, ThemeToggle } from '@/components/nativeui'
 
 import { QRScanner } from '@/components/QRScanner'
-import { useClass, useLessonProgress, useMetadataValidation, useSchool, useSchoolYear } from '@/hooks'
-import { cn } from '@/lib/cn'
-import { supabase } from '@/lib/supabase'
+import { useLessonProgress, useMetadataValidation, useSchoolYear } from '@/hooks'
+// import { cn } from '@/lib/cn'
+// import { supabase } from '@/lib/supabase'
+// import { useClass, useSchool } from '@/hooks'
 import { useColorScheme } from '@/lib/useColorScheme'
 import {
   classScheduleAtom,
@@ -20,7 +21,7 @@ import {
   currentTeacherAtom,
   lessonProgressAtom,
   metaDataAtom,
-  studentsListAtom,
+  // studentsListAtom, // Only used for simulation
   teachersListAtom,
   updateMetaDataAtom,
 } from '@/store/atoms'
@@ -37,8 +38,8 @@ export default function QRScanScreen() {
   const { colors } = useColorScheme()
   const [showScanner, setShowScanner] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [networkTestPassed, setNetworkTestPassed] = useState<boolean | null>(null)
-  const [networkTesting, setNetworkTesting] = useState(false)
+  // const [networkTestPassed, setNetworkTestPassed] = useState<boolean | null>(null)
+  // const [networkTesting, setNetworkTesting] = useState(false)
 
   const teachers = useAtomValue(teachersListAtom)
   const schedules = useAtomValue(classScheduleAtom)
@@ -58,16 +59,16 @@ export default function QRScanScreen() {
   const [fadeAnimation] = useState(new Animated.Value(1))
   const [citationAnimation] = useState(new Animated.Value(0))
 
-  // ! TODO: Remove
-  const [isSimulatingClassAssignment, setIsSimulatingClassAssignment] = useState(false)
-  const [isSimulatingScan, setIsSimulatingScan] = useState(false)
-  const setCurrentClass = useSetAtom(currentClassAtom)
-  const setCurrentSchool = useSetAtom(currentSchoolAtom)
-  const setStudentsList = useSetAtom(studentsListAtom)
-  const setTeachersList = useSetAtom(teachersListAtom)
-  const setClassScheduleList = useSetAtom(classScheduleAtom)
-  const { getSchoolById } = useSchool()
-  const { fetchClassDetails } = useClass()
+  // ! TODO: Remove - SIMULATION CODE COMMENTED OUT
+  // const [isSimulatingClassAssignment, setIsSimulatingClassAssignment] = useState(false)
+  // const [isSimulatingScan, setIsSimulatingScan] = useState(false)
+  // const setCurrentClass = useSetAtom(currentClassAtom)
+  // const setCurrentSchool = useSetAtom(currentSchoolAtom)
+  // const setStudentsList = useSetAtom(studentsListAtom)
+  // const setTeachersList = useSetAtom(teachersListAtom)
+  // const setClassScheduleList = useSetAtom(classScheduleAtom)
+  // const { getSchoolById } = useSchool()
+  // const { fetchClassDetails } = useClass()
   const { fetchSchoolYearAndSemester } = useSchoolYear()
   const { getLessonProgress } = useLessonProgress()
 
@@ -88,34 +89,34 @@ export default function QRScanScreen() {
     }).start()
   }, [scanAnimation, citationAnimation])
 
-  // ! TODO: Remove
-  const handleSaveConfig = async () => {
-    setIsSimulatingClassAssignment(true)
-    setError(null)
-    try {
-      const school = await getSchoolById('ed85f4e4-5133-4270-b52d-795c6e65c0f0')
-      const classDetails = await fetchClassDetails('c1d2e3f4-a5b6-4f7c-8d9e-0f1a2b3c4d5e')
+  // ! TODO: Remove - SIMULATION FUNCTION COMMENTED OUT
+  // const handleSaveConfig = async () => {
+  //   setIsSimulatingClassAssignment(true)
+  //   setError(null)
+  //   try {
+  //     const school = await getSchoolById('ed85f4e4-5133-4270-b52d-795c6e65c0f0')
+  //     const classDetails = await fetchClassDetails('c1d2e3f4-a5b6-4f7c-8d9e-0f1a2b3c4d5e')
 
-      if (school && classDetails) {
-        setCurrentClass(classDetails.class)
-        setCurrentSchool(school)
-        setStudentsList(classDetails.students)
-        setTeachersList(classDetails.teachers)
-        setClassScheduleList(classDetails.schedules)
-        updateMetaData({ schoolId: school.id, classId: classDetails.class.id })
-        // await fetchSchoolYearAndSemester()
-      }
-      else {
-        throw new Error('Erreur lors de l\'assignation de la classe')
-      }
-    }
-    catch {
-      handleError(setError, 'Erreur lors de l\'assignation de la classe')
-    }
-    finally {
-      setIsSimulatingClassAssignment(false)
-    }
-  }
+  //     if (school && classDetails) {
+  //       setCurrentClass(classDetails.class)
+  //       setCurrentSchool(school)
+  //       setStudentsList(classDetails.students)
+  //       setTeachersList(classDetails.teachers)
+  //       setClassScheduleList(classDetails.schedules)
+  //       updateMetaData({ schoolId: school.id, classId: classDetails.class.id })
+  //       // await fetchSchoolYearAndSemester()
+  //     }
+  //     else {
+  //       throw new Error('Erreur lors de l\'assignation de la classe')
+  //     }
+  //   }
+  //   catch {
+  //     handleError(setError, 'Erreur lors de l\'assignation de la classe')
+  //   }
+  //   finally {
+  //     setIsSimulatingClassAssignment(false)
+  //   }
+  // }
 
   const validateQRCodeData = (data: string): [string, string, string?] | null => {
     const parts = data.split('|---|')
@@ -223,17 +224,18 @@ export default function QRScanScreen() {
     }
   }
 
-  const handleNetworkTest = async () => {
-    setNetworkTesting(true)
-    setNetworkTestPassed(null)
-    const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
-    if (error) {
-      console.error('[E_FETCH_USER]:', error)
-      setNetworkTestPassed(false)
-    }
-    else { setNetworkTestPassed(true) }
-    setNetworkTesting(false)
-  }
+  // NETWORK TEST FUNCTION COMMENTED OUT
+  // const handleNetworkTest = async () => {
+  //   setNetworkTesting(true)
+  //   setNetworkTestPassed(null)
+  //   const { error } = await supabase.from('users').select('*').eq('id', '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce').single()
+  //   if (error) {
+  //     console.error('[E_FETCH_USER]:', error)
+  //     setNetworkTestPassed(false)
+  //   }
+  //   else { setNetworkTestPassed(true) }
+  //   setNetworkTesting(false)
+  // }
 
   const toggleScanner = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -267,7 +269,7 @@ export default function QRScanScreen() {
           </Button>
 
           {/* TODO: Remove later */}
-          <View className="mt-10">
+          {/* <View className="mt-10">
             <Button
               size="lg"
               variant="tonal"
@@ -316,7 +318,7 @@ export default function QRScanScreen() {
                 <Text>Test</Text>
               </View>
             </Button>
-          </View>
+          </View> */}
 
           <View className="mt-4" />
 
