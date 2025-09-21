@@ -19,6 +19,11 @@ export const lessonProgressService = {
  * @returns {Promise<LessonProgress | null>} The lesson progress for the class/subject.
  */
   async getLessonProgress(classId: string, subjectId: string, schoolId: string, schoolYearId: number): Promise<LessonProgress | null> {
+    if (!classId || !subjectId || !schoolId || !schoolYearId) {
+      console.error('Error fetching lesson progress: Missing required IDs.', { classId, subjectId, schoolId, schoolYearId })
+      return null
+    }
+
     const { data, error } = await supabase
       .from('lessons_progress_reports')
       .select(`
@@ -40,6 +45,8 @@ export const lessonProgressService = {
       .order('lesson_order', { referencedTable: 'config' })
       .limit(1)
       .maybeSingle()
+
+    console.log({ data, error })
 
     if (error) {
       console.error('Error fetching lesson progress:', error)

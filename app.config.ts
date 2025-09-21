@@ -29,6 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.CAMERA',
       'android.permission.RECORD_AUDIO',
     ],
+    edgeToEdgeEnabled: true,
   },
   web: {
     favicon: './assets/images/favicon.png',

@@ -8,7 +8,7 @@ import { Animated, Easing, Image, View } from 'react-native'
 import { Button, Text, ThemeToggle } from '@/components/nativeui'
 
 import { QRScanner } from '@/components/QRScanner'
-import { useClass, useLessonProgress, useMetadataValidation, useSchool } from '@/hooks'
+import { useClass, useLessonProgress, useMetadataValidation, useSchool, useSchoolYear } from '@/hooks'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useColorScheme } from '@/lib/useColorScheme'
@@ -68,6 +68,7 @@ export default function QRScanScreen() {
   const setClassScheduleList = useSetAtom(classScheduleAtom)
   const { getSchoolById } = useSchool()
   const { fetchClassDetails } = useClass()
+  const { fetchSchoolYearAndSemester } = useSchoolYear()
   const { getLessonProgress } = useLessonProgress()
 
   useEffect(() => {
@@ -144,13 +145,22 @@ export default function QRScanScreen() {
 
     setCurrentTeacher(teacher)
     setCurrentSchedule(schedule as ClassSchedule)
-    // await fetchSchoolYearAndSemester()
+
+    // 1. Ensure School Year and Semester are fetched FIRST if they don't exist.
+    if (!metaData?.schoolYearId || !metaData.semesterId) {
+      await fetchSchoolYearAndSemester()
+    }
+
+    // 2. Update metadata with teacher and subject info.
+    // The `updateMetaDataAtom` is synchronous, so we can proceed immediately.
+    updateMetaData({ teacherId: teacher.id, subjectId: (schedule as ClassSchedule).subjectId })
+
+    // 3. Now that metadata is guaranteed to be updated, fetch lesson progress.
+    // We access the latest metadata state directly from the atom inside the service.
     const lessonProgress = await getLessonProgress(currentClass!.id, (schedule as ClassSchedule).subjectId, currentSchool!.id, metaData!.schoolYearId!)
     if (lessonProgress) {
       setLessonProgress(lessonProgress)
     }
-
-    updateMetaData({ teacherId: teacher.id, subjectId: (schedule as ClassSchedule).subjectId })
 
     // Enhanced validation after metadata update
     const { isValid, missingFields, errorMessage } = validate(undefined, true)
